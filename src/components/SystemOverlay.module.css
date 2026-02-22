@@ -45,6 +45,7 @@
   width: 100%;
   height: 20px;
   top: -10px;
+  z-index: 0;
 }
 
 .systemSeparatorLine {
@@ -56,6 +57,7 @@
   top: -1px;
   background: rgba(217, 100, 50, 0.5);
   transition: height 0.2s, background 0.2s;
+  z-index: 1;
 }
 
 .systemSeparator:hover .systemSeparatorLine {
@@ -68,6 +70,83 @@
   height: 5px;
   top: -2px;
   background: rgba(217, 100, 50, 0.9);
+}
+
+/* Focus-visible: keyboard focus ring */
+.systemSeparator:focus-visible {
+  outline: none;
+}
+
+.systemSeparator:focus-visible .systemSeparatorLine {
+  height: 5px;
+  top: -2px;
+  background: rgba(217, 100, 50, 0.9);
+  box-shadow: 0 0 0 2px rgba(217, 100, 50, 0.3);
+}
+
+/* Delete button on system separator */
+.deleteButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(217, 100, 50, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 2;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.deleteButtonLeft {
+  left: 10px;
+}
+
+.deleteButtonRight {
+  right: 10px;
+}
+
+.deleteButton:hover {
+  background: rgba(217, 83, 79, 0.15);
+  border-color: rgba(217, 83, 79, 0.8);
+}
+
+.deleteIcon {
+  width: 10px;
+  height: 10px;
+  position: relative;
+  pointer-events: none;
+}
+
+.deleteIcon::before,
+.deleteIcon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 1.5px;
+  background: rgba(217, 100, 50, 0.7);
+  transform-origin: center;
+}
+
+.deleteIcon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.deleteIcon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.deleteButton:hover .deleteIcon::before,
+.deleteButton:hover .deleteIcon::after {
+  background: rgba(217, 83, 79, 0.9);
 }
 
 /* Gap area between two systems for merge interaction */
