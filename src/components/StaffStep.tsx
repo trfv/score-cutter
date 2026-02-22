@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
@@ -87,21 +87,6 @@ export function StaffStep() {
     [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
-  // Del/Backspace key for separator deletion (merge adjacent staffs)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedSeparatorIndex !== null) {
-          handleMergeSeparator(selectedSeparatorIndex);
-          setSelectedSeparatorIndex(null);
-        }
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedSeparatorIndex, handleMergeSeparator]);
 
   const handlePrevPage = useCallback(() => {
     if (currentPageIndex > 0) {

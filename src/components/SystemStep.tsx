@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
@@ -6,7 +6,6 @@ import { PageCanvas } from './PageCanvas';
 import { SystemOverlay } from './SystemOverlay';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import {
-  computeSystemGroups,
   splitSystemAtGap,
   mergeAdjacentSystems,
   reassignStaffsByDrag,
@@ -44,9 +43,6 @@ export function SystemStep() {
 
   const handleDetect = useCallback(async () => {
     if (!pdfDocument) return;
-    if (staffs.length > 0) {
-      if (!window.confirm(t('detect.confirmOverwrite'))) return;
-    }
     setDetecting(true);
     setProgress({ completed: 0, total: pageCount });
 
@@ -130,7 +126,16 @@ export function SystemStep() {
       setDetecting(false);
       setProgress(null);
     }
-  }, [pdfDocument, pageCount, pageDimensions, staffs.length, t, dispatch]);
+  }, [pdfDocument, pageCount, pageDimensions, dispatch]);
+
+  // Auto-detect on mount when no staffs exist yet
+  const hasTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (pdfDocument && staffs.length === 0 && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+      handleDetect();
+    }
+  }, [pdfDocument, staffs.length, handleDetect]);
 
   const handleSystemSepDrag = useCallback(
     (systemSepIndex: number, newCanvasY: number) => {
@@ -160,27 +165,6 @@ export function SystemStep() {
     [staffs, currentPageIndex, dispatch],
   );
 
-  // Del/Backspace key for system separator deletion (merge adjacent systems)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (selectedSystemSepIndex !== null) {
-          const dim = pageDimensions[currentPageIndex];
-          if (!dim) return;
-          const pageStaffs = staffs.filter(s => s.pageIndex === currentPageIndex);
-          const groups = computeSystemGroups(pageStaffs, dim.height, effectiveScale);
-          if (selectedSystemSepIndex < groups.length - 1) {
-            handleMergeSystem(groups[selectedSystemSepIndex].systemIndex);
-          }
-          setSelectedSystemSepIndex(null);
-        }
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedSystemSepIndex, staffs, currentPageIndex, pageDimensions, effectiveScale, handleMergeSystem]);
 
   const handlePrevPage = useCallback(() => {
     if (currentPageIndex > 0) {
@@ -210,13 +194,6 @@ export function SystemStep() {
   return (
     <div className={styles.container}>
       <div className={styles.toolbar}>
-        <button onClick={handleDetect} disabled={detecting}>
-          {detecting
-            ? (progress
-              ? t('detect.progress', { completed: progress.completed, total: progress.total })
-              : t('detect.detecting'))
-            : t('detect.detectButton')}
-        </button>
         <div className={styles.pageNav}>
           <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
             &lt;
