@@ -182,6 +182,48 @@ export function mergeAdjacentSystems(staffs: Staff[], pageIndex: number, upperSy
   });
 }
 
+/**
+ * Reassign staffs between two adjacent systems based on a dragged separator position.
+ * systemSepIndex is the index into the list of system boundaries (gaps between systems).
+ * Staffs whose center (in canvas Y) is above newCanvasY stay in the upper system;
+ * those below move to the lower system.
+ */
+export function reassignStaffsByDrag(
+  staffs: Staff[],
+  pageIndex: number,
+  systemSepIndex: number,
+  newCanvasY: number,
+  pdfPageHeight: number,
+  scale: number,
+): Staff[] {
+  // Find all distinct systemIndex values on this page, sorted
+  const pageStaffs = staffs.filter(s => s.pageIndex === pageIndex);
+  const systemIndices = [...new Set(pageStaffs.map(s => s.systemIndex))].sort((a, b) => a - b);
+
+  if (systemSepIndex < 0 || systemSepIndex >= systemIndices.length - 1) return staffs;
+
+  const upperSysIdx = systemIndices[systemSepIndex];
+  const lowerSysIdx = systemIndices[systemSepIndex + 1];
+
+  return staffs.map(s => {
+    if (s.pageIndex !== pageIndex) return s;
+    if (s.systemIndex !== upperSysIdx && s.systemIndex !== lowerSysIdx) return s;
+
+    const centerCanvasY = (
+      pdfYToCanvasY(s.top, pdfPageHeight, scale) +
+      pdfYToCanvasY(s.bottom, pdfPageHeight, scale)
+    ) / 2;
+
+    if (centerCanvasY < newCanvasY) {
+      // Staff center is above the drag position → upper system
+      return { ...s, systemIndex: upperSysIdx };
+    } else {
+      // Staff center is at or below → lower system
+      return { ...s, systemIndex: lowerSysIdx };
+    }
+  });
+}
+
 export function applySeparatorDrag(
   staffs: Staff[],
   separatorIndex: number,
@@ -250,13 +292,34 @@ export function addStaffAtPosition(
     top = height;
   }
 
+  // Infer systemIndex from the nearest staff on the same page
+  const pageStaffs = staffs
+    .filter(s => s.pageIndex === pageIndex)
+    .sort((a, b) => b.top - a.top); // sorted top-to-bottom in PDF coords
+
+  let systemIndex = 0;
+  if (pageStaffs.length > 0) {
+    // Find the nearest staff by distance to pdfY center
+    let nearest = pageStaffs[0];
+    let minDist = Infinity;
+    for (const s of pageStaffs) {
+      const center = (s.top + s.bottom) / 2;
+      const dist = Math.abs(center - pdfY);
+      if (dist < minDist) {
+        minDist = dist;
+        nearest = s;
+      }
+    }
+    systemIndex = nearest.systemIndex;
+  }
+
   const newStaff: Staff = {
     id: crypto.randomUUID(),
     pageIndex,
     top,
     bottom,
     label: '',
-    systemIndex: 0,
+    systemIndex,
   };
 
   return [...staffs, newStaff];

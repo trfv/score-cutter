@@ -5,6 +5,7 @@ import {
   computeSystemGroups,
   splitSystemAtGap,
   mergeAdjacentSystems,
+  reassignStaffsByDrag,
   applySeparatorDrag,
   splitStaffAtPosition,
   mergeSeparator,
@@ -328,6 +329,69 @@ describe('separatorModel', () => {
     });
   });
 
+  describe('reassignStaffsByDrag', () => {
+    it('moves a staff to the upper system when dragged below its center', () => {
+      // System 0: staff a (top=700, bottom=600, center=650 → canvasY=(792-650)*scale)
+      // System 1: staff b (top=400, bottom=300, center=350 → canvasY=(792-350)*scale)
+      // System separator between them.
+      // Drag separator below staff b's center → b moves to system 0
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 400, bottom: 300, systemIndex: 1 }),
+      ];
+      // newCanvasY below b's center (canvas Y > center canvas Y means lower on screen)
+      const bCenterCanvasY = (PAGE_HEIGHT - 350) * SCALE;
+      const newCanvasY = bCenterCanvasY + 10;
+
+      const result = reassignStaffsByDrag(staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE);
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
+    });
+
+    it('moves a staff to the lower system when dragged above its center', () => {
+      // System 0: staff a (center=650) and staff b (center=450)
+      // Drag separator above staff b's center → b moves to system 1
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
+      ];
+      // Drag the separator between system 0 and system 1 (systemSepIndex=0)
+      // to above staff b's center
+      const bCenterCanvasY = (PAGE_HEIGHT - 450) * SCALE;
+      const newCanvasY = bCenterCanvasY - 10;
+
+      const result = reassignStaffsByDrag(staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE);
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
+    });
+
+    it('does nothing when drag stays between the same staffs', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 400, bottom: 300, systemIndex: 1 }),
+      ];
+      // Drag to midpoint between systems (no staff centers crossed)
+      const midCanvasY = (PAGE_HEIGHT - 500) * SCALE;
+
+      const result = reassignStaffsByDrag(staffs, 0, 0, midCanvasY, PAGE_HEIGHT, SCALE);
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+    });
+
+    it('returns unchanged when systemSepIndex is out of range', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+      ];
+      const result = reassignStaffsByDrag(staffs, 0, 5, 100, PAGE_HEIGHT, SCALE);
+      expect(result).toEqual(staffs);
+    });
+  });
+
   describe('applySeparatorDrag', () => {
     it('dragging internal separator updates both adjacent staffs', () => {
       const staffs = [
@@ -521,6 +585,36 @@ describe('separatorModel', () => {
     it('uses the correct pageIndex', () => {
       const result = addStaffAtPosition([], 3, 400, PAGE_HEIGHT);
       expect(result[0].pageIndex).toBe(3);
+    });
+
+    it('infers systemIndex from nearest staff above on the same page', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', pageIndex: 0, top: 400, bottom: 300, systemIndex: 1 }),
+      ];
+      // Add at pdfY=350, between b's top(400) and bottom(300) → nearest is b (system 1)
+      const result = addStaffAtPosition(staffs, 0, 250, PAGE_HEIGHT);
+      const added = result.find(s => s.id !== 'a' && s.id !== 'b')!;
+      expect(added.systemIndex).toBe(1);
+    });
+
+    it('infers systemIndex from nearest staff below when above the first staff', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 0, top: 500, bottom: 400, systemIndex: 2 }),
+      ];
+      // Add above existing staff
+      const result = addStaffAtPosition(staffs, 0, 700, PAGE_HEIGHT);
+      const added = result.find(s => s.id !== 'a')!;
+      expect(added.systemIndex).toBe(2);
+    });
+
+    it('defaults to systemIndex 0 when no staffs on the same page', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemIndex: 3 }),
+      ];
+      const result = addStaffAtPosition(staffs, 0, 400, PAGE_HEIGHT);
+      const added = result.find(s => s.id !== 'a')!;
+      expect(added.systemIndex).toBe(0);
     });
   });
 
