@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import type { Staff } from '../staffModel';
 import {
   computeSeparators,
+  computeSystemGroups,
+  splitSystemAtGap,
+  mergeAdjacentSystems,
   applySeparatorDrag,
   splitStaffAtPosition,
   mergeSeparator,
@@ -72,20 +75,23 @@ describe('separatorModel', () => {
       expect(result.separators[1].staffBelowId).toBe('b');
     });
 
-    it('returns part separator between staffs regardless of systemIndex', () => {
+    it('returns separate edge separators for staffs in different systems', () => {
       const staffs = [
         makeStaff({ id: 'a', top: 700, bottom: 500, systemIndex: 0 }),
         makeStaff({ id: 'b', top: 400, bottom: 200, systemIndex: 1 }),
       ];
       const result = computeSeparators(staffs, PAGE_HEIGHT, SCALE);
 
-      expect(result.separators).toHaveLength(3);
-      expect(result.separators[1].kind).toBe('part');
-      expect(result.separators[1].staffAboveId).toBe('a');
-      expect(result.separators[1].staffBelowId).toBe('b');
+      // System 0: edge(top-a), edge(bottom-a) = 2
+      // System 1: edge(top-b), edge(bottom-b) = 2
+      expect(result.separators).toHaveLength(4);
+      expect(result.separators[0].kind).toBe('edge');
+      expect(result.separators[1].kind).toBe('edge');
+      expect(result.separators[2].kind).toBe('edge');
+      expect(result.separators[3].kind).toBe('edge');
     });
 
-    it('handles 3 staffs across different systems as all part separators', () => {
+    it('handles 3 staffs across different systems with per-system separators', () => {
       const staffs = [
         makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
         makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
@@ -93,11 +99,14 @@ describe('separatorModel', () => {
       ];
       const result = computeSeparators(staffs, PAGE_HEIGHT, SCALE);
 
-      expect(result.separators).toHaveLength(4);
+      // System 0: edge(top-a), part(a-b), edge(bottom-b) = 3
+      // System 1: edge(top-c), edge(bottom-c) = 2
+      expect(result.separators).toHaveLength(5);
       expect(result.separators[0].kind).toBe('edge');   // top of a
       expect(result.separators[1].kind).toBe('part');    // between a and b
-      expect(result.separators[2].kind).toBe('part');    // between b and c
-      expect(result.separators[3].kind).toBe('edge');    // bottom of c
+      expect(result.separators[2].kind).toBe('edge');   // bottom of b
+      expect(result.separators[3].kind).toBe('edge');   // top of c
+      expect(result.separators[4].kind).toBe('edge');   // bottom of c
     });
 
     it('sorts staffs by visual position (top to bottom in canvas)', () => {
@@ -137,6 +146,185 @@ describe('separatorModel', () => {
 
       expect(result.regions[0].topCanvasY).toBeCloseTo(expectedTopY, 5);
       expect(result.regions[0].bottomCanvasY).toBeCloseTo(expectedBottomY, 5);
+    });
+  });
+
+  describe('computeSystemGroups', () => {
+    it('returns empty array for no staffs', () => {
+      const result = computeSystemGroups([], PAGE_HEIGHT, SCALE);
+      expect(result).toEqual([]);
+    });
+
+    it('returns one group for staffs in the same system', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].separators).toHaveLength(3); // edge, part, edge
+      expect(result[0].regions).toHaveLength(2);
+    });
+
+    it('returns separate groups for different systemIndex', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 400, bottom: 300, systemIndex: 1 }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      expect(result).toHaveLength(2);
+
+      // System 0
+      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].regions).toHaveLength(2);
+      expect(result[0].separators).toHaveLength(3); // edge, part, edge
+
+      // System 1
+      expect(result[1].systemIndex).toBe(1);
+      expect(result[1].regions).toHaveLength(1);
+      expect(result[1].separators).toHaveLength(2); // edge, edge
+    });
+
+    it('computes correct topCanvasY and bottomCanvasY for each group', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 400, bottom: 300, systemIndex: 1 }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      // System 0: top of staff a → bottom of staff a
+      expect(result[0].topCanvasY).toBeCloseTo((PAGE_HEIGHT - 700) * SCALE, 5);
+      expect(result[0].bottomCanvasY).toBeCloseTo((PAGE_HEIGHT - 600) * SCALE, 5);
+
+      // System 1: top of staff b → bottom of staff b
+      expect(result[1].topCanvasY).toBeCloseTo((PAGE_HEIGHT - 400) * SCALE, 5);
+      expect(result[1].bottomCanvasY).toBeCloseTo((PAGE_HEIGHT - 300) * SCALE, 5);
+    });
+
+    it('groups are sorted by systemIndex', () => {
+      const staffs = [
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      expect(result[0].systemIndex).toBe(0);
+      expect(result[1].systemIndex).toBe(1);
+    });
+
+    it('handles a single staff as one group', () => {
+      const staffs = [makeStaff({ id: 'a', top: 600, bottom: 400 })];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].separators).toHaveLength(2); // edge, edge
+      expect(result[0].regions).toHaveLength(1);
+    });
+  });
+
+  describe('splitSystemAtGap', () => {
+    it('splits a single system into two at the specified gap', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+      ];
+      const result = splitSystemAtGap(staffs, 'a', 'b');
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+    });
+
+    it('increments systemIndex of all staffs below the split', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 0 }),
+      ];
+      const result = splitSystemAtGap(staffs, 'a', 'b');
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
+    });
+
+    it('shifts subsequent systems when splitting', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
+      ];
+      const result = splitSystemAtGap(staffs, 'a', 'b');
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(2);
+    });
+
+    it('returns unchanged if staffAboveId not found', () => {
+      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 })];
+      const result = splitSystemAtGap(staffs, 'nonexistent', 'a');
+      expect(result).toEqual(staffs);
+    });
+
+    it('returns unchanged if staffs are in different systems', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
+      ];
+      const result = splitSystemAtGap(staffs, 'a', 'b');
+      expect(result).toEqual(staffs);
+    });
+  });
+
+  describe('mergeAdjacentSystems', () => {
+    it('merges two adjacent systems into one', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
+      ];
+      const result = mergeAdjacentSystems(staffs, 0, 0);
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
+    });
+
+    it('decrements subsequent systems after merge', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 2 }),
+      ];
+      const result = mergeAdjacentSystems(staffs, 0, 0);
+
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
+    });
+
+    it('only affects staffs on the specified page', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemIndex: 1 }),
+        makeStaff({ id: 'c', pageIndex: 1, top: 700, bottom: 600, systemIndex: 1 }),
+      ];
+      const result = mergeAdjacentSystems(staffs, 0, 0);
+
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
+      // Page 1 staff should be unchanged
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
+    });
+
+    it('returns unchanged if upperSystemIndex has no staffs', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+      ];
+      const result = mergeAdjacentSystems(staffs, 0, 5);
+      expect(result).toEqual(staffs);
     });
   });
 

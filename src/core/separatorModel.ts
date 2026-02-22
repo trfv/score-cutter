@@ -18,6 +18,14 @@ interface StaffRegion {
   systemIndex: number;
 }
 
+interface SystemGroup {
+  systemIndex: number;
+  topCanvasY: number;
+  bottomCanvasY: number;
+  separators: Separator[];
+  regions: StaffRegion[];
+}
+
 /**
  * Sort staffs by visual position (top to bottom on screen).
  * In PDF coords, higher top = higher on page = appears first visually.
@@ -28,66 +36,150 @@ function sortByVisualPosition(staffs: Staff[], pdfPageHeight: number, scale: num
   );
 }
 
+/**
+ * Group staffs by systemIndex and compute separators/regions per group.
+ * Each group gets its own edge separators at top/bottom and part separators between staffs.
+ */
+export function computeSystemGroups(
+  pageStaffs: Staff[],
+  pdfPageHeight: number,
+  scale: number,
+): SystemGroup[] {
+  if (pageStaffs.length === 0) return [];
+
+  // Group by systemIndex
+  const groupMap = new Map<number, Staff[]>();
+  for (const staff of pageStaffs) {
+    const group = groupMap.get(staff.systemIndex) ?? [];
+    group.push(staff);
+    groupMap.set(staff.systemIndex, group);
+  }
+
+  // Sort groups by systemIndex, then sort staffs within each group
+  const systemIndices = [...groupMap.keys()].sort((a, b) => a - b);
+
+  return systemIndices.map(sysIdx => {
+    const groupStaffs = sortByVisualPosition(groupMap.get(sysIdx)!, pdfPageHeight, scale);
+    const separators: Separator[] = [];
+    const regions: StaffRegion[] = [];
+
+    // Top edge
+    separators.push({
+      kind: 'edge',
+      canvasY: pdfYToCanvasY(groupStaffs[0].top, pdfPageHeight, scale),
+      staffAboveId: null,
+      staffBelowId: groupStaffs[0].id,
+    });
+
+    for (let i = 0; i < groupStaffs.length; i++) {
+      const staff = groupStaffs[i];
+
+      regions.push({
+        staffId: staff.id,
+        topCanvasY: pdfYToCanvasY(staff.top, pdfPageHeight, scale),
+        bottomCanvasY: pdfYToCanvasY(staff.bottom, pdfPageHeight, scale),
+        label: staff.label,
+        systemIndex: staff.systemIndex,
+      });
+
+      if (i < groupStaffs.length - 1) {
+        const next = groupStaffs[i + 1];
+        const bottomY = pdfYToCanvasY(staff.bottom, pdfPageHeight, scale);
+        const topY = pdfYToCanvasY(next.top, pdfPageHeight, scale);
+        separators.push({
+          kind: 'part',
+          canvasY: (bottomY + topY) / 2,
+          staffAboveId: staff.id,
+          staffBelowId: next.id,
+        });
+      }
+    }
+
+    // Bottom edge
+    const last = groupStaffs[groupStaffs.length - 1];
+    separators.push({
+      kind: 'edge',
+      canvasY: pdfYToCanvasY(last.bottom, pdfPageHeight, scale),
+      staffAboveId: last.id,
+      staffBelowId: null,
+    });
+
+    return {
+      systemIndex: sysIdx,
+      topCanvasY: pdfYToCanvasY(groupStaffs[0].top, pdfPageHeight, scale),
+      bottomCanvasY: pdfYToCanvasY(last.bottom, pdfPageHeight, scale),
+      separators,
+      regions,
+    };
+  });
+}
+
+/**
+ * Flat separator/region computation for backward compatibility.
+ * Delegates to computeSystemGroups and flattens the results.
+ */
 export function computeSeparators(
   pageStaffs: Staff[],
   pdfPageHeight: number,
   scale: number,
 ): { separators: Separator[]; regions: StaffRegion[] } {
-  if (pageStaffs.length === 0) {
-    return { separators: [], regions: [] };
-  }
+  const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale);
+  return {
+    separators: groups.flatMap(g => g.separators),
+    regions: groups.flatMap(g => g.regions),
+  };
+}
 
-  const sorted = sortByVisualPosition(pageStaffs, pdfPageHeight, scale);
-  const separators: Separator[] = [];
-  const regions: StaffRegion[] = [];
+/**
+ * Split a system at the gap between two adjacent staffs.
+ * staffAbove and staffBelow must be in the same system.
+ * staffBelow and all staffs below it in the same original system get systemIndex + 1.
+ * All staffs in subsequent systems also get their systemIndex incremented.
+ */
+export function splitSystemAtGap(staffs: Staff[], staffAboveId: string, staffBelowId: string): Staff[] {
+  const above = staffs.find(s => s.id === staffAboveId);
+  const below = staffs.find(s => s.id === staffBelowId);
+  if (!above || !below) return staffs;
+  if (above.systemIndex !== below.systemIndex) return staffs;
 
-  // Top edge separator
-  separators.push({
-    kind: 'edge',
-    canvasY: pdfYToCanvasY(sorted[0].top, pdfPageHeight, scale),
-    staffAboveId: null,
-    staffBelowId: sorted[0].id,
-  });
+  const splitSystemIdx = above.systemIndex;
 
-  for (let i = 0; i < sorted.length; i++) {
-    const staff = sorted[i];
+  // Determine which staffs in this system are "below" the split point.
+  // staffBelow and all staffs with top <= below.top in the same system.
+  const belowTop = below.top;
 
-    // Add region
-    regions.push({
-      staffId: staff.id,
-      topCanvasY: pdfYToCanvasY(staff.top, pdfPageHeight, scale),
-      bottomCanvasY: pdfYToCanvasY(staff.bottom, pdfPageHeight, scale),
-      label: staff.label,
-      systemIndex: staff.systemIndex,
-    });
-
-    // Add separator between this staff and the next
-    if (i < sorted.length - 1) {
-      const next = sorted[i + 1];
-      const kind: SeparatorKind = 'part';
-      // Use the boundary between bottom of current and top of next
-      // If they share a boundary, these are the same; otherwise use midpoint
-      const bottomY = pdfYToCanvasY(staff.bottom, pdfPageHeight, scale);
-      const topY = pdfYToCanvasY(next.top, pdfPageHeight, scale);
-      separators.push({
-        kind,
-        canvasY: (bottomY + topY) / 2,
-        staffAboveId: staff.id,
-        staffBelowId: next.id,
-      });
+  return staffs.map(s => {
+    if (s.systemIndex === splitSystemIdx && s.top <= belowTop) {
+      return { ...s, systemIndex: s.systemIndex + 1 };
     }
-  }
-
-  // Bottom edge separator
-  const last = sorted[sorted.length - 1];
-  separators.push({
-    kind: 'edge',
-    canvasY: pdfYToCanvasY(last.bottom, pdfPageHeight, scale),
-    staffAboveId: last.id,
-    staffBelowId: null,
+    if (s.systemIndex > splitSystemIdx) {
+      return { ...s, systemIndex: s.systemIndex + 1 };
+    }
+    return s;
   });
+}
 
-  return { separators, regions };
+/**
+ * Merge two adjacent systems on a page.
+ * All staffs in system upperSystemIndex + 1 get set to upperSystemIndex.
+ * Subsequent systems get decremented.
+ */
+export function mergeAdjacentSystems(staffs: Staff[], pageIndex: number, upperSystemIndex: number): Staff[] {
+  const lowerSystemIndex = upperSystemIndex + 1;
+  const hasUpper = staffs.some(s => s.pageIndex === pageIndex && s.systemIndex === upperSystemIndex);
+  const hasLower = staffs.some(s => s.pageIndex === pageIndex && s.systemIndex === lowerSystemIndex);
+  if (!hasUpper || !hasLower) return staffs;
+
+  return staffs.map(s => {
+    if (s.pageIndex !== pageIndex) return s;
+    if (s.systemIndex === lowerSystemIndex) {
+      return { ...s, systemIndex: upperSystemIndex };
+    }
+    if (s.systemIndex > lowerSystemIndex) {
+      return { ...s, systemIndex: s.systemIndex - 1 };
+    }
+    return s;
+  });
 }
 
 export function applySeparatorDrag(
