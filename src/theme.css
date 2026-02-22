@@ -1,0 +1,118 @@
+/* ===== Studio Console Theme — Design Tokens ===== */
+
+/* --- Dark theme (default) --- */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-deep: #0f1019;
+  --bg-surface: #1a1b2e;
+  --bg-elevated: #252640;
+  --text-primary: #e8e6f0;
+  --text-secondary: #8b89a0;
+  --text-muted: #5a586b;
+  --accent: #f4a261;
+  --accent-hover: #f6b87a;
+  --success: #4ade80;
+  --danger: #ef4444;
+  --info: #60a5fa;
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  --overlay-region-hover: rgba(255, 255, 255, 0.04);
+  --overlay-region-selected: rgba(244, 162, 97, 0.12);
+  --overlay-system-even: rgba(244, 162, 97, 0.06);
+  --overlay-system-odd: rgba(96, 165, 250, 0.06);
+  --overlay-separator: rgba(244, 162, 97, 0.5);
+  --overlay-separator-hover: rgba(244, 162, 97, 0.8);
+  --overlay-separator-active: rgba(244, 162, 97, 0.9);
+  --overlay-edge: rgba(255, 255, 255, 0.2);
+  --overlay-edge-hover: rgba(255, 255, 255, 0.35);
+  --overlay-label-bg: rgba(26, 27, 46, 0.85);
+  --overlay-delete-bg: rgba(26, 27, 46, 0.95);
+  --overlay-delete-border: rgba(244, 162, 97, 0.6);
+  --overlay-delete-hover-bg: rgba(60, 24, 24, 0.95);
+  --overlay-delete-hover-border: rgba(239, 68, 68, 0.9);
+  --overlay-delete-icon: rgba(244, 162, 97, 0.8);
+  --overlay-delete-icon-hover: rgba(239, 68, 68, 1);
+  --overlay-grip-border: rgba(244, 162, 97, 0.6);
+  --overlay-grip-icon: rgba(244, 162, 97, 0.7);
+  --overlay-staff-border: rgba(244, 162, 97, 0.3);
+  --overlay-staff-handle-hover: rgba(244, 162, 97, 0.3);
+
+  --progress-bg: rgba(255, 255, 255, 0.08);
+  --progress-overlay-bg: rgba(15, 16, 25, 0.7);
+}
+
+/* --- Light theme --- */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --bg-deep: #f0ede6;
+  --bg-surface: #faf8f4;
+  --bg-elevated: #ffffff;
+  --text-primary: #1a1a2e;
+  --text-secondary: #6b6980;
+  --text-muted: #9b99a8;
+  --accent: #f4a261;
+  --accent-hover: #e8944f;
+  --success: #4ade80;
+  --danger: #ef4444;
+  --info: #60a5fa;
+  --border: rgba(0, 0, 0, 0.1);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  --overlay-region-hover: rgba(0, 0, 0, 0.03);
+  --overlay-region-selected: rgba(244, 162, 97, 0.1);
+  --overlay-system-even: rgba(74, 144, 217, 0.06);
+  --overlay-system-odd: rgba(217, 144, 74, 0.06);
+  --overlay-separator: rgba(100, 100, 100, 0.5);
+  --overlay-separator-hover: rgba(100, 100, 100, 0.8);
+  --overlay-separator-active: rgba(244, 162, 97, 0.9);
+  --overlay-edge: rgba(100, 100, 100, 0.3);
+  --overlay-edge-hover: rgba(100, 100, 100, 0.5);
+  --overlay-label-bg: rgba(255, 255, 255, 0.85);
+  --overlay-delete-bg: rgba(255, 255, 255, 0.95);
+  --overlay-delete-border: rgba(100, 100, 100, 0.5);
+  --overlay-delete-hover-bg: rgba(255, 228, 228, 0.95);
+  --overlay-delete-hover-border: rgba(217, 83, 79, 0.9);
+  --overlay-delete-icon: rgba(100, 100, 100, 0.8);
+  --overlay-delete-icon-hover: rgba(217, 83, 79, 1);
+  --overlay-grip-border: rgba(100, 100, 100, 0.5);
+  --overlay-grip-icon: rgba(100, 100, 100, 0.6);
+  --overlay-staff-border: rgba(0, 0, 0, 0.3);
+  --overlay-staff-handle-hover: rgba(74, 144, 217, 0.3);
+
+  --progress-bg: #e0e0e0;
+  --progress-overlay-bg: rgba(255, 255, 255, 0.7);
+}
+
+/* --- Spacing scale (8px grid) --- */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+}
+
+/* --- Typography scale --- */
+:root {
+  --font-heading: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2rem;
+}
+
+/* --- Border radius scale --- */
+:root {
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}

@@ -13,11 +13,11 @@
 }
 
 .systemBackgroundEven {
-  background: rgba(74, 144, 217, 0.06);
+  background: var(--overlay-system-even);
 }
 
 .systemBackgroundOdd {
-  background: rgba(217, 144, 74, 0.06);
+  background: var(--overlay-system-odd);
 }
 
 .region {
@@ -29,11 +29,11 @@
 }
 
 .region:hover {
-  background: rgba(100, 100, 100, 0.05);
+  background: var(--overlay-region-hover);
 }
 
 .region.selected {
-  background: rgba(74, 144, 217, 0.1);
+  background: var(--overlay-region-selected);
 }
 
 .separator {
@@ -61,23 +61,23 @@
   transition: height 0.2s, background 0.2s, opacity 0.2s;
 }
 
-/* Part (internal) separator: solid gray */
+/* Part (internal) separator */
 .separatorPart .line {
   height: 2px;
   top: -0.5px;
-  background: rgba(100, 100, 100, 0.5);
+  background: var(--overlay-separator);
 }
 
 .separatorPart:hover .line {
   height: 3px;
   top: -1px;
-  background: rgba(100, 100, 100, 0.8);
+  background: var(--overlay-separator-hover);
 }
 
 .separatorPart.selectedSeparator .line {
   height: 4px;
   top: -1.5px;
-  background: rgba(74, 144, 217, 0.9);
+  background: var(--overlay-separator-active);
 }
 
 /* Focus-visible: keyboard focus ring */
@@ -88,35 +88,36 @@
 .separator:focus-visible .line {
   height: 4px;
   top: -1.5px;
-  background: rgba(74, 144, 217, 0.9);
-  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.3);
+  background: var(--overlay-separator-active);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.3);
 }
 
-/* Edge separator: faint gray */
+/* Edge separator */
 .separatorEdge .line {
   height: 2px;
   top: -0.5px;
-  background: rgba(100, 100, 100, 0.3);
+  background: var(--overlay-edge);
 }
 
 .separatorEdge:hover .line {
   height: 3px;
   top: -1px;
-  background: rgba(100, 100, 100, 0.5);
+  background: var(--overlay-edge-hover);
 }
 
 .label {
   position: absolute;
   left: 4px;
   top: 2px;
-  font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.8);
+  font-size: var(--text-xs);
+  background: var(--overlay-label-bg);
+  color: var(--text-secondary);
   padding: 1px 4px;
   border-radius: 2px;
   pointer-events: none;
 }
 
-/* Delete button: round circle at each end of separator */
+/* Delete button */
 .deleteButton {
   position: absolute;
   top: 50%;
@@ -124,8 +125,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1.5px solid rgba(100, 100, 100, 0.4);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid var(--overlay-delete-border);
+  background: var(--overlay-delete-bg);
   cursor: pointer;
   pointer-events: auto;
   display: flex;
@@ -141,8 +142,8 @@
 }
 
 .deleteButton:hover {
-  background: rgba(217, 83, 79, 0.15);
-  border-color: rgba(217, 83, 79, 0.8);
+  background: var(--overlay-delete-hover-bg);
+  border-color: var(--overlay-delete-hover-border);
 }
 
 .deleteIcon {
@@ -160,7 +161,7 @@
   top: 50%;
   width: 10px;
   height: 1.5px;
-  background: rgba(100, 100, 100, 0.7);
+  background: var(--overlay-delete-icon);
   transform-origin: center;
 }
 
@@ -174,10 +175,10 @@
 
 .deleteButton:hover .deleteIcon::before,
 .deleteButton:hover .deleteIcon::after {
-  background: rgba(217, 83, 79, 0.9);
+  background: var(--overlay-delete-icon-hover);
 }
 
-/* Drag grip handle: visual indicator on right side */
+/* Drag grip handle */
 .gripHandle {
   position: absolute;
   top: 50%;
@@ -186,8 +187,8 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1.5px solid rgba(100, 100, 100, 0.4);
-  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid var(--overlay-grip-border);
+  background: var(--overlay-delete-bg);
   cursor: ns-resize;
   pointer-events: none;
   display: flex;
@@ -200,23 +201,23 @@
 .gripIcon {
   width: 8px;
   height: 6px;
-  border-top: 1.5px solid rgba(100, 100, 100, 0.5);
-  border-bottom: 1.5px solid rgba(100, 100, 100, 0.5);
+  border-top: 1.5px solid var(--overlay-grip-icon);
+  border-bottom: 1.5px solid var(--overlay-grip-icon);
   pointer-events: none;
 }
 
 .separator:hover .gripHandle {
-  border-color: rgba(74, 144, 217, 0.6);
+  border-color: var(--overlay-separator-hover);
 }
 
 .separator:hover .gripIcon {
-  border-color: rgba(74, 144, 217, 0.7);
+  border-color: var(--overlay-separator-hover);
 }
 
 .selectedSeparator .gripHandle {
-  border-color: rgba(74, 144, 217, 0.8);
+  border-color: var(--overlay-separator-active);
 }
 
 .selectedSeparator .gripIcon {
-  border-color: rgba(74, 144, 217, 0.9);
+  border-color: var(--overlay-separator-active);
 }

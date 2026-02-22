@@ -68,6 +68,9 @@
     "next": "Next",
     "language": "Language",
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "themeToggle": "Toggle theme",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode"
   }
 }

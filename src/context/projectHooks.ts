@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ProjectContext, ProjectDispatchContext, UndoRedoContext } from './projectContextDefs';
+import { ProjectContext, ProjectDispatchContext } from './projectContextDefs';
 
 export function useProject() {
   return useContext(ProjectContext);
@@ -7,8 +7,4 @@ export function useProject() {
 
 export function useProjectDispatch() {
   return useContext(ProjectDispatchContext);
-}
-
-export function useUndoRedo() {
-  return useContext(UndoRedoContext);
 }

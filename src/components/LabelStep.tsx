@@ -1,25 +1,15 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useProject, useProjectDispatch, useUndoRedo } from '../context/projectHooks';
+import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
-import { StaffOverlay } from './StaffOverlay';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag } from '../core/separatorModel';
+import { ChevronLeft, ChevronRight } from './Icons';
 import styles from './LabelStep.module.css';
 
 const DISPLAY_DPI = 150;
 const DISPLAY_SCALE = getScale(DISPLAY_DPI);
-
-const COMMON_INSTRUMENTS = [
-  'Violin I', 'Violin II', 'Viola', 'Cello', 'Contrabass',
-  'Flute', 'Oboe', 'Clarinet', 'Bassoon',
-  'Horn', 'Trumpet', 'Trombone', 'Tuba',
-  'Timpani', 'Percussion',
-  'Soprano', 'Alto', 'Tenor', 'Bass',
-  'Piano', 'Organ', 'Harp',
-  'Basso continuo',
-];
 
 export function LabelStep() {
   const { t } = useTranslation();
@@ -28,19 +18,11 @@ export function LabelStep() {
   const [bitmapWidth, setBitmapWidth] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
-  const [filterText, setFilterText] = useState('');
 
-  const { canUndo: undoAvailable, canRedo: redoAvailable } = useUndoRedo();
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
 
   const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
   const effectiveScale = DISPLAY_SCALE * displayRatio;
-
-  const filteredInstruments = useMemo(() => {
-    if (!filterText) return COMMON_INSTRUMENTS;
-    const lower = filterText.toLowerCase();
-    return COMMON_INSTRUMENTS.filter((i) => i.toLowerCase().includes(lower));
-  }, [filterText]);
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
     setBitmapWidth(canvas.width);
@@ -126,12 +108,6 @@ export function LabelStep() {
     <div className={styles.container}>
       <div className={styles.toolbar}>
         <button onClick={handleApplyToAll}>{t('label.applyToAll')}</button>
-        <button onClick={() => dispatch({ type: 'UNDO' })} disabled={!undoAvailable}>
-          {t('common.undo')}
-        </button>
-        <button onClick={() => dispatch({ type: 'REDO' })} disabled={!redoAvailable}>
-          {t('common.redo')}
-        </button>
       </div>
 
       <div className={styles.content}>
@@ -147,24 +123,17 @@ export function LabelStep() {
                 type="text"
                 value={staff.label}
                 onChange={(e) => handleLabelChange(staff.id, e.target.value)}
-                onFocus={() => setFilterText(staff.label)}
                 placeholder={t('label.placeholder')}
                 className={styles.labelInput}
-                list="instrument-list"
               />
             </div>
           ))}
-          <datalist id="instrument-list">
-            {filteredInstruments.map((inst) => (
-              <option key={inst} value={inst} />
-            ))}
-          </datalist>
         </div>
 
         <div className={styles.canvasArea}>
           <div className={styles.pageNav}>
             <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-              &lt;
+              <ChevronLeft width={16} height={16} />
             </button>
             <span>
               {t('detect.page', {
@@ -173,7 +142,7 @@ export function LabelStep() {
               })}
             </span>
             <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-              &gt;
+              <ChevronRight width={16} height={16} />
             </button>
           </div>
           <div className={styles.canvasContainer}>
@@ -184,25 +153,16 @@ export function LabelStep() {
               onCanvasReady={handleCanvasReady}
             />
             {currentDimension && (
-              <>
-                <StaffOverlay
-                  staffs={staffs}
-                  pageIndex={currentPageIndex}
-                  pdfPageHeight={currentDimension.height}
-                  scale={effectiveScale}
-                  canvasWidth={canvasWidth}
-                />
-                <SeparatorOverlay
-                  staffs={staffs}
-                  pageIndex={currentPageIndex}
-                  pdfPageHeight={currentDimension.height}
-                  scale={effectiveScale}
-                  canvasWidth={canvasWidth}
-                  canvasHeight={canvasHeight}
-                  onSeparatorDrag={handleSeparatorDrag}
-                  dragOnly
-                />
-              </>
+              <SeparatorOverlay
+                staffs={staffs}
+                pageIndex={currentPageIndex}
+                pdfPageHeight={currentDimension.height}
+                scale={effectiveScale}
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+                onSeparatorDrag={handleSeparatorDrag}
+                dragOnly
+              />
             )}
           </div>
         </div>

@@ -12,12 +12,13 @@
 - 組段（System）境界の手動編集（分割：ダブルクリック、結合：区切り線ダブルクリック / Delete キー、ドラッグ移動）
 - 区切り線（Separator）のドラッグ操作・キーボード操作（Arrow キーで移動、Tab でフォーカス移動）による譜表境界の手動調整
 - 譜表の追加（空白部分ダブルクリック）、分割（譜表上ダブルクリック）、結合（区切り線ダブルクリック）、削除
-- 楽器名ラベル付け（オートコンプリート、1段目のパターンを全組段に一括適用）
+- 楽器名ラベル付け（1段目のパターンを全組段に一括適用）
 - パート別 PDF のリアルタイムプレビュー（組版済みPDFをCanvas描画）
 - パート別 PDF 生成・ダウンロード（ベクター品質を保持）
 - 全パート一括 ZIP ダウンロード
 - Undo/Redo（Ctrl+Z / Ctrl+Y）
 - Web Worker による並列検出処理
+- ダーク/ライトテーマ切替
 - 日本語・英語 UI 切替
 
 ## ワークフロー
@@ -40,7 +41,7 @@
 | 多言語対応 | react-i18next |
 | ID 生成 | uuid |
 | テスト | Vitest + React Testing Library + jsdom |
-| スタイリング | CSS Modules |
+| スタイリング | CSS Modules + CSS カスタムプロパティ (デザイントークン) |
 
 ## セットアップ
 
@@ -94,19 +95,20 @@ src/
     PageCanvas.tsx               #   PDF ページの Canvas レンダリング
     SystemOverlay.tsx            #   組段境界の可視化 + 分割・結合・ドラッグ
     SeparatorOverlay.tsx         #   譜表区切り線の可視化 + ドラッグ・分割・結合・削除
-    StaffOverlay.tsx             #   譜表領域のラベル色分け表示（Label ステップ用）
+    Icons.tsx                    #   SVG アイコンコンポーネント集
   hooks/                         # カスタムフック
     useUndoRedoKeyboard.ts       #   Ctrl+Z / Ctrl+Y キーボードショートカット
   context/                       # グローバル状態管理
     projectContextDefs.ts        #   型定義 (ProjectState, ProjectAction, WizardStep)
     ProjectContext.tsx            #   Provider + Reducer (useReducer + Undo/Redo)
-    projectHooks.ts              #   カスタムフック (useProject, useProjectDispatch, useUndoRedo)
+    projectHooks.ts              #   カスタムフック (useProject, useProjectDispatch)
   i18n/
     ja.json                      # 日本語翻訳
     en.json                      # 英語翻訳
     index.ts                     # i18n 初期設定
   App.tsx                        # ウィザード UI + ステップインジケーター
   App.module.css                 # App レイアウトスタイル
+  theme.css                      # デザイントークン（テーマカラー、スペーシング、タイポグラフィ）
   index.css                      # グローバルスタイル
   main.tsx                       # エントリーポイント
   test-setup.ts                  # Vitest テストセットアップ

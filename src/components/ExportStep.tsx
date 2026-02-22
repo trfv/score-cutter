@@ -9,6 +9,7 @@ import { zipParts } from '../core/zipExporter';
 import { PageCanvas } from './PageCanvas';
 import type { Part } from '../core/staffModel';
 import type { ZipProgress } from '../core/zipExporter';
+import { Download, Archive } from './Icons';
 import styles from './ExportStep.module.css';
 
 const PREVIEW_SCALE = 1.0;
@@ -192,6 +193,7 @@ export function ExportStep() {
                   }}
                   disabled={generating !== null || zipProgress !== null}
                 >
+                  <Download width={14} height={14} />{' '}
                   {generating === part.label
                     ? t('export.generating')
                     : t('export.download')}
@@ -207,6 +209,7 @@ export function ExportStep() {
                 onClick={handleDownloadAll}
                 disabled={generating !== null || zipProgress !== null}
               >
+                <Archive width={16} height={16} />{' '}
                 {zipProgress !== null
                   ? t('export.zipping', {
                       current: zipProgress.currentPartIndex + 1,

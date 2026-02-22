@@ -106,8 +106,8 @@ export function SeparatorOverlay({
           }}
         />
       ))}
-      {!dragOnly && regions.map((region) => {
-        const isSelected = region.staffId === selectedStaffId;
+      {regions.map((region) => {
+        const isSelected = !dragOnly && region.staffId === selectedStaffId;
         const height = region.bottomCanvasY - region.topCanvasY;
         return (
           <div
@@ -117,9 +117,10 @@ export function SeparatorOverlay({
               top: region.topCanvasY,
               height,
               width: canvasWidth,
+              pointerEvents: dragOnly ? 'none' : undefined,
             }}
-            onClick={() => handleRegionClick(region.staffId)}
-            onDoubleClick={(e) => handleRegionDoubleClick(region.staffId, e)}
+            onClick={dragOnly ? undefined : () => handleRegionClick(region.staffId)}
+            onDoubleClick={dragOnly ? undefined : (e) => handleRegionDoubleClick(region.staffId, e)}
           >
             {region.label && <span className={styles.label}>{region.label}</span>}
           </div>
@@ -161,6 +162,7 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
 
   const kindClass = separator.kind === 'edge' ? styles.separatorEdge : styles.separatorPart;
   const isMergeable = separator.kind === 'part';
+  const leftExtension = dragOnly ? 0 : SEPARATOR_EXTENSION;
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -281,8 +283,8 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
       className={`${styles.separator} ${kindClass} ${isSelected ? styles.selectedSeparator : ''}`}
       style={{
         top: separator.canvasY,
-        left: -SEPARATOR_EXTENSION,
-        width: canvasWidth + SEPARATOR_EXTENSION * 2,
+        left: -leftExtension,
+        width: canvasWidth + leftExtension + SEPARATOR_EXTENSION,
       }}
       tabIndex={dragOnly ? -1 : 0}
       role="separator"

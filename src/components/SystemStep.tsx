@@ -14,6 +14,7 @@ import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundary } from '../core/staffDetector';
 import type { Staff } from '../core/staffModel';
+import { ChevronLeft, ChevronRight } from './Icons';
 import styles from './SystemStep.module.css';
 
 const DETECT_DPI = 150;
@@ -196,7 +197,7 @@ export function SystemStep() {
       <div className={styles.toolbar}>
         <div className={styles.pageNav}>
           <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-            &lt;
+            <ChevronLeft width={16} height={16} />
           </button>
           <span>
             {t('detect.page', {
@@ -205,7 +206,7 @@ export function SystemStep() {
             })}
           </span>
           <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-            &gt;
+            <ChevronRight width={16} height={16} />
           </button>
         </div>
         <span className={styles.staffCount}>

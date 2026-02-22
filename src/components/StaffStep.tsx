@@ -5,6 +5,7 @@ import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
+import { ChevronLeft, ChevronRight } from './Icons';
 import styles from './StaffStep.module.css';
 
 const DETECT_DPI = 150;
@@ -118,7 +119,7 @@ export function StaffStep() {
       <div className={styles.toolbar}>
         <div className={styles.pageNav}>
           <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-            &lt;
+            <ChevronLeft width={16} height={16} />
           </button>
           <span>
             {t('detect.page', {
@@ -127,7 +128,7 @@ export function StaffStep() {
             })}
           </span>
           <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-            &gt;
+            <ChevronRight width={16} height={16} />
           </button>
         </div>
         <span className={styles.staffCount}>

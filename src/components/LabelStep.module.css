@@ -2,25 +2,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .toolbar {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .toolbar button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.toolbar button:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent);
 }
 
 .content {
   display: flex;
-  gap: 2.5rem;
+  gap: var(--space-5);
   width: 100%;
   max-width: 1100px;
 }
@@ -28,45 +37,58 @@
 .sidebar {
   width: 280px;
   flex-shrink: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
 }
 
 .sidebar h3 {
-  margin: 0 0 0.75rem;
-  font-size: 1rem;
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  color: var(--text-primary);
 }
 
 .staffRow {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem;
-  border-radius: 4px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--space-1);
+  transition: background 0.15s;
 }
 
 .staffRow:hover {
-  background: #f5f5f5;
+  background: var(--bg-elevated);
 }
 
 .staffIndex {
   width: 1.5rem;
   text-align: center;
-  font-size: 0.75rem;
-  color: #999;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .labelInput {
   flex: 1;
-  padding: 0.375rem 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.875rem;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .labelInput:focus {
   outline: none;
-  border-color: #4a90d9;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.2);
 }
 
 .canvasArea {
@@ -74,21 +96,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .pageNav {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .pageNav button {
-  padding: 0.25rem 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pageNav button:hover:not(:disabled) {
+  background: var(--bg-elevated);
 }
 
 .pageNav button:disabled {
@@ -98,32 +126,47 @@
 .canvasContainer {
   position: relative;
   display: inline-block;
-  border: 1px solid #ddd;
-  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-deep);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 .navigation {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   position: relative;
   z-index: 2;
 }
 
 .navigation button {
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.navigation button:hover:not(:disabled) {
+  background: var(--bg-elevated);
+  border-color: var(--accent);
 }
 
 .navigation button:last-child {
-  background-color: #4a90d9;
-  color: white;
-  border-color: #4a90d9;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: var(--bg-deep);
+  border-color: transparent;
+  font-weight: 500;
+}
+
+.navigation button:last-child:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
 .navigation button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
 }

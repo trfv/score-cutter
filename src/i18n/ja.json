@@ -68,6 +68,9 @@
     "next": "次へ",
     "language": "言語",
     "undo": "元に戻す",
-    "redo": "やり直す"
+    "redo": "やり直す",
+    "themeToggle": "テーマ切替",
+    "darkMode": "ダークモード",
+    "lightMode": "ライトモード"
   }
 }

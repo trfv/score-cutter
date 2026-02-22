@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Development Rules
+AT THIS POC TIME, DO NOT USE GIT WORKTREE. USE MASTER BRANCH ONLY.
+
 ## Commands
 
 ```bash
@@ -46,7 +49,7 @@ Pure functions with no React dependencies. This is where all domain logic lives:
 useReducer + React Context split into three contexts:
 - **ProjectContext** (read state) / **ProjectDispatchContext** (dispatch actions) / **UndoRedoContext** (canUndo/canRedo flags)
 - Only staff-mutation actions (SET_STAFFS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF) push to undo history
-- Action types defined in `projectContextDefs.ts`, reducer in `ProjectContext.tsx`, consumer hooks in `projectHooks.ts`
+- Action types defined in `projectContextDefs.ts`, reducer in `ProjectContext.tsx`, consumer hooks (`useProject`, `useProjectDispatch`) in `projectHooks.ts`
 
 ### Web Workers (`src/workers/`)
 
@@ -80,7 +83,9 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 
 - **Staff coordinates** use PDF coordinate space (origin bottom-left, Y increases upward). Canvas coordinates are converted via `coordinateMapper.ts`.
 - **Structural vs behavioral commits** — separate code rearrangement from functionality changes.
-- **CSS Modules** — each component has a co-located `.module.css` file, imported as `styles`.
+- **CSS Modules + Design Tokens** — each component has a co-located `.module.css` file, imported as `styles`. All colors, spacing, typography, and border-radius use CSS custom properties defined in `src/theme.css`. Never hardcode color values; always use `var(--token-name)`.
+- **Theming** — Dark/light theme via `data-theme` attribute on `<html>`. Default is dark. Theme tokens are defined in `src/theme.css` under `[data-theme='dark']` and `[data-theme='light']` selectors. Toggle logic lives in `useTheme()` hook in `App.tsx`.
+- **Icons** — SVG icon components live in `src/components/Icons.tsx`. No external icon library is used. Add new icons here following the existing `Icon` wrapper pattern.
 - **i18n** — Japanese (default) and English via i18next. Keys in `src/i18n/ja.json` and `src/i18n/en.json`.
 - **TypeScript strict mode** — `noUnusedLocals` and `noUnusedParameters` enforced.
 - **ESLint flat config** (v9) in `eslint.config.js`.
