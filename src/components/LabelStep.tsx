@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch, useUndoRedo } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
 import { StaffOverlay } from './StaffOverlay';
+import { SeparatorOverlay } from './SeparatorOverlay';
 import { getScale } from '../core/coordinateMapper';
+import { applySeparatorDrag } from '../core/separatorModel';
 import styles from './LabelStep.module.css';
 
 const DISPLAY_DPI = 150;
@@ -23,12 +25,16 @@ export function LabelStep() {
   const { t } = useTranslation();
   const project = useProject();
   const dispatch = useProjectDispatch();
-  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [bitmapWidth, setBitmapWidth] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
+  const [canvasHeight, setCanvasHeight] = useState(0);
   const [filterText, setFilterText] = useState('');
 
   const { canUndo: undoAvailable, canRedo: redoAvailable } = useUndoRedo();
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
+
+  const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
+  const effectiveScale = DISPLAY_SCALE * displayRatio;
 
   const filteredInstruments = useMemo(() => {
     if (!filterText) return COMMON_INSTRUMENTS;
@@ -37,7 +43,9 @@ export function LabelStep() {
   }, [filterText]);
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
-    setCanvasWidth(canvas.width);
+    setBitmapWidth(canvas.width);
+    setCanvasWidth(canvas.clientWidth);
+    setCanvasHeight(canvas.clientHeight);
   }, []);
 
   const handleLabelChange = useCallback(
@@ -47,6 +55,19 @@ export function LabelStep() {
       dispatch({ type: 'UPDATE_STAFF', staff: { ...staff, label } });
     },
     [staffs, dispatch],
+  );
+
+  const handleSeparatorDrag = useCallback(
+    (separatorIndex: number, newCanvasY: number) => {
+      const dim = pageDimensions[currentPageIndex];
+      if (!dim) return;
+      const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
+      const updated = applySeparatorDrag(
+        staffs, separatorIndex, newCanvasY, pageStaffs, dim.height, effectiveScale, 10,
+      );
+      dispatch({ type: 'SET_STAFFS', staffs: updated });
+    },
+    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
   const handleApplyToAll = useCallback(() => {
@@ -95,8 +116,6 @@ export function LabelStep() {
     dispatch({ type: 'SET_STEP', step: 'preview' });
   }, [dispatch]);
 
-  const handleBoundaryDrag = useCallback(() => {}, []);
-
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
@@ -121,20 +140,14 @@ export function LabelStep() {
           {pageStaffs.sort((a, b) => b.top - a.top).map((staff, idx) => (
             <div
               key={staff.id}
-              className={`${styles.staffRow} ${
-                selectedStaffId === staff.id ? styles.selectedRow : ''
-              }`}
-              onClick={() => setSelectedStaffId(staff.id)}
+              className={styles.staffRow}
             >
               <span className={styles.staffIndex}>{idx + 1}</span>
               <input
                 type="text"
                 value={staff.label}
                 onChange={(e) => handleLabelChange(staff.id, e.target.value)}
-                onFocus={() => {
-                  setSelectedStaffId(staff.id);
-                  setFilterText(staff.label);
-                }}
+                onFocus={() => setFilterText(staff.label)}
                 placeholder={t('label.placeholder')}
                 className={styles.labelInput}
                 list="instrument-list"
@@ -171,16 +184,25 @@ export function LabelStep() {
               onCanvasReady={handleCanvasReady}
             />
             {currentDimension && (
-              <StaffOverlay
-                staffs={staffs}
-                pageIndex={currentPageIndex}
-                pdfPageHeight={currentDimension.height}
-                scale={DISPLAY_SCALE}
-                canvasWidth={canvasWidth}
-                selectedStaffId={selectedStaffId}
-                onSelect={setSelectedStaffId}
-                onBoundaryDrag={handleBoundaryDrag}
-              />
+              <>
+                <StaffOverlay
+                  staffs={staffs}
+                  pageIndex={currentPageIndex}
+                  pdfPageHeight={currentDimension.height}
+                  scale={effectiveScale}
+                  canvasWidth={canvasWidth}
+                />
+                <SeparatorOverlay
+                  staffs={staffs}
+                  pageIndex={currentPageIndex}
+                  pdfPageHeight={currentDimension.height}
+                  scale={effectiveScale}
+                  canvasWidth={canvasWidth}
+                  canvasHeight={canvasHeight}
+                  onSeparatorDrag={handleSeparatorDrag}
+                  dragOnly
+                />
+              </>
             )}
           </div>
         </div>

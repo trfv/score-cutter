@@ -9,8 +9,9 @@
 
 - PDF 総譜のアップロード（ドラッグ＆ドロップ対応）
 - 水平投影法による五線段の自動検出
-- セグメント境界のドラッグ操作による手動調整（追加・削除も可能）
-- 楽器名ラベル付け（オートコンプリート、1ページ目のパターンを全ページに一括適用）
+- 区切り線（Separator）のドラッグ操作による譜表境界の手動調整
+- 譜表の追加（空白部分ダブルクリック）、分割（譜表上ダブルクリック）、結合（区切り線ダブルクリック）、削除
+- 楽器名ラベル付け（オートコンプリート、1段目のパターンを全段に一括適用）
 - パート別 PDF 生成・ダウンロード（ベクター品質を保持）
 - 全パート一括 ZIP ダウンロード
 - Undo/Redo（Ctrl+Z / Ctrl+Y）
@@ -65,16 +66,17 @@ npm run dev
 ```
 src/
   core/                          # コアロジック（純粋関数、DOM 非依存）
-    segmentModel.ts              #   データ型定義 (Segment, Part, Project)
+    staffModel.ts                #   データ型定義 (Staff, Part, PageDimension)
+    separatorModel.ts            #   区切り線モデル (Separator 算出、ドラッグ・分割・結合・追加)
     geometry.ts                  #   矩形演算ユーティリティ
     coordinateMapper.ts          #   Canvas ピクセル座標 ↔ PDF 座標 変換
     imageProcessing.ts           #   グレースケール / 二値化 / 水平投影
-    staffDetector.ts             #   空白帯検出 → セグメント境界算出
+    staffDetector.ts             #   空白帯検出 → 譜表境界算出
     pdfLoader.ts                 #   pdf.js ラッパー（ロード・レンダリング）
     partAssembler.ts             #   pdf-lib でパート PDF を組み立て
     zipExporter.ts               #   全パート一括 ZIP 生成
     undoHistory.ts               #   Undo/Redo 履歴管理
-    __tests__/                   #   コアロジックの単体テスト (8 ファイル)
+    __tests__/                   #   コアロジックの単体テスト (9 ファイル)
   workers/                       # Web Worker 並列処理
     detectionPipeline.ts         #   検出パイプライン（画像処理→段検出）
     detectionWorker.ts           #   Worker エントリーポイント
@@ -83,12 +85,13 @@ src/
     __tests__/                   #   Worker の単体テスト (2 ファイル)
   components/                    # React コンポーネント（各 .tsx に対応する .module.css あり）
     ImportStep.tsx               #   PDF アップロード画面
-    DetectStep.tsx               #   段検出 + セグメント手動編集画面
+    DetectStep.tsx               #   段検出 + 譜表手動編集画面
     LabelStep.tsx                #   楽器名ラベル付け画面
     PreviewStep.tsx              #   パート構成プレビュー画面
     ExportStep.tsx               #   パート PDF ダウンロード画面
     PageCanvas.tsx               #   PDF ページの Canvas レンダリング
-    SegmentOverlay.tsx           #   セグメント可視化 + ドラッグハンドル
+    SeparatorOverlay.tsx         #   区切り線の可視化 + ドラッグ・分割・結合・削除
+    StaffOverlay.tsx             #   譜表領域のラベル色分け表示（Label ステップ用）
   hooks/                         # カスタムフック
     useUndoRedoKeyboard.ts       #   Ctrl+Z / Ctrl+Y キーボードショートカット
   context/                       # グローバル状態管理
@@ -134,9 +137,10 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-68 テスト（10 ファイル）:
+98 テスト（11 ファイル）:
 
 - `segmentModel.test.ts` - パートグループ化、ソート順
+- `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加
 - `geometry.test.ts` - 矩形の重なり判定、包含判定、クランプ
 - `coordinateMapper.test.ts` - Canvas↔PDF 座標変換の往復一致
 - `imageProcessing.test.ts` - グレースケール、二値化、水平投影

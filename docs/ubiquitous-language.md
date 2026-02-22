@@ -1,4 +1,4 @@
-# Partifi ユビキタス言語
+# Partifi Clone ユビキタス言語
 
 ## 楽譜ドメイン
 
@@ -10,6 +10,7 @@
 | 楽器名 | Instrument / Label | 楽器名、ラベル | 譜表に付与する楽器の名前（例: Violin I, Cello）。パートの分類キー | `Staff.label`, `COMMON_INSTRUMENTS` |
 | 総譜 | Full Score / Source PDF | 総譜、フルスコア | ユーザーがインポートする元の楽譜PDF。全楽器が含まれる | `sourcePdfBytes` |
 | パート譜 | Part Score | パート譜 | 抽出された個別楽器のPDF。アプリの最終出力 | `assemblePart()` の出力 |
+| 区切り線 | Separator | 区切り線 | 譜表間（または譜表の上端・下端）に表示される水平線。ドラッグで譜表サイズを変更可能。kind は 'edge'（端）または 'part'（譜表間） | `Separator` (`separatorModel.ts`) |
 
 ## 検出・画像処理
 

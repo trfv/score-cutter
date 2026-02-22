@@ -9,8 +9,8 @@ test('full wizard flow from import to export', async ({ page, samplePdfPath }) =
   await clickNext(page);
 
   // Step 2: Detect
-  await page.getByRole('button', { name: '譜表を検出' }).click();
-  await expect(page.getByText(/\d+ 個の譜表を検出/)).toBeVisible({
+  await page.getByRole('button', { name: '譜表を自動検出' }).click();
+  await expect(page.getByRole('button', { name: '譜表を自動検出' })).toBeEnabled({
     timeout: 45_000,
   });
   await clickNext(page);
@@ -19,7 +19,7 @@ test('full wizard flow from import to export', async ({ page, samplePdfPath }) =
   const inputs = page.locator('input[placeholder="楽器名を入力"]');
   await inputs.nth(0).fill('Soprano');
   await inputs.nth(1).fill('Alto');
-  await page.getByRole('button', { name: '全ページに適用' }).click();
+  await page.getByRole('button', { name: '全段に適用' }).click();
   await clickNext(page);
 
   // Step 4: Preview

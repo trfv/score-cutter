@@ -20,7 +20,7 @@
 
 .content {
   display: flex;
-  gap: 1.5rem;
+  gap: 2.5rem;
   width: 100%;
   max-width: 1100px;
 }
@@ -47,10 +47,6 @@
 
 .staffRow:hover {
   background: #f5f5f5;
-}
-
-.selectedRow {
-  background: #e8f0fe;
 }
 
 .staffIndex {

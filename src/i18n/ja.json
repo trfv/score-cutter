@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Partifi",
+    "title": "Partifi Clone",
     "subtitle": "総譜からパート譜を自動作成"
   },
   "steps": {
@@ -17,19 +17,18 @@
     "next": "次へ"
   },
   "detect": {
-    "detectButton": "譜表を検出",
+    "detectButton": "譜表を自動検出",
     "detecting": "検出中...",
-    "addStaff": "譜表を追加",
-    "deleteStaff": "譜表を削除",
-    "staffCount": "{{count}} 個の譜表を検出",
+    "confirmOverwrite": "現在の譜表設定を上書きしますか？",
+    "staffCount": "{{count}} 個の譜表",
     "page": "ページ {{current}} / {{total}}",
-    "systemGapThreshold": "段組間ギャップ",
-    "partGapThreshold": "パート間ギャップ",
-    "progress": "処理中 {{completed}}/{{total}} ページ"
+    "progress": "処理中 {{completed}}/{{total}} ページ",
+    "deleteSeparator": "区切り線を削除",
+    "deleteStaff": "譜表を削除"
   },
   "label": {
     "placeholder": "楽器名を入力",
-    "applyToAll": "全ページに適用",
+    "applyToAll": "全段に適用",
     "instruments": {
       "violin1": "Violin I",
       "violin2": "Violin II",

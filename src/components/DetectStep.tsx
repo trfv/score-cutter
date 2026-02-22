@@ -1,11 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
-import { useProject, useProjectDispatch, useUndoRedo } from '../context/projectHooks';
+import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
-import { StaffOverlay } from './StaffOverlay';
+import { SeparatorOverlay } from './SeparatorOverlay';
 import { canvasYToPdfY } from '../core/coordinateMapper';
 import { getScale } from '../core/coordinateMapper';
+import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
 import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundary } from '../core/staffDetector';
@@ -22,21 +23,27 @@ export function DetectStep() {
   const [detecting, setDetecting] = useState(false);
   const [progress, setProgress] = useState<{ completed: number; total: number } | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [selectedSeparatorIndex, setSelectedSeparatorIndex] = useState<number | null>(null);
+  const [bitmapWidth, setBitmapWidth] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
-  const [systemGapHeight, setSystemGapHeight] = useState(50);
-  const [partGapHeight, setPartGapHeight] = useState(15);
+  const [canvasHeight, setCanvasHeight] = useState(0);
 
-  const { canUndo: undoAvailable, canRedo: redoAvailable } = useUndoRedo();
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
 
-  const displayScale = getScale(DETECT_DPI);
+  const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
+  const effectiveScale = DETECT_SCALE * displayRatio;
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
-    setCanvasWidth(canvas.width);
+    setBitmapWidth(canvas.width);
+    setCanvasWidth(canvas.clientWidth);
+    setCanvasHeight(canvas.clientHeight);
   }, []);
 
   const handleDetect = useCallback(async () => {
     if (!pdfDocument) return;
+    if (staffs.length > 0) {
+      if (!window.confirm(t('detect.confirmOverwrite'))) return;
+    }
     setDetecting(true);
     setProgress({ completed: 0, total: pageCount });
 
@@ -72,8 +79,8 @@ export function DetectStep() {
               rgbaData: rgbaBuffer,
               width: imageData.width,
               height: imageData.height,
-              systemGapHeight,
-              partGapHeight,
+              systemGapHeight: 50,
+              partGapHeight: 15,
             }).then(result => {
               setProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
               return result;
@@ -90,8 +97,8 @@ export function DetectStep() {
             rgbaData: imageData.data,
             width: imageData.width,
             height: imageData.height,
-            systemGapHeight,
-            partGapHeight,
+            systemGapHeight: 50,
+            partGapHeight: 15,
           });
           setProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
           return { pageIndex: pageIdx, systems: result.systems };
@@ -121,45 +128,79 @@ export function DetectStep() {
       setDetecting(false);
       setProgress(null);
     }
-  }, [pdfDocument, pageCount, pageDimensions, dispatch, systemGapHeight, partGapHeight]);
+  }, [pdfDocument, pageCount, pageDimensions, staffs.length, t, dispatch]);
 
-  const handleBoundaryDrag = useCallback(
-    (staffId: string, edge: 'top' | 'bottom', newCanvasY: number) => {
-      const staff = staffs.find((s) => s.id === staffId);
-      if (!staff) return;
-      const dim = pageDimensions[staff.pageIndex];
-      const newPdfY = canvasYToPdfY(newCanvasY, dim.height, displayScale);
-
-      const updated = { ...staff };
-      if (edge === 'top') {
-        updated.top = Math.max(newPdfY, updated.bottom + 10);
-      } else {
-        updated.bottom = Math.min(newPdfY, updated.top - 10);
-      }
-      dispatch({ type: 'UPDATE_STAFF', staff: updated });
+  const handleSeparatorDrag = useCallback(
+    (separatorIndex: number, newCanvasY: number) => {
+      const dim = pageDimensions[currentPageIndex];
+      if (!dim) return;
+      const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
+      const updated = applySeparatorDrag(
+        staffs, separatorIndex, newCanvasY, pageStaffs, dim.height, effectiveScale, 10,
+      );
+      dispatch({ type: 'SET_STAFFS', staffs: updated });
     },
-    [staffs, pageDimensions, displayScale, dispatch],
+    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
-  const handleAddStaff = useCallback(() => {
-    const dim = pageDimensions[currentPageIndex];
-    const newStaff: Staff = {
-      id: uuidv4(),
-      pageIndex: currentPageIndex,
-      top: dim.height / 2 + 50,
-      bottom: dim.height / 2 - 50,
-      label: '',
-      systemIndex: 0,
-    };
-    dispatch({ type: 'ADD_STAFF', staff: newStaff });
-  }, [currentPageIndex, pageDimensions, dispatch]);
+  const handleSplitAtPosition = useCallback(
+    (staffId: string, canvasY: number) => {
+      const dim = pageDimensions[currentPageIndex];
+      if (!dim) return;
+      const pdfY = canvasYToPdfY(canvasY, dim.height, effectiveScale);
+      const updated = splitStaffAtPosition(staffs, staffId, pdfY);
+      dispatch({ type: 'SET_STAFFS', staffs: updated });
+    },
+    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+  );
 
-  const handleDeleteStaff = useCallback(() => {
-    if (selectedStaffId) {
-      dispatch({ type: 'DELETE_STAFF', staffId: selectedStaffId });
-      setSelectedStaffId(null);
-    }
-  }, [selectedStaffId, dispatch]);
+  const handleMergeSeparator = useCallback(
+    (separatorIndex: number) => {
+      const dim = pageDimensions[currentPageIndex];
+      if (!dim) return;
+      const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
+      const { separators } = computeSeparators(pageStaffs, dim.height, effectiveScale);
+      const sep = separators[separatorIndex];
+      if (!sep || !sep.staffAboveId || !sep.staffBelowId) return;
+      const updated = mergeSeparator(staffs, sep.staffAboveId, sep.staffBelowId);
+      dispatch({ type: 'SET_STAFFS', staffs: updated });
+    },
+    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+  );
+
+  const handleDeleteStaff = useCallback(
+    (staffId: string) => {
+      dispatch({ type: 'DELETE_STAFF', staffId });
+    },
+    [dispatch],
+  );
+
+  const handleAddStaff = useCallback(
+    (canvasY: number) => {
+      const dim = pageDimensions[currentPageIndex];
+      if (!dim) return;
+      const pdfY = canvasYToPdfY(canvasY, dim.height, effectiveScale);
+      const updated = addStaffAtPosition(staffs, currentPageIndex, pdfY, dim.height);
+      dispatch({ type: 'SET_STAFFS', staffs: updated });
+    },
+    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+  );
+
+  // Del/Backspace key for separator deletion (merge adjacent staffs)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedSeparatorIndex !== null) {
+          handleMergeSeparator(selectedSeparatorIndex);
+          setSelectedSeparatorIndex(null);
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedSeparatorIndex, handleMergeSeparator]);
 
   const handlePrevPage = useCallback(() => {
     if (currentPageIndex > 0) {
@@ -196,69 +237,57 @@ export function DetectStep() {
               : t('detect.detecting'))
             : t('detect.detectButton')}
         </button>
-        <button onClick={handleAddStaff}>{t('detect.addStaff')}</button>
-        <button onClick={handleDeleteStaff} disabled={!selectedStaffId}>
-          {t('detect.deleteStaff')}
-        </button>
-        <button onClick={() => dispatch({ type: 'UNDO' })} disabled={!undoAvailable}>
-          {t('common.undo')}
-        </button>
-        <button onClick={() => dispatch({ type: 'REDO' })} disabled={!redoAvailable}>
-          {t('common.redo')}
-        </button>
-        <span className={styles.info}>
+        <div className={styles.pageNav}>
+          <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
+            &lt;
+          </button>
+          <span>
+            {t('detect.page', {
+              current: currentPageIndex + 1,
+              total: pageCount,
+            })}
+          </span>
+          <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
+            &gt;
+          </button>
+        </div>
+        <span className={styles.staffCount}>
           {t('detect.staffCount', { count: pageStaffs.length })}
         </span>
-      </div>
-
-      <div className={styles.toolbar}>
-        <label>
-          {t('detect.systemGapThreshold')}
-          <input type="range" min={30} max={100} value={systemGapHeight}
-                 onChange={e => setSystemGapHeight(Number(e.target.value))} />
-          <span>{systemGapHeight}px</span>
-        </label>
-        <label>
-          {t('detect.partGapThreshold')}
-          <input type="range" min={5} max={40} value={partGapHeight}
-                 onChange={e => setPartGapHeight(Number(e.target.value))} />
-          <span>{partGapHeight}px</span>
-        </label>
-      </div>
-
-      <div className={styles.pageNav}>
-        <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-          &lt;
-        </button>
-        <span>
-          {t('detect.page', {
-            current: currentPageIndex + 1,
-            total: pageCount,
-          })}
-        </span>
-        <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-          &gt;
-        </button>
       </div>
 
       <div className={styles.canvasContainer}>
         <PageCanvas
           document={pdfDocument}
           pageIndex={currentPageIndex}
-          scale={displayScale}
+          scale={DETECT_SCALE}
           onCanvasReady={handleCanvasReady}
         />
-        {currentDimension && (
-          <StaffOverlay
+        {currentDimension && !detecting && (
+          <SeparatorOverlay
             staffs={staffs}
             pageIndex={currentPageIndex}
             pdfPageHeight={currentDimension.height}
-            scale={displayScale}
+            scale={effectiveScale}
             canvasWidth={canvasWidth}
+            canvasHeight={canvasHeight}
             selectedStaffId={selectedStaffId}
-            onSelect={setSelectedStaffId}
-            onBoundaryDrag={handleBoundaryDrag}
+            onSelectStaff={setSelectedStaffId}
+            selectedSeparatorIndex={selectedSeparatorIndex}
+            onSelectSeparator={setSelectedSeparatorIndex}
+            onSeparatorDrag={handleSeparatorDrag}
+            onSplitAtPosition={handleSplitAtPosition}
+            onMergeSeparator={handleMergeSeparator}
+            onDeleteStaff={handleDeleteStaff}
+            onAddStaff={handleAddStaff}
           />
+        )}
+        {detecting && (
+          <div className={styles.progressOverlay}>
+            {progress
+              ? t('detect.progress', { completed: progress.completed, total: progress.total })
+              : t('detect.detecting')}
+          </div>
         )}
       </div>
 

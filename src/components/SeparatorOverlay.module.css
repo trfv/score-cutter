@@ -1,0 +1,154 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+}
+
+.region {
+  position: absolute;
+  left: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.region:hover {
+  background: rgba(100, 100, 100, 0.05);
+}
+
+.region.selected {
+  background: rgba(74, 144, 217, 0.1);
+}
+
+.separator {
+  position: absolute;
+  left: 0;
+  pointer-events: auto;
+  cursor: ns-resize;
+  z-index: 1;
+}
+
+.hitArea {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 16px;
+  top: -8px;
+}
+
+.line {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  transition: height 0.2s, background 0.2s, opacity 0.2s;
+}
+
+/* Part (internal) separator: solid gray */
+.separatorPart .line {
+  height: 2px;
+  top: -0.5px;
+  background: rgba(100, 100, 100, 0.5);
+}
+
+.separatorPart:hover .line {
+  height: 3px;
+  top: -1px;
+  background: rgba(100, 100, 100, 0.8);
+}
+
+.separatorPart.selectedSeparator .line {
+  height: 4px;
+  top: -1.5px;
+  background: rgba(74, 144, 217, 0.9);
+}
+
+/* Edge separator: faint gray */
+.separatorEdge .line {
+  height: 2px;
+  top: -0.5px;
+  background: rgba(100, 100, 100, 0.3);
+}
+
+.separatorEdge:hover .line {
+  height: 3px;
+  top: -1px;
+  background: rgba(100, 100, 100, 0.5);
+}
+
+.label {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Delete button: round circle at each end of separator */
+.deleteButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(100, 100, 100, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  z-index: 2;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.deleteButtonLeft {
+  left: 10px;
+}
+
+.deleteButtonRight {
+  right: 10px;
+}
+
+.deleteButton:hover {
+  background: rgba(217, 83, 79, 0.15);
+  border-color: rgba(217, 83, 79, 0.8);
+}
+
+.deleteIcon {
+  width: 10px;
+  height: 10px;
+  position: relative;
+  pointer-events: none;
+}
+
+.deleteIcon::before,
+.deleteIcon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 1.5px;
+  background: rgba(100, 100, 100, 0.7);
+  transform-origin: center;
+}
+
+.deleteIcon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.deleteIcon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.deleteButton:hover .deleteIcon::before,
+.deleteButton:hover .deleteIcon::after {
+  background: rgba(217, 83, 79, 0.9);
+}

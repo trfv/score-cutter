@@ -28,7 +28,7 @@ test.describe('Label Step', () => {
     const inputs = page.locator('input[placeholder="楽器名を入力"]');
     await inputs.first().fill('Soprano');
 
-    await page.getByRole('button', { name: '全ページに適用' }).click();
+    await page.getByRole('button', { name: '全段に適用' }).click();
 
     // Navigate to page 2
     await page.getByRole('button', { name: '>' }).click();

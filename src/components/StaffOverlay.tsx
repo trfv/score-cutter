@@ -18,9 +18,7 @@ interface StaffOverlayProps {
   pdfPageHeight: number;
   scale: number;
   canvasWidth: number;
-  selectedStaffId: string | null;
-  onSelect: (staffId: string) => void;
-  onBoundaryDrag: (staffId: string, edge: 'top' | 'bottom', newCanvasY: number) => void;
+  onBoundaryDrag?: (staffId: string, edge: 'top' | 'bottom', newCanvasY: number) => void;
 }
 
 export function StaffOverlay({
@@ -29,8 +27,6 @@ export function StaffOverlay({
   pdfPageHeight,
   scale,
   canvasWidth,
-  selectedStaffId,
-  onSelect,
   onBoundaryDrag,
 }: StaffOverlayProps) {
   const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
@@ -41,57 +37,51 @@ export function StaffOverlay({
     return LABEL_COLORS[idx % LABEL_COLORS.length] || LABEL_COLORS[0];
   };
 
-  // Compute system separator positions
-  const sortedByPosition = [...pageStaffs].sort(
+  // Sort by visual position (top to bottom on screen)
+  const sorted = [...pageStaffs].sort(
     (a, b) => pdfYToCanvasY(a.top, pdfPageHeight, scale) - pdfYToCanvasY(b.top, pdfPageHeight, scale),
   );
-  const systemSeparators: number[] = [];
-  for (let i = 1; i < sortedByPosition.length; i++) {
-    if (sortedByPosition[i].systemIndex !== sortedByPosition[i - 1].systemIndex) {
-      const prevBottom = pdfYToCanvasY(sortedByPosition[i - 1].bottom, pdfPageHeight, scale);
-      const nextTop = pdfYToCanvasY(sortedByPosition[i].top, pdfPageHeight, scale);
-      systemSeparators.push((prevBottom + nextTop) / 2);
-    }
-  }
 
   return (
     <div className={styles.overlay} style={{ width: canvasWidth }}>
-      {systemSeparators.map((y, i) => (
-        <div
-          key={`sys-sep-${i}`}
-          className={styles.systemSeparator}
-          style={{ top: y, width: canvasWidth }}
-        />
-      ))}
-      {pageStaffs.map((staff) => {
+      {sorted.map((staff, i) => {
         const topPx = pdfYToCanvasY(staff.top, pdfPageHeight, scale);
         const bottomPx = pdfYToCanvasY(staff.bottom, pdfPageHeight, scale);
-        const height = bottomPx - topPx;
-        const isSelected = staff.id === selectedStaffId;
+
+        // Extend colored region to midpoint between adjacent staffs
+        const extTop = i > 0
+          ? (pdfYToCanvasY(sorted[i - 1].bottom, pdfPageHeight, scale) + topPx) / 2
+          : topPx;
+        const extBottom = i < sorted.length - 1
+          ? (bottomPx + pdfYToCanvasY(sorted[i + 1].top, pdfPageHeight, scale)) / 2
+          : bottomPx;
 
         return (
           <div
             key={staff.id}
-            className={`${styles.staff} ${isSelected ? styles.selected : ''}`}
+            className={styles.staff}
             style={{
-              top: topPx,
-              height,
+              top: extTop,
+              height: extBottom - extTop,
               width: canvasWidth,
               backgroundColor: staff.label ? getColor(staff.label) : 'rgba(200, 200, 200, 0.2)',
             }}
-            onClick={() => onSelect(staff.id)}
           >
             {staff.label && <span className={styles.label}>{staff.label}</span>}
-            <DragHandle
-              staffId={staff.id}
-              edge="top"
-              onDrag={onBoundaryDrag}
-            />
-            <DragHandle
-              staffId={staff.id}
-              edge="bottom"
-              onDrag={onBoundaryDrag}
-            />
+            {onBoundaryDrag && (
+              <>
+                <DragHandle
+                  staffId={staff.id}
+                  edge="top"
+                  onDrag={onBoundaryDrag}
+                />
+                <DragHandle
+                  staffId={staff.id}
+                  edge="bottom"
+                  onDrag={onBoundaryDrag}
+                />
+              </>
+            )}
           </div>
         );
       })}

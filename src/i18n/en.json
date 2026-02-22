@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Partifi",
+    "title": "Partifi Clone",
     "subtitle": "Automatically create parts from scores"
   },
   "steps": {
@@ -19,17 +19,16 @@
   "detect": {
     "detectButton": "Detect Staves",
     "detecting": "Detecting...",
-    "addStaff": "Add Staff",
-    "deleteStaff": "Delete Staff",
-    "staffCount": "{{count}} staffs detected",
+    "confirmOverwrite": "Overwrite current staff settings?",
+    "staffCount": "{{count}} staffs",
     "page": "Page {{current}} / {{total}}",
-    "systemGapThreshold": "System gap",
-    "partGapThreshold": "Part gap",
-    "progress": "Processing {{completed}}/{{total}} pages"
+    "progress": "Processing {{completed}}/{{total}} pages",
+    "deleteSeparator": "Delete separator",
+    "deleteStaff": "Delete staff"
   },
   "label": {
     "placeholder": "Enter instrument name",
-    "applyToAll": "Apply to all pages",
+    "applyToAll": "Apply to all systems",
     "instruments": {
       "violin1": "Violin I",
       "violin2": "Violin II",

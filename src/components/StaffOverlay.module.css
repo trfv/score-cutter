@@ -10,14 +10,7 @@
   left: 0;
   border-top: 2px dashed rgba(0, 0, 0, 0.3);
   border-bottom: 2px dashed rgba(0, 0, 0, 0.3);
-  pointer-events: auto;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.staff.selected {
-  border-color: #4a90d9;
-  border-style: solid;
+  pointer-events: none;
 }
 
 .label {
@@ -53,10 +46,3 @@
   bottom: -4px;
 }
 
-.systemSeparator {
-  position: absolute;
-  left: 0;
-  height: 3px;
-  background: rgba(74, 144, 217, 0.6);
-  pointer-events: none;
-}

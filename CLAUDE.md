@@ -33,6 +33,7 @@ Each step is a React component in `src/components/` rendered by `App.tsx` based 
 Pure functions with no React dependencies. This is where all domain logic lives:
 
 - **staffModel.ts** — `Staff`, `Part`, `PageDimension` types; `derivePartsFromStaffs()` groups staffs by label
+- **separatorModel.ts** — `Separator` type; `computeSeparators()` derives separator lines from staffs; `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for editing
 - **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
 - **coordinateMapper.ts** — Bidirectional Canvas ↔ PDF coordinate conversion (scale = DPI / 72)
@@ -69,6 +70,7 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **Gap** — Whitespace between staffs detected via horizontal projection. System gaps (≥50px) separate systems; part gaps (≥15px) separate staffs within a system.
 - **Full Score (総譜)** — The source PDF containing all instruments.
 - **Part Score (パート譜)** — The extracted single-instrument PDF output.
+- **Separator (区切り線)** — A horizontal line between staffs (or at page edges) that can be dragged to resize staffs. Part separators sit between adjacent staffs; edge separators mark the top/bottom of the first/last staff. Defined in `separatorModel.ts`.
 
 ## Key Conventions
 
