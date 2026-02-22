@@ -50,6 +50,7 @@
   width: 100%;
   height: 16px;
   top: -8px;
+  z-index: 0;
 }
 
 .line {
@@ -77,6 +78,18 @@
   height: 4px;
   top: -1.5px;
   background: rgba(74, 144, 217, 0.9);
+}
+
+/* Focus-visible: keyboard focus ring */
+.separator:focus-visible {
+  outline: none;
+}
+
+.separator:focus-visible .line {
+  height: 4px;
+  top: -1.5px;
+  background: rgba(74, 144, 217, 0.9);
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.3);
 }
 
 /* Edge separator: faint gray */
