@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Partifi Clone",
-    "subtitle": "総譜からパート譜を自動作成"
+    "subtitle": "総譜からパート譜を作成"
   },
   "steps": {
     "import": "インポート",
@@ -21,6 +21,7 @@
     "detectButton": "譜表を自動検出",
     "detecting": "検出中...",
     "staffCount": "{{count}} 個の譜表",
+    "systemCount": "{{count}} 個の組段",
     "page": "ページ {{current}} / {{total}}",
     "progress": "処理中 {{completed}}/{{total}} ページ",
     "deleteSeparator": "区切り線を削除",

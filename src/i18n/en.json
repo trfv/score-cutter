@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Partifi Clone",
-    "subtitle": "Automatically create parts from scores"
+    "subtitle": "Create parts from scores"
   },
   "steps": {
     "import": "Import",
@@ -21,6 +21,7 @@
     "detectButton": "Detect Staves",
     "detecting": "Detecting...",
     "staffCount": "{{count}} staffs",
+    "systemCount": "{{count}} systems",
     "page": "Page {{current}} / {{total}}",
     "progress": "Processing {{completed}}/{{total}} pages",
     "deleteSeparator": "Delete separator",

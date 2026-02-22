@@ -1,12 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useProject, useProjectDispatch } from '../context/projectHooks';
+import { useProjectDispatch } from '../context/projectHooks';
 import { loadPdf } from '../core/pdfLoader';
 import styles from './ImportStep.module.css';
 
 export function ImportStep() {
   const { t } = useTranslation();
-  const project = useProject();
   const dispatch = useProjectDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string>('');
@@ -31,6 +30,7 @@ export function ImportStep() {
           pageCount: loaded.pageCount,
           pageDimensions: loaded.pageDimensions,
         });
+        dispatch({ type: 'SET_STEP', step: 'systems' });
       } catch (e) {
         setError(String(e));
       } finally {
@@ -65,10 +65,6 @@ export function ImportStep() {
     [handleFile],
   );
 
-  const handleNext = useCallback(() => {
-    dispatch({ type: 'SET_STEP', step: 'systems' });
-  }, [dispatch]);
-
   return (
     <div className={styles.container}>
       <div
@@ -91,23 +87,11 @@ export function ImportStep() {
         />
         {loading ? (
           <p>{t('detect.detecting')}</p>
-        ) : project.sourceFileName ? (
-          <p>
-            {t('import.fileSelected', {
-              fileName: project.sourceFileName,
-              pageCount: project.pageCount,
-            })}
-          </p>
         ) : (
           <p>{t('import.dropzone')}</p>
         )}
       </div>
       {error && <p className={styles.error}>{error}</p>}
-      {project.sourcePdfBytes && (
-        <button className={styles.nextButton} onClick={handleNext}>
-          {t('common.next')}
-        </button>
-      )}
     </div>
   );
 }

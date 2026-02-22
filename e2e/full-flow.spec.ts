@@ -3,14 +3,11 @@ import { test, expect, uploadPdf, clickNext } from './fixtures/pdf';
 test('full wizard flow from import to export', async ({ page, samplePdfPath }) => {
   await page.goto('/');
 
-  // Step 1: Import
+  // Step 1: Import — auto-navigates to Systems step
   await uploadPdf(page, samplePdfPath);
-  await expect(page.getByText('memderssohn.pdf (6 ページ)')).toBeVisible();
-  await clickNext(page);
 
-  // Step 2: Systems — detect staves
-  await page.getByRole('button', { name: '譜表を自動検出' }).click();
-  await expect(page.getByRole('button', { name: '譜表を自動検出' })).toBeEnabled({
+  // Step 2: Systems — auto-detection runs on mount
+  await expect(page.getByRole('button', { name: '次へ' })).toBeEnabled({
     timeout: 45_000,
   });
   await clickNext(page);

@@ -32,7 +32,7 @@ const MAX_UNDO = 50;
 function projectReducer(state: ProjectState, action: ProjectAction): ProjectState {
   switch (action.type) {
     case 'SET_STEP':
-      return { ...state, step: action.step };
+      return { ...state, step: action.step, currentPageIndex: 0 };
     case 'LOAD_PDF':
       return {
         ...state,

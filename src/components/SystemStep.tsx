@@ -209,7 +209,7 @@ export function SystemStep() {
           </button>
         </div>
         <span className={styles.staffCount}>
-          {t('detect.staffCount', { count: pageStaffs.length })}
+          {t('detect.systemCount', { count: new Set(pageStaffs.map((s) => s.systemIndex)).size })}
         </span>
       </div>
 

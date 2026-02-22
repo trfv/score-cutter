@@ -70,7 +70,7 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **Gap** — Whitespace between staffs detected via horizontal projection. System gaps (≥50px) separate systems; part gaps (≥15px) separate staffs within a system.
 - **Full Score (総譜)** — The source PDF containing all instruments.
 - **Part Score (パート譜)** — The extracted single-instrument PDF output.
-- **Separator (区切り線)** — A horizontal line between staffs (or at page edges) that can be dragged to resize staffs. Part separators sit between adjacent staffs; edge separators mark the top/bottom of the first/last staff. Defined in `separatorModel.ts`.
+- **Separator (区切り線)** — A horizontal line between staffs (or at page edges) that can be dragged or keyboard-navigated to resize staffs. Part separators sit between adjacent staffs; edge separators mark the top/bottom of the first/last staff. Keyboard: Tab to focus, ArrowUp/Down to move (Shift for 10px steps), Delete/Backspace to merge/delete. Defined in `separatorModel.ts`.
 
 ## Key Conventions
 
@@ -80,3 +80,4 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **i18n** — Japanese (default) and English via i18next. Keys in `src/i18n/ja.json` and `src/i18n/en.json`.
 - **TypeScript strict mode** — `noUnusedLocals` and `noUnusedParameters` enforced.
 - **ESLint flat config** (v9) in `eslint.config.js`.
+- **Keyboard accessibility** — Separators in both `SeparatorOverlay` and `SystemOverlay` are focusable (`tabIndex`, `role="separator"`) and support ArrowUp/Down (1px, Shift=10px), Delete/Backspace, and Escape. Keyboard event handling lives in each separator component's `onKeyDown`, not in document-level listeners.

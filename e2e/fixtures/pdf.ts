@@ -12,7 +12,8 @@ export const test = base.extend<{ samplePdfPath: string }>({
 export async function uploadPdf(page: Page, pdfPath: string) {
   const fileInput = page.locator('input[type="file"][accept="application/pdf"]');
   await fileInput.setInputFiles(pdfPath);
-  await expect(page.getByText('memderssohn.pdf')).toBeVisible({ timeout: 10_000 });
+  // Auto-navigates to Systems step after load
+  await expect(page.getByText(/ページ 1/)).toBeVisible({ timeout: 10_000 });
 }
 
 export async function clickNext(page: Page) {
@@ -21,12 +22,11 @@ export async function clickNext(page: Page) {
 
 export async function completeImportStep(page: Page, pdfPath: string) {
   await uploadPdf(page, pdfPath);
-  await clickNext(page);
 }
 
 async function completeSystemsStep(page: Page) {
-  await page.getByRole('button', { name: '譜表を自動検出' }).click();
-  await expect(page.getByRole('button', { name: '譜表を自動検出' })).toBeEnabled({
+  // Detection runs automatically on mount; wait for it to finish
+  await expect(page.getByRole('button', { name: '次へ' })).toBeEnabled({
     timeout: 45_000,
   });
   await clickNext(page); // Systems → Staffs
