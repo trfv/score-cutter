@@ -234,6 +234,43 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
     e.stopPropagation();
   }, []);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (dragOnly) return;
+      const step = e.shiftKey ? 10 : 1;
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          onDrag(index, separator.canvasY - step);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          onDrag(index, separator.canvasY + step);
+          break;
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          if (isMergeable && onMerge) {
+            onMerge(index);
+          } else {
+            const staffId = separator.staffBelowId ?? separator.staffAboveId;
+            if (staffId && onDeleteStaff) onDeleteStaff(staffId);
+          }
+          break;
+        case 'Escape':
+          (e.currentTarget as HTMLElement).blur();
+          break;
+      }
+    },
+    [index, separator.canvasY, separator.staffBelowId, separator.staffAboveId, onDrag, onMerge, onDeleteStaff, isMergeable, dragOnly],
+  );
+
+  const handleFocus = useCallback(() => {
+    if (!dragOnly) {
+      onSelect(index);
+    }
+  }, [index, onSelect, dragOnly]);
+
   // Determine the aria-label based on separator kind
   const deleteLabel = isMergeable
     ? t('detect.deleteSeparator')
@@ -247,8 +284,14 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
         left: -SEPARATOR_EXTENSION,
         width: canvasWidth + SEPARATOR_EXTENSION * 2,
       }}
+      tabIndex={dragOnly ? -1 : 0}
+      role="separator"
+      aria-label={deleteLabel}
+      aria-orientation="horizontal"
       onPointerDown={handlePointerDown}
       onDoubleClick={dragOnly ? undefined : handleDoubleClick}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
     >
       <div className={styles.hitArea} />
       <div className={styles.line} />
