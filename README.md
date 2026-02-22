@@ -11,7 +11,7 @@
 - 水平投影法による五線段の自動検出
 - 区切り線（Separator）のドラッグ操作による譜表境界の手動調整
 - 譜表の追加（空白部分ダブルクリック）、分割（譜表上ダブルクリック）、結合（区切り線ダブルクリック）、削除
-- 楽器名ラベル付け（オートコンプリート、1段目のパターンを全段に一括適用）
+- 楽器名ラベル付け（オートコンプリート、1段目のパターンを全組段に一括適用）
 - パート別 PDF 生成・ダウンロード（ベクター品質を保持）
 - 全パート一括 ZIP ダウンロード
 - Undo/Redo（Ctrl+Z / Ctrl+Y）
@@ -22,8 +22,8 @@
 
 ```
 1. インポート  →  2. 検出  →  3. ラベル  →  4. プレビュー  →  5. エクスポート
-   PDF アップ      段を自動       楽器名を       パート構成       パート別 PDF
-   ロード          検出           割り当て       を確認           をダウンロード
+   PDF アップ      組段・譜表を　 楽器名を       パート構成       パート別 PDF
+   ロード          自動検出      割り当て       を確認           をダウンロード
 ```
 
 ## 技術スタック
@@ -78,14 +78,14 @@ src/
     undoHistory.ts               #   Undo/Redo 履歴管理
     __tests__/                   #   コアロジックの単体テスト (9 ファイル)
   workers/                       # Web Worker 並列処理
-    detectionPipeline.ts         #   検出パイプライン（画像処理→段検出）
+    detectionPipeline.ts         #   検出パイプライン（画像処理→組段・譜表検出）
     detectionWorker.ts           #   Worker エントリーポイント
     workerPool.ts                #   Worker プール管理
     workerProtocol.ts            #   Worker 間メッセージ型定義
     __tests__/                   #   Worker の単体テスト (2 ファイル)
   components/                    # React コンポーネント（各 .tsx に対応する .module.css あり）
     ImportStep.tsx               #   PDF アップロード画面
-    DetectStep.tsx               #   段検出 + 譜表手動編集画面
+    DetectStep.tsx               #   組段検出 + 譜表手動編集画面
     LabelStep.tsx                #   楽器名ラベル付け画面
     PreviewStep.tsx              #   パート構成プレビュー画面
     ExportStep.tsx               #   パート PDF ダウンロード画面
@@ -111,7 +111,7 @@ src/
 
 ## 五線検出アルゴリズム
 
-水平投影法（Horizontal Projection）による段検出:
+水平投影法（Horizontal Projection）による組段・譜表検出:
 
 1. PDF ページを 150 DPI で Canvas にレンダリング
 2. ピクセルをグレースケールに変換 (`0.299R + 0.587G + 0.114B`)

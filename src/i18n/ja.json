@@ -28,7 +28,7 @@
   },
   "label": {
     "placeholder": "楽器名を入力",
-    "applyToAll": "全段に適用",
+    "applyToAll": "全組段に適用",
     "instruments": {
       "violin1": "Violin I",
       "violin2": "Violin II",

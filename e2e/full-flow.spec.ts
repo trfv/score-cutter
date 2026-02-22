@@ -19,7 +19,7 @@ test('full wizard flow from import to export', async ({ page, samplePdfPath }) =
   const inputs = page.locator('input[placeholder="楽器名を入力"]');
   await inputs.nth(0).fill('Soprano');
   await inputs.nth(1).fill('Alto');
-  await page.getByRole('button', { name: '全段に適用' }).click();
+  await page.getByRole('button', { name: '全組段に適用' }).click();
   await clickNext(page);
 
   // Step 4: Preview

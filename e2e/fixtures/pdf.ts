@@ -35,7 +35,7 @@ export async function completeDetectStep(page: Page) {
 export async function completeLabelStep(page: Page) {
   const inputs = page.locator('input[placeholder="楽器名を入力"]');
   await inputs.first().fill('Soprano');
-  await page.getByRole('button', { name: '全段に適用' }).click();
+  await page.getByRole('button', { name: '全組段に適用' }).click();
   await clickNext(page);
 }
 

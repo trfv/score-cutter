@@ -65,7 +65,7 @@ pdf-lib `embedPage()` preserves vector quality and text selectability. Auto-pagi
 See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 
 - **Staff (譜表)** — A rectangular region on a page representing one instrument's notation, defined by top/bottom in PDF Y coordinates.
-- **System (段/組段)** — A vertical group of all parts on a page. Separated by large gaps (≥50px). A page typically has 1–3 systems.
+- **System (組段)** — A vertical group of all parts on a page. Separated by large gaps (≥50px). A page typically has 1–3 systems.
 - **Part (パート)** — All staffs with the same label across all pages, assembled into one output PDF.
 - **Gap** — Whitespace between staffs detected via horizontal projection. System gaps (≥50px) separate systems; part gaps (≥15px) separate staffs within a system.
 - **Full Score (総譜)** — The source PDF containing all instruments.
