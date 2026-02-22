@@ -17,11 +17,11 @@
     "next": "次へ"
   },
   "detect": {
-    "detectButton": "段を検出",
+    "detectButton": "譜表を検出",
     "detecting": "検出中...",
-    "addSegment": "セグメント追加",
-    "deleteSegment": "セグメント削除",
-    "segmentCount": "{{count}} 個のセグメントを検出",
+    "addStaff": "譜表を追加",
+    "deleteStaff": "譜表を削除",
+    "staffCount": "{{count}} 個の譜表を検出",
     "page": "ページ {{current}} / {{total}}",
     "systemGapThreshold": "段組間ギャップ",
     "partGapThreshold": "パート間ギャップ",
@@ -53,7 +53,7 @@
   "preview": {
     "selectPart": "パートを選択",
     "addPageBreak": "改ページ追加",
-    "noSegments": "このパートにはセグメントがありません"
+    "noStaffs": "このパートには譜表がありません"
   },
   "export": {
     "download": "ダウンロード",

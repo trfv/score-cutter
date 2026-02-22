@@ -1,4 +1,4 @@
-export interface SegmentBoundary {
+export interface StaffBoundary {
   topPx: number;
   bottomPx: number;
 }
@@ -39,11 +39,11 @@ function findGaps(
   return gaps;
 }
 
-export function detectSegmentBoundaries(
+export function detectStaffBoundaries(
   projection: number[],
   minGapHeight: number = 20,
   lowThresholdFraction: number = 0.05,
-): SegmentBoundary[] {
+): StaffBoundary[] {
   if (projection.length === 0) return [];
 
   const maxProjection = Math.max(...projection);
@@ -53,8 +53,8 @@ export function detectSegmentBoundaries(
 
   const gaps = findGaps(projection, minGapHeight, absoluteThreshold);
 
-  // Derive segments from gaps
-  const segments: SegmentBoundary[] = [];
+  // Derive staffs from gaps
+  const staffs: StaffBoundary[] = [];
   let currentTop = 0;
 
   for (const gap of gaps) {
@@ -65,29 +65,29 @@ export function detectSegmentBoundaries(
         .slice(currentTop, gapCenter)
         .some((v) => v > absoluteThreshold);
       if (hasContent) {
-        segments.push({ topPx: currentTop, bottomPx: gapCenter });
+        staffs.push({ topPx: currentTop, bottomPx: gapCenter });
       }
     }
     currentTop = gapCenter;
   }
 
-  // Last segment to bottom of page
+  // Last staff to bottom of page
   if (currentTop < projection.length) {
     const hasContent = projection
       .slice(currentTop, projection.length)
       .some((v) => v > absoluteThreshold);
     if (hasContent) {
-      segments.push({ topPx: currentTop, bottomPx: projection.length });
+      staffs.push({ topPx: currentTop, bottomPx: projection.length });
     }
   }
 
-  return segments;
+  return staffs;
 }
 
 export interface SystemBoundary {
   topPx: number;
   bottomPx: number;
-  parts: SegmentBoundary[];
+  parts: StaffBoundary[];
 }
 
 export function detectSystems(
@@ -96,7 +96,7 @@ export function detectSystems(
   minPartGapHeight: number = 15,
   lowThresholdFraction: number = 0.05,
 ): SystemBoundary[] {
-  const systemBoundaries = detectSegmentBoundaries(
+  const systemBoundaries = detectStaffBoundaries(
     projection,
     minSystemGapHeight,
     lowThresholdFraction,
@@ -104,13 +104,13 @@ export function detectSystems(
 
   return systemBoundaries.map((sys) => {
     const subProjection = projection.slice(sys.topPx, sys.bottomPx);
-    const rawParts = detectSegmentBoundaries(
+    const rawParts = detectStaffBoundaries(
       subProjection,
       minPartGapHeight,
       lowThresholdFraction,
     );
 
-    const parts: SegmentBoundary[] = rawParts.map((part) => ({
+    const parts: StaffBoundary[] = rawParts.map((part) => ({
       topPx: part.topPx + sys.topPx,
       bottomPx: part.bottomPx + sys.topPx,
     }));

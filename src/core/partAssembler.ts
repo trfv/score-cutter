@@ -1,5 +1,5 @@
 import { PDFDocument } from 'pdf-lib';
-import type { Segment } from './segmentModel';
+import type { Staff } from './staffModel';
 
 export interface AssemblyOptions {
   pageWidth: number;
@@ -8,7 +8,7 @@ export interface AssemblyOptions {
   marginBottom: number;
   marginLeft: number;
   marginRight: number;
-  gapBetweenSegments: number;
+  gapBetweenStaffs: number;
 }
 
 export const defaultAssemblyOptions: AssemblyOptions = {
@@ -18,12 +18,12 @@ export const defaultAssemblyOptions: AssemblyOptions = {
   marginBottom: 36,
   marginLeft: 36,
   marginRight: 36,
-  gapBetweenSegments: 18,
+  gapBetweenStaffs: 18,
 };
 
 export async function assemblePart(
   sourcePdfBytes: Uint8Array,
-  segments: Segment[],
+  staffs: Staff[],
   options: AssemblyOptions = defaultAssemblyOptions,
 ): Promise<Uint8Array> {
   const sourceDoc = await PDFDocument.load(sourcePdfBytes);
@@ -35,13 +35,13 @@ export async function assemblePart(
   let currentPage = outputDoc.addPage([options.pageWidth, options.pageHeight]);
   let cursorY = options.pageHeight - options.marginTop;
 
-  for (const segment of segments) {
-    const sourcePage = sourceDoc.getPage(segment.pageIndex);
+  for (const staff of staffs) {
+    const sourcePage = sourceDoc.getPage(staff.pageIndex);
     const sourceWidth = sourcePage.getWidth();
-    const segmentHeight = segment.top - segment.bottom;
+    const height = staff.top - staff.bottom;
 
     const scale = usableWidth / sourceWidth;
-    const scaledHeight = segmentHeight * scale;
+    const scaledHeight = height * scale;
 
     if (cursorY - scaledHeight < options.marginBottom) {
       if (cursorY < options.pageHeight - options.marginTop) {
@@ -50,14 +50,14 @@ export async function assemblePart(
       }
     }
 
-    // If a single segment is taller than usable height, still place it
+    // If a single staff is taller than usable height, still place it
     const effectiveHeight = Math.min(scaledHeight, usableHeight);
 
     const embeddedPage = await outputDoc.embedPage(sourcePage, {
       left: 0,
       right: sourceWidth,
-      bottom: segment.bottom,
-      top: segment.top,
+      bottom: staff.bottom,
+      top: staff.top,
     });
 
     currentPage.drawPage(embeddedPage, {
@@ -67,7 +67,7 @@ export async function assemblePart(
       height: effectiveHeight,
     });
 
-    cursorY -= effectiveHeight + options.gapBetweenSegments;
+    cursorY -= effectiveHeight + options.gapBetweenStaffs;
   }
 
   return outputDoc.save();

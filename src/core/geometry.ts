@@ -24,6 +24,6 @@ export function clampValue(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
 
-export function segmentHeight(segment: { top: number; bottom: number }): number {
-  return segment.top - segment.bottom;
+export function staffHeight(staff: { top: number; bottom: number }): number {
+  return staff.top - staff.bottom;
 }

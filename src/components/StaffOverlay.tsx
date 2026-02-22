@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import type { Segment } from '../core/segmentModel';
+import type { Staff } from '../core/staffModel';
 import { pdfYToCanvasY } from '../core/coordinateMapper';
-import styles from './SegmentOverlay.module.css';
+import styles from './StaffOverlay.module.css';
 
 const LABEL_COLORS = [
   'rgba(74, 144, 217, 0.2)',
@@ -12,29 +12,29 @@ const LABEL_COLORS = [
   'rgba(255, 127, 80, 0.2)',
 ];
 
-interface SegmentOverlayProps {
-  segments: Segment[];
+interface StaffOverlayProps {
+  staffs: Staff[];
   pageIndex: number;
   pdfPageHeight: number;
   scale: number;
   canvasWidth: number;
-  selectedSegmentId: string | null;
-  onSelect: (segmentId: string) => void;
-  onBoundaryDrag: (segmentId: string, edge: 'top' | 'bottom', newCanvasY: number) => void;
+  selectedStaffId: string | null;
+  onSelect: (staffId: string) => void;
+  onBoundaryDrag: (staffId: string, edge: 'top' | 'bottom', newCanvasY: number) => void;
 }
 
-export function SegmentOverlay({
-  segments,
+export function StaffOverlay({
+  staffs,
   pageIndex,
   pdfPageHeight,
   scale,
   canvasWidth,
-  selectedSegmentId,
+  selectedStaffId,
   onSelect,
   onBoundaryDrag,
-}: SegmentOverlayProps) {
-  const pageSegments = segments.filter((s) => s.pageIndex === pageIndex);
-  const uniqueLabels = [...new Set(segments.map((s) => s.label).filter(Boolean))];
+}: StaffOverlayProps) {
+  const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
+  const uniqueLabels = [...new Set(staffs.map((s) => s.label).filter(Boolean))];
 
   const getColor = (label: string) => {
     const idx = uniqueLabels.indexOf(label);
@@ -42,7 +42,7 @@ export function SegmentOverlay({
   };
 
   // Compute system separator positions
-  const sortedByPosition = [...pageSegments].sort(
+  const sortedByPosition = [...pageStaffs].sort(
     (a, b) => pdfYToCanvasY(a.top, pdfPageHeight, scale) - pdfYToCanvasY(b.top, pdfPageHeight, scale),
   );
   const systemSeparators: number[] = [];
@@ -63,32 +63,32 @@ export function SegmentOverlay({
           style={{ top: y, width: canvasWidth }}
         />
       ))}
-      {pageSegments.map((seg) => {
-        const topPx = pdfYToCanvasY(seg.top, pdfPageHeight, scale);
-        const bottomPx = pdfYToCanvasY(seg.bottom, pdfPageHeight, scale);
+      {pageStaffs.map((staff) => {
+        const topPx = pdfYToCanvasY(staff.top, pdfPageHeight, scale);
+        const bottomPx = pdfYToCanvasY(staff.bottom, pdfPageHeight, scale);
         const height = bottomPx - topPx;
-        const isSelected = seg.id === selectedSegmentId;
+        const isSelected = staff.id === selectedStaffId;
 
         return (
           <div
-            key={seg.id}
-            className={`${styles.segment} ${isSelected ? styles.selected : ''}`}
+            key={staff.id}
+            className={`${styles.staff} ${isSelected ? styles.selected : ''}`}
             style={{
               top: topPx,
               height,
               width: canvasWidth,
-              backgroundColor: seg.label ? getColor(seg.label) : 'rgba(200, 200, 200, 0.2)',
+              backgroundColor: staff.label ? getColor(staff.label) : 'rgba(200, 200, 200, 0.2)',
             }}
-            onClick={() => onSelect(seg.id)}
+            onClick={() => onSelect(staff.id)}
           >
-            {seg.label && <span className={styles.label}>{seg.label}</span>}
+            {staff.label && <span className={styles.label}>{staff.label}</span>}
             <DragHandle
-              segmentId={seg.id}
+              staffId={staff.id}
               edge="top"
               onDrag={onBoundaryDrag}
             />
             <DragHandle
-              segmentId={seg.id}
+              staffId={staff.id}
               edge="bottom"
               onDrag={onBoundaryDrag}
             />
@@ -100,12 +100,12 @@ export function SegmentOverlay({
 }
 
 interface DragHandleProps {
-  segmentId: string;
+  staffId: string;
   edge: 'top' | 'bottom';
-  onDrag: (segmentId: string, edge: 'top' | 'bottom', newCanvasY: number) => void;
+  onDrag: (staffId: string, edge: 'top' | 'bottom', newCanvasY: number) => void;
 }
 
-function DragHandle({ segmentId, edge, onDrag }: DragHandleProps) {
+function DragHandle({ staffId, edge, onDrag }: DragHandleProps) {
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       e.stopPropagation();
@@ -119,7 +119,7 @@ function DragHandle({ segmentId, edge, onDrag }: DragHandleProps) {
       const handlePointerMove = (moveEvent: PointerEvent) => {
         const rect = overlayEl.getBoundingClientRect();
         const y = moveEvent.clientY - rect.top;
-        onDrag(segmentId, edge, y);
+        onDrag(staffId, edge, y);
       };
 
       const handlePointerUp = () => {
@@ -130,7 +130,7 @@ function DragHandle({ segmentId, edge, onDrag }: DragHandleProps) {
       target.addEventListener('pointermove', handlePointerMove);
       target.addEventListener('pointerup', handlePointerUp);
     },
-    [segmentId, edge, onDrag],
+    [staffId, edge, onDrag],
   );
 
   return (

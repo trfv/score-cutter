@@ -1,38 +1,38 @@
 import { describe, it, expect } from 'vitest';
-import { detectSegmentBoundaries, detectSystems } from '../staffDetector';
+import { detectStaffBoundaries, detectSystems } from '../staffDetector';
 
 describe('staffDetector', () => {
-  describe('detectSegmentBoundaries', () => {
+  describe('detectStaffBoundaries', () => {
     it('should return empty for all-white projection', () => {
       const projection = new Array(100).fill(0);
-      const boundaries = detectSegmentBoundaries(projection);
+      const boundaries = detectStaffBoundaries(projection);
       expect(boundaries).toEqual([]);
     });
 
-    it('should detect a single segment with content', () => {
+    it('should detect a single staff with content', () => {
       // Page with one band of content in the middle
       const projection = [
         ...new Array(20).fill(0),   // top margin (white)
         ...new Array(60).fill(100), // content
         ...new Array(20).fill(0),   // bottom margin (white)
       ];
-      const boundaries = detectSegmentBoundaries(projection, 10);
+      const boundaries = detectStaffBoundaries(projection, 10);
       expect(boundaries).toHaveLength(1);
       expect(boundaries[0].topPx).toBeLessThanOrEqual(20);
       expect(boundaries[0].bottomPx).toBeGreaterThanOrEqual(80);
     });
 
-    it('should detect two segments separated by a gap', () => {
+    it('should detect two staffs separated by a gap', () => {
       const projection = [
         ...new Array(10).fill(0),   // top margin
-        ...new Array(30).fill(100), // segment 1
-        ...new Array(20).fill(0),   // gap between segments
-        ...new Array(30).fill(100), // segment 2
+        ...new Array(30).fill(100), // staff 1
+        ...new Array(20).fill(0),   // gap between staffs
+        ...new Array(30).fill(100), // staff 2
         ...new Array(10).fill(0),   // bottom margin
       ];
-      const boundaries = detectSegmentBoundaries(projection, 15);
+      const boundaries = detectStaffBoundaries(projection, 15);
       expect(boundaries).toHaveLength(2);
-      // First segment should be in the top portion
+      // First staff should be in the top portion
       expect(boundaries[0].topPx).toBeLessThan(boundaries[1].topPx);
     });
 
@@ -44,21 +44,21 @@ describe('staffDetector', () => {
         ...new Array(30).fill(100), // more content
         ...new Array(10).fill(0),   // bottom margin
       ];
-      const boundaries = detectSegmentBoundaries(projection, 10);
+      const boundaries = detectStaffBoundaries(projection, 10);
       expect(boundaries).toHaveLength(1);
     });
 
-    it('should detect three segments', () => {
+    it('should detect three staffs', () => {
       const projection = [
         ...new Array(10).fill(0),   // top margin
-        ...new Array(20).fill(100), // segment 1
+        ...new Array(20).fill(100), // staff 1
         ...new Array(15).fill(0),   // gap
-        ...new Array(20).fill(100), // segment 2
+        ...new Array(20).fill(100), // staff 2
         ...new Array(15).fill(0),   // gap
-        ...new Array(20).fill(100), // segment 3
+        ...new Array(20).fill(100), // staff 3
         ...new Array(10).fill(0),   // bottom margin
       ];
-      const boundaries = detectSegmentBoundaries(projection, 10);
+      const boundaries = detectStaffBoundaries(projection, 10);
       expect(boundaries).toHaveLength(3);
     });
   });

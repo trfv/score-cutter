@@ -19,9 +19,9 @@
   "detect": {
     "detectButton": "Detect Staves",
     "detecting": "Detecting...",
-    "addSegment": "Add Segment",
-    "deleteSegment": "Delete Segment",
-    "segmentCount": "{{count}} segments detected",
+    "addStaff": "Add Staff",
+    "deleteStaff": "Delete Staff",
+    "staffCount": "{{count}} staffs detected",
     "page": "Page {{current}} / {{total}}",
     "systemGapThreshold": "System gap",
     "partGapThreshold": "Part gap",
@@ -53,7 +53,7 @@
   "preview": {
     "selectPart": "Select a part",
     "addPageBreak": "Add Page Break",
-    "noSegments": "No segments for this part"
+    "noStaffs": "No staffs for this part"
   },
   "export": {
     "download": "Download",

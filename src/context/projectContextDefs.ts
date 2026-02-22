@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { Dispatch } from 'react';
-import type { Segment, PageDimension } from '../core/segmentModel';
+import type { Staff, PageDimension } from '../core/staffModel';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 export type WizardStep = 'import' | 'detect' | 'label' | 'preview' | 'export';
@@ -12,7 +12,7 @@ export interface ProjectState {
   pdfDocument: PDFDocumentProxy | null;
   pageCount: number;
   pageDimensions: PageDimension[];
-  segments: Segment[];
+  staffs: Staff[];
   currentPageIndex: number;
 }
 
@@ -26,10 +26,10 @@ export type ProjectAction =
       pageCount: number;
       pageDimensions: PageDimension[];
     }
-  | { type: 'SET_SEGMENTS'; segments: Segment[] }
-  | { type: 'UPDATE_SEGMENT'; segment: Segment }
-  | { type: 'ADD_SEGMENT'; segment: Segment }
-  | { type: 'DELETE_SEGMENT'; segmentId: string }
+  | { type: 'SET_STAFFS'; staffs: Staff[] }
+  | { type: 'UPDATE_STAFF'; staff: Staff }
+  | { type: 'ADD_STAFF'; staff: Staff }
+  | { type: 'DELETE_STAFF'; staffId: string }
   | { type: 'SET_CURRENT_PAGE'; pageIndex: number }
   | { type: 'RESET' }
   | { type: 'UNDO' }
@@ -42,7 +42,7 @@ export const initialState: ProjectState = {
   pdfDocument: null,
   pageCount: 0,
   pageDimensions: [],
-  segments: [],
+  staffs: [],
   currentPageIndex: 0,
 };
 

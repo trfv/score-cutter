@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { assemblePart } from './partAssembler';
-import type { Part } from './segmentModel';
+import type { Part } from './staffModel';
 import type { AssemblyOptions } from './partAssembler';
 
 export interface ZipProgress {
@@ -25,7 +25,7 @@ export async function zipParts(
       currentPartLabel: part.label,
     });
 
-    const pdfBytes = await assemblePart(sourcePdfBytes, part.segments, options);
+    const pdfBytes = await assemblePart(sourcePdfBytes, part.staffs, options);
     const fileName = `${part.label.replace(/\s+/g, '_')}.pdf`;
     zip.file(fileName, pdfBytes);
   }

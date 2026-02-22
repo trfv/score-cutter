@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { useProject, useProjectDispatch, useUndoRedo } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
-import { SegmentOverlay } from './SegmentOverlay';
+import { StaffOverlay } from './StaffOverlay';
 import { canvasYToPdfY } from '../core/coordinateMapper';
 import { getScale } from '../core/coordinateMapper';
 import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundary } from '../core/staffDetector';
-import type { Segment } from '../core/segmentModel';
+import type { Staff } from '../core/staffModel';
 import styles from './DetectStep.module.css';
 
 const DETECT_DPI = 150;
@@ -21,13 +21,13 @@ export function DetectStep() {
   const dispatch = useProjectDispatch();
   const [detecting, setDetecting] = useState(false);
   const [progress, setProgress] = useState<{ completed: number; total: number } | null>(null);
-  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [systemGapHeight, setSystemGapHeight] = useState(50);
   const [partGapHeight, setPartGapHeight] = useState(15);
 
   const { canUndo: undoAvailable, canRedo: redoAvailable } = useUndoRedo();
-  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, segments } = project;
+  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
 
   const displayScale = getScale(DETECT_DPI);
 
@@ -98,13 +98,13 @@ export function DetectStep() {
         });
       }
 
-      // Phase 3: Convert results to Segments
-      const allSegments: Segment[] = [];
+      // Phase 3: Convert results to Staffs
+      const allStaffs: Staff[] = [];
       for (const result of results) {
         const dim = pageDimensions[result.pageIndex];
         for (let sysIdx = 0; sysIdx < result.systems.length; sysIdx++) {
           for (const part of result.systems[sysIdx].parts) {
-            allSegments.push({
+            allStaffs.push({
               id: uuidv4(),
               pageIndex: result.pageIndex,
               top: canvasYToPdfY(part.topPx, dim.height, DETECT_SCALE),
@@ -116,7 +116,7 @@ export function DetectStep() {
         }
       }
 
-      dispatch({ type: 'SET_SEGMENTS', segments: allSegments });
+      dispatch({ type: 'SET_STAFFS', staffs: allStaffs });
     } finally {
       setDetecting(false);
       setProgress(null);
@@ -124,26 +124,26 @@ export function DetectStep() {
   }, [pdfDocument, pageCount, pageDimensions, dispatch, systemGapHeight, partGapHeight]);
 
   const handleBoundaryDrag = useCallback(
-    (segmentId: string, edge: 'top' | 'bottom', newCanvasY: number) => {
-      const seg = segments.find((s) => s.id === segmentId);
-      if (!seg) return;
-      const dim = pageDimensions[seg.pageIndex];
+    (staffId: string, edge: 'top' | 'bottom', newCanvasY: number) => {
+      const staff = staffs.find((s) => s.id === staffId);
+      if (!staff) return;
+      const dim = pageDimensions[staff.pageIndex];
       const newPdfY = canvasYToPdfY(newCanvasY, dim.height, displayScale);
 
-      const updated = { ...seg };
+      const updated = { ...staff };
       if (edge === 'top') {
         updated.top = Math.max(newPdfY, updated.bottom + 10);
       } else {
         updated.bottom = Math.min(newPdfY, updated.top - 10);
       }
-      dispatch({ type: 'UPDATE_SEGMENT', segment: updated });
+      dispatch({ type: 'UPDATE_STAFF', staff: updated });
     },
-    [segments, pageDimensions, displayScale, dispatch],
+    [staffs, pageDimensions, displayScale, dispatch],
   );
 
-  const handleAddSegment = useCallback(() => {
+  const handleAddStaff = useCallback(() => {
     const dim = pageDimensions[currentPageIndex];
-    const newSegment: Segment = {
+    const newStaff: Staff = {
       id: uuidv4(),
       pageIndex: currentPageIndex,
       top: dim.height / 2 + 50,
@@ -151,15 +151,15 @@ export function DetectStep() {
       label: '',
       systemIndex: 0,
     };
-    dispatch({ type: 'ADD_SEGMENT', segment: newSegment });
+    dispatch({ type: 'ADD_STAFF', staff: newStaff });
   }, [currentPageIndex, pageDimensions, dispatch]);
 
-  const handleDeleteSegment = useCallback(() => {
-    if (selectedSegmentId) {
-      dispatch({ type: 'DELETE_SEGMENT', segmentId: selectedSegmentId });
-      setSelectedSegmentId(null);
+  const handleDeleteStaff = useCallback(() => {
+    if (selectedStaffId) {
+      dispatch({ type: 'DELETE_STAFF', staffId: selectedStaffId });
+      setSelectedStaffId(null);
     }
-  }, [selectedSegmentId, dispatch]);
+  }, [selectedStaffId, dispatch]);
 
   const handlePrevPage = useCallback(() => {
     if (currentPageIndex > 0) {
@@ -184,7 +184,7 @@ export function DetectStep() {
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
-  const pageSegments = segments.filter((s) => s.pageIndex === currentPageIndex);
+  const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
 
   return (
     <div className={styles.container}>
@@ -196,9 +196,9 @@ export function DetectStep() {
               : t('detect.detecting'))
             : t('detect.detectButton')}
         </button>
-        <button onClick={handleAddSegment}>{t('detect.addSegment')}</button>
-        <button onClick={handleDeleteSegment} disabled={!selectedSegmentId}>
-          {t('detect.deleteSegment')}
+        <button onClick={handleAddStaff}>{t('detect.addStaff')}</button>
+        <button onClick={handleDeleteStaff} disabled={!selectedStaffId}>
+          {t('detect.deleteStaff')}
         </button>
         <button onClick={() => dispatch({ type: 'UNDO' })} disabled={!undoAvailable}>
           {t('common.undo')}
@@ -207,7 +207,7 @@ export function DetectStep() {
           {t('common.redo')}
         </button>
         <span className={styles.info}>
-          {t('detect.segmentCount', { count: pageSegments.length })}
+          {t('detect.staffCount', { count: pageStaffs.length })}
         </span>
       </div>
 
@@ -249,14 +249,14 @@ export function DetectStep() {
           onCanvasReady={handleCanvasReady}
         />
         {currentDimension && (
-          <SegmentOverlay
-            segments={segments}
+          <StaffOverlay
+            staffs={staffs}
             pageIndex={currentPageIndex}
             pdfPageHeight={currentDimension.height}
             scale={displayScale}
             canvasWidth={canvasWidth}
-            selectedSegmentId={selectedSegmentId}
-            onSelect={setSelectedSegmentId}
+            selectedStaffId={selectedStaffId}
+            onSelect={setSelectedStaffId}
             onBoundaryDrag={handleBoundaryDrag}
           />
         )}
@@ -264,7 +264,7 @@ export function DetectStep() {
 
       <div className={styles.navigation}>
         <button onClick={handleBack}>{t('common.back')}</button>
-        <button onClick={handleGoToLabel} disabled={segments.length === 0}>
+        <button onClick={handleGoToLabel} disabled={staffs.length === 0}>
           {t('common.next')}
         </button>
       </div>

@@ -8,18 +8,18 @@ test.describe('Detect Step', () => {
   });
 
   test('shows detect toolbar', async ({ page }) => {
-    await expect(page.getByRole('button', { name: '段を検出' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'セグメント追加' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'セグメント削除' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '譜表を検出' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '譜表を追加' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '譜表を削除' })).toBeVisible();
   });
 
   test('shows page navigation starting at page 1', async ({ page }) => {
     await expect(page.getByText('ページ 1 / 6')).toBeVisible();
   });
 
-  test('detects segments from PDF', async ({ page }) => {
-    await page.getByRole('button', { name: '段を検出' }).click();
-    await expect(page.getByText(/\d+ 個のセグメントを検出/)).toBeVisible({
+  test('detects staffs from PDF', async ({ page }) => {
+    await page.getByRole('button', { name: '譜表を検出' }).click();
+    await expect(page.getByText(/\d+ 個の譜表を検出/)).toBeVisible({
       timeout: 45_000,
     });
   });
@@ -29,8 +29,8 @@ test.describe('Detect Step', () => {
   });
 
   test('Next button enables after detection', async ({ page }) => {
-    await page.getByRole('button', { name: '段を検出' }).click();
-    await expect(page.getByRole('button', { name: '段を検出' })).toBeEnabled({
+    await page.getByRole('button', { name: '譜表を検出' }).click();
+    await expect(page.getByRole('button', { name: '譜表を検出' })).toBeEnabled({
       timeout: 45_000,
     });
     await expect(page.getByRole('button', { name: '次へ' })).toBeEnabled();

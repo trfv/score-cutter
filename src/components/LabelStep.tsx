@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch, useUndoRedo } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
-import { SegmentOverlay } from './SegmentOverlay';
+import { StaffOverlay } from './StaffOverlay';
 import { getScale } from '../core/coordinateMapper';
 import styles from './LabelStep.module.css';
 
@@ -23,12 +23,12 @@ export function LabelStep() {
   const { t } = useTranslation();
   const project = useProject();
   const dispatch = useProjectDispatch();
-  const [selectedSegmentId, setSelectedSegmentId] = useState<string | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [filterText, setFilterText] = useState('');
 
   const { canUndo: undoAvailable, canRedo: redoAvailable } = useUndoRedo();
-  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, segments } = project;
+  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
 
   const filteredInstruments = useMemo(() => {
     if (!filterText) return COMMON_INSTRUMENTS;
@@ -41,39 +41,39 @@ export function LabelStep() {
   }, []);
 
   const handleLabelChange = useCallback(
-    (segmentId: string, label: string) => {
-      const seg = segments.find((s) => s.id === segmentId);
-      if (!seg) return;
-      dispatch({ type: 'UPDATE_SEGMENT', segment: { ...seg, label } });
+    (staffId: string, label: string) => {
+      const staff = staffs.find((s) => s.id === staffId);
+      if (!staff) return;
+      dispatch({ type: 'UPDATE_STAFF', staff: { ...staff, label } });
     },
-    [segments, dispatch],
+    [staffs, dispatch],
   );
 
   const handleApplyToAll = useCallback(() => {
     // Use page 0, system 0 as the template
-    const templateSegments = segments
+    const templateStaffs = staffs
       .filter((s) => s.pageIndex === 0 && s.systemIndex === 0)
       .sort((a, b) => b.top - a.top);
 
-    if (templateSegments.length === 0) return;
+    if (templateStaffs.length === 0) return;
 
-    const updatedSegments = segments.map((seg) => {
-      if (seg.pageIndex === 0 && seg.systemIndex === 0) return seg;
+    const updatedStaffs = staffs.map((staff) => {
+      if (staff.pageIndex === 0 && staff.systemIndex === 0) return staff;
 
-      // Find segments in the same system on the same page
-      const sameSystemSegs = segments
-        .filter((s) => s.pageIndex === seg.pageIndex && s.systemIndex === seg.systemIndex)
+      // Find staffs in the same system on the same page
+      const sameSystemStaffs = staffs
+        .filter((s) => s.pageIndex === staff.pageIndex && s.systemIndex === staff.systemIndex)
         .sort((a, b) => b.top - a.top);
 
-      const idx = sameSystemSegs.findIndex((s) => s.id === seg.id);
-      if (idx >= 0 && idx < templateSegments.length) {
-        return { ...seg, label: templateSegments[idx].label };
+      const idx = sameSystemStaffs.findIndex((s) => s.id === staff.id);
+      if (idx >= 0 && idx < templateStaffs.length) {
+        return { ...staff, label: templateStaffs[idx].label };
       }
-      return seg;
+      return staff;
     });
 
-    dispatch({ type: 'SET_SEGMENTS', segments: updatedSegments });
-  }, [segments, dispatch]);
+    dispatch({ type: 'SET_STAFFS', staffs: updatedStaffs });
+  }, [staffs, dispatch]);
 
   const handlePrevPage = useCallback(() => {
     if (currentPageIndex > 0) {
@@ -100,8 +100,8 @@ export function LabelStep() {
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
-  const pageSegments = segments.filter((s) => s.pageIndex === currentPageIndex);
-  const hasLabels = segments.some((s) => s.label !== '');
+  const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
+  const hasLabels = staffs.some((s) => s.label !== '');
 
   return (
     <div className={styles.container}>
@@ -118,22 +118,22 @@ export function LabelStep() {
       <div className={styles.content}>
         <div className={styles.sidebar}>
           <h3>{t('steps.label')}</h3>
-          {pageSegments.sort((a, b) => b.top - a.top).map((seg, idx) => (
+          {pageStaffs.sort((a, b) => b.top - a.top).map((staff, idx) => (
             <div
-              key={seg.id}
-              className={`${styles.segmentRow} ${
-                selectedSegmentId === seg.id ? styles.selectedRow : ''
+              key={staff.id}
+              className={`${styles.staffRow} ${
+                selectedStaffId === staff.id ? styles.selectedRow : ''
               }`}
-              onClick={() => setSelectedSegmentId(seg.id)}
+              onClick={() => setSelectedStaffId(staff.id)}
             >
-              <span className={styles.segmentIndex}>{idx + 1}</span>
+              <span className={styles.staffIndex}>{idx + 1}</span>
               <input
                 type="text"
-                value={seg.label}
-                onChange={(e) => handleLabelChange(seg.id, e.target.value)}
+                value={staff.label}
+                onChange={(e) => handleLabelChange(staff.id, e.target.value)}
                 onFocus={() => {
-                  setSelectedSegmentId(seg.id);
-                  setFilterText(seg.label);
+                  setSelectedStaffId(staff.id);
+                  setFilterText(staff.label);
                 }}
                 placeholder={t('label.placeholder')}
                 className={styles.labelInput}
@@ -171,14 +171,14 @@ export function LabelStep() {
               onCanvasReady={handleCanvasReady}
             />
             {currentDimension && (
-              <SegmentOverlay
-                segments={segments}
+              <StaffOverlay
+                staffs={staffs}
                 pageIndex={currentPageIndex}
                 pdfPageHeight={currentDimension.height}
                 scale={DISPLAY_SCALE}
                 canvasWidth={canvasWidth}
-                selectedSegmentId={selectedSegmentId}
-                onSelect={setSelectedSegmentId}
+                selectedStaffId={selectedStaffId}
+                onSelect={setSelectedStaffId}
                 onBoundaryDrag={handleBoundaryDrag}
               />
             )}

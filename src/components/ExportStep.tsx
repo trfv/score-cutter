@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
-import { derivePartsFromSegments } from '../core/segmentModel';
+import { derivePartsFromStaffs } from '../core/staffModel';
 import { assemblePart, defaultAssemblyOptions } from '../core/partAssembler';
 import { zipParts } from '../core/zipExporter';
 import type { ZipProgress } from '../core/zipExporter';
-import type { Part } from '../core/segmentModel';
+import type { Part } from '../core/staffModel';
 import styles from './ExportStep.module.css';
 
 export function ExportStep() {
@@ -16,8 +16,8 @@ export function ExportStep() {
   const [zipProgress, setZipProgress] = useState<ZipProgress | null>(null);
 
   const parts = useMemo(
-    () => derivePartsFromSegments(project.segments),
-    [project.segments],
+    () => derivePartsFromStaffs(project.staffs),
+    [project.staffs],
   );
 
   const handleDownload = useCallback(
@@ -27,7 +27,7 @@ export function ExportStep() {
       try {
         const pdfBytes = await assemblePart(
           project.sourcePdfBytes,
-          part.segments,
+          part.staffs,
           defaultAssemblyOptions,
         );
         const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: 'application/pdf' });
@@ -81,7 +81,7 @@ export function ExportStep() {
             <div className={styles.partInfo}>
               <span className={styles.partLabel}>{part.label}</span>
               <span className={styles.partMeta}>
-                {part.segments.length} segments
+                {part.staffs.length} staffs
               </span>
             </div>
             <button

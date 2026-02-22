@@ -3,7 +3,7 @@ import JSZip from 'jszip';
 import { PDFDocument, rgb } from 'pdf-lib';
 import { zipParts } from '../zipExporter';
 import { defaultAssemblyOptions } from '../partAssembler';
-import type { Part } from '../segmentModel';
+import type { Part } from '../staffModel';
 
 async function createTestPdf(pageCount: number = 1): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
@@ -20,11 +20,11 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Violin I',
-        segments: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
       },
       {
         label: 'Cello',
-        segments: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemIndex: 0 }],
+        staffs: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemIndex: 0 }],
       },
     ];
 
@@ -41,7 +41,7 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Violin I',
-        segments: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
       },
     ];
 
@@ -57,11 +57,11 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Violin I',
-        segments: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
       },
       {
         label: 'Cello',
-        segments: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemIndex: 0 }],
+        staffs: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemIndex: 0 }],
       },
     ];
 
@@ -88,7 +88,7 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Basso continuo',
-        segments: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Basso continuo', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Basso continuo', systemIndex: 0 }],
       },
     ];
 

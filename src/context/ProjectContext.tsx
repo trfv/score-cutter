@@ -7,7 +7,7 @@ import {
   initialState,
 } from './projectContextDefs';
 import type { ProjectState, ProjectAction } from './projectContextDefs';
-import type { Segment } from '../core/segmentModel';
+import type { Staff } from '../core/staffModel';
 import {
   createHistory,
   pushState,
@@ -20,11 +20,11 @@ import type { UndoHistory } from '../core/undoHistory';
 
 export type { WizardStep } from './projectContextDefs';
 
-const SEGMENT_ACTIONS = new Set([
-  'SET_SEGMENTS',
-  'UPDATE_SEGMENT',
-  'ADD_SEGMENT',
-  'DELETE_SEGMENT',
+const STAFF_ACTIONS = new Set([
+  'SET_STAFFS',
+  'UPDATE_STAFF',
+  'ADD_STAFF',
+  'DELETE_STAFF',
 ]);
 
 const MAX_UNDO = 50;
@@ -41,24 +41,24 @@ function projectReducer(state: ProjectState, action: ProjectAction): ProjectStat
         pdfDocument: action.document,
         pageCount: action.pageCount,
         pageDimensions: action.pageDimensions,
-        segments: [],
+        staffs: [],
         currentPageIndex: 0,
       };
-    case 'SET_SEGMENTS':
-      return { ...state, segments: action.segments };
-    case 'UPDATE_SEGMENT':
+    case 'SET_STAFFS':
+      return { ...state, staffs: action.staffs };
+    case 'UPDATE_STAFF':
       return {
         ...state,
-        segments: state.segments.map((s) =>
-          s.id === action.segment.id ? action.segment : s,
+        staffs: state.staffs.map((s) =>
+          s.id === action.staff.id ? action.staff : s,
         ),
       };
-    case 'ADD_SEGMENT':
-      return { ...state, segments: [...state.segments, action.segment] };
-    case 'DELETE_SEGMENT':
+    case 'ADD_STAFF':
+      return { ...state, staffs: [...state.staffs, action.staff] };
+    case 'DELETE_STAFF':
       return {
         ...state,
-        segments: state.segments.filter((s) => s.id !== action.segmentId),
+        staffs: state.staffs.filter((s) => s.id !== action.staffId),
       };
     case 'SET_CURRENT_PAGE':
       return { ...state, currentPageIndex: action.pageIndex };
@@ -71,7 +71,7 @@ function projectReducer(state: ProjectState, action: ProjectAction): ProjectStat
 
 interface CombinedState {
   project: ProjectState;
-  history: UndoHistory<Segment[]>;
+  history: UndoHistory<Staff[]>;
 }
 
 function combinedReducer(state: CombinedState, action: ProjectAction): CombinedState {
@@ -79,7 +79,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
     const newHistory = undoHistory(state.history);
     if (newHistory === state.history) return state;
     return {
-      project: { ...state.project, segments: newHistory.present },
+      project: { ...state.project, staffs: newHistory.present },
       history: newHistory,
     };
   }
@@ -88,7 +88,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
     const newHistory = redoHistory(state.history);
     if (newHistory === state.history) return state;
     return {
-      project: { ...state.project, segments: newHistory.present },
+      project: { ...state.project, staffs: newHistory.present },
       history: newHistory,
     };
   }
@@ -96,7 +96,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
   if (action.type === 'RESET') {
     return {
       project: initialState,
-      history: createHistory<Segment[]>([]),
+      history: createHistory<Staff[]>([]),
     };
   }
 
@@ -105,14 +105,14 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
   if (action.type === 'LOAD_PDF') {
     return {
       project: newProject,
-      history: createHistory<Segment[]>(newProject.segments),
+      history: createHistory<Staff[]>(newProject.staffs),
     };
   }
 
-  if (SEGMENT_ACTIONS.has(action.type)) {
+  if (STAFF_ACTIONS.has(action.type)) {
     return {
       project: newProject,
-      history: pushState(state.history, newProject.segments, MAX_UNDO),
+      history: pushState(state.history, newProject.staffs, MAX_UNDO),
     };
   }
 
@@ -122,7 +122,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [{ project, history }, dispatch] = useReducer(combinedReducer, {
     project: initialState,
-    history: createHistory<Segment[]>([]),
+    history: createHistory<Staff[]>([]),
   });
 
   const undoRedoState = useMemo(

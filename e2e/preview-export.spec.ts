@@ -20,7 +20,7 @@ test.describe('Preview Step', () => {
     await expect(page.getByText('Soprano')).toBeVisible();
   });
 
-  test('shows segment details for selected part', async ({ page }) => {
+  test('shows staff details for selected part', async ({ page }) => {
     await page.getByText('Soprano').first().click();
     await expect(page.getByText(/ページ \d+ \/ 6/).first()).toBeVisible();
   });

@@ -3,7 +3,7 @@ import {
   rectsOverlap,
   rectContains,
   clampValue,
-  segmentHeight,
+  staffHeight,
 } from '../geometry';
 
 describe('geometry', () => {
@@ -55,13 +55,13 @@ describe('geometry', () => {
     });
   });
 
-  describe('segmentHeight', () => {
-    it('should return the height of a segment (top - bottom)', () => {
-      expect(segmentHeight({ top: 100, bottom: 30 })).toBe(70);
+  describe('staffHeight', () => {
+    it('should return the height of a staff (top - bottom)', () => {
+      expect(staffHeight({ top: 100, bottom: 30 })).toBe(70);
     });
 
-    it('should return 0 for zero-height segment', () => {
-      expect(segmentHeight({ top: 50, bottom: 50 })).toBe(0);
+    it('should return 0 for zero-height staff', () => {
+      expect(staffHeight({ top: 50, bottom: 50 })).toBe(0);
     });
   });
 });

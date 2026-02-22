@@ -5,7 +5,7 @@
   pointer-events: none;
 }
 
-.segment {
+.staff {
   position: absolute;
   left: 0;
   border-top: 2px dashed rgba(0, 0, 0, 0.3);
@@ -15,7 +15,7 @@
   transition: background-color 0.15s;
 }
 
-.segment.selected {
+.staff.selected {
   border-color: #4a90d9;
   border-style: solid;
 }

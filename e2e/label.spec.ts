@@ -7,7 +7,7 @@ test.describe('Label Step', () => {
     await completeDetectStep(page);
   });
 
-  test('shows label inputs for page segments', async ({ page }) => {
+  test('shows label inputs for page staffs', async ({ page }) => {
     const inputs = page.locator('input[placeholder="楽器名を入力"]');
     await expect(inputs.first()).toBeVisible();
     const count = await inputs.count();

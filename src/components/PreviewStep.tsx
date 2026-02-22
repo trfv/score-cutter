@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
-import { derivePartsFromSegments } from '../core/segmentModel';
+import { derivePartsFromStaffs } from '../core/staffModel';
 import styles from './PreviewStep.module.css';
 
 export function PreviewStep() {
@@ -11,8 +11,8 @@ export function PreviewStep() {
   const [selectedPartLabel, setSelectedPartLabel] = useState<string | null>(null);
 
   const parts = useMemo(
-    () => derivePartsFromSegments(project.segments),
-    [project.segments],
+    () => derivePartsFromStaffs(project.staffs),
+    [project.staffs],
   );
 
   const selectedPart = parts.find((p) => p.label === selectedPartLabel) ?? parts[0] ?? null;
@@ -41,7 +41,7 @@ export function PreviewStep() {
               >
                 <span className={styles.partLabel}>{part.label}</span>
                 <span className={styles.partCount}>
-                  {part.segments.length} segments
+                  {part.staffs.length} staffs
                 </span>
               </li>
             ))}
@@ -50,25 +50,25 @@ export function PreviewStep() {
 
         <div className={styles.preview}>
           {selectedPart ? (
-            <div className={styles.segmentList}>
-              {selectedPart.segments.map((seg, idx) => (
-                <div key={seg.id} className={styles.segmentPreview}>
-                  <span className={styles.segmentInfo}>
+            <div className={styles.staffList}>
+              {selectedPart.staffs.map((staff, idx) => (
+                <div key={staff.id} className={styles.staffPreview}>
+                  <span className={styles.staffInfo}>
                     {t('detect.page', {
-                      current: seg.pageIndex + 1,
+                      current: staff.pageIndex + 1,
                       total: project.pageCount,
                     })}
                     {' — '}
-                    Segment {idx + 1}
+                    Staff {idx + 1}
                   </span>
-                  <span className={styles.segmentCoords}>
-                    Y: {Math.round(seg.bottom)} - {Math.round(seg.top)}
+                  <span className={styles.staffCoords}>
+                    Y: {Math.round(staff.bottom)} - {Math.round(staff.top)}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.empty}>{t('preview.noSegments')}</p>
+            <p className={styles.empty}>{t('preview.noStaffs')}</p>
           )}
         </div>
       </div>
