@@ -21,6 +21,7 @@
     "detectButton": "Detect Staves",
     "detecting": "Detecting...",
     "staffCount": "{{count}} staffs",
+    "staffCountBySystem": "{{counts}} staffs ({{systemCount}} systems)",
     "systemCount": "{{count}} systems",
     "page": "Page {{current}} / {{total}}",
     "progress": "Processing {{completed}}/{{total}} pages",

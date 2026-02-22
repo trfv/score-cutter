@@ -21,6 +21,7 @@
     "detectButton": "譜表を自動検出",
     "detecting": "検出中...",
     "staffCount": "{{count}} 個の譜表",
+    "staffCountBySystem": "{{counts}} 譜表 ({{systemCount}} 組段)",
     "systemCount": "{{count}} 個の組段",
     "page": "ページ {{current}} / {{total}}",
     "progress": "処理中 {{completed}}/{{total}} ページ",

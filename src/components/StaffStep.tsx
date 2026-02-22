@@ -131,7 +131,19 @@ export function StaffStep() {
           </button>
         </div>
         <span className={styles.staffCount}>
-          {t('detect.staffCount', { count: pageStaffs.length })}
+          {(() => {
+            const systemMap = new Map<number, number>();
+            for (const s of pageStaffs) {
+              systemMap.set(s.systemIndex, (systemMap.get(s.systemIndex) ?? 0) + 1);
+            }
+            const sortedCounts = [...systemMap.entries()]
+              .sort(([a], [b]) => a - b)
+              .map(([, count]) => count);
+            return t('detect.staffCountBySystem', {
+              counts: sortedCounts.join(' / '),
+              systemCount: systemMap.size,
+            });
+          })()}
         </span>
       </div>
 
