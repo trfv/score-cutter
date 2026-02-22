@@ -1,0 +1,220 @@
+import { useCallback, useRef } from 'react';
+import type { Staff } from '../core/staffModel';
+import { computeSystemGroups } from '../core/separatorModel';
+import type { SystemGroup } from '../core/separatorModel';
+import styles from './SystemOverlay.module.css';
+
+const SYSTEM_COLORS = [styles.systemRectEven, styles.systemRectOdd];
+
+interface SystemOverlayProps {
+  staffs: Staff[];
+  pageIndex: number;
+  pdfPageHeight: number;
+  scale: number;
+  canvasWidth: number;
+  canvasHeight: number;
+  selectedSystemSepIndex: number | null;
+  onSelectSystemSep: (index: number | null) => void;
+  onSystemSepDrag: (systemSepIndex: number, newCanvasY: number) => void;
+  onSplitSystem: (staffAboveId: string, staffBelowId: string) => void;
+  onMergeSystem: (upperSystemIndex: number) => void;
+}
+
+export function SystemOverlay({
+  staffs,
+  pageIndex,
+  pdfPageHeight,
+  scale,
+  canvasWidth,
+  canvasHeight,
+  selectedSystemSepIndex,
+  onSelectSystemSep,
+  onSystemSepDrag,
+  onSplitSystem,
+  onMergeSystem,
+}: SystemOverlayProps) {
+  const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
+  const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale);
+
+  // Build system separator positions (between adjacent system groups)
+  const systemSeps: Array<{ canvasY: number; upperGroup: SystemGroup; lowerGroup: SystemGroup }> = [];
+  for (let i = 0; i < groups.length - 1; i++) {
+    const upper = groups[i];
+    const lower = groups[i + 1];
+    systemSeps.push({
+      canvasY: (upper.bottomCanvasY + lower.topCanvasY) / 2,
+      upperGroup: upper,
+      lowerGroup: lower,
+    });
+  }
+
+  const handleOverlayDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Double-click on empty area within a system → split system
+      const rect = e.currentTarget.getBoundingClientRect();
+      const canvasY = e.clientY - rect.top;
+
+      // Find which system group contains this Y
+      for (const group of groups) {
+        if (canvasY >= group.topCanvasY && canvasY <= group.bottomCanvasY) {
+          // Find the gap between two adjacent staffs in this group
+          const regions = group.regions;
+          for (let i = 0; i < regions.length - 1; i++) {
+            const current = regions[i];
+            const next = regions[i + 1];
+            if (canvasY >= current.bottomCanvasY && canvasY <= next.topCanvasY) {
+              onSplitSystem(current.staffId, next.staffId);
+              return;
+            }
+          }
+          // If within a staff region, find nearest gap
+          for (let i = 0; i < regions.length - 1; i++) {
+            const midpoint = (regions[i].bottomCanvasY + regions[i + 1].topCanvasY) / 2;
+            if (canvasY < midpoint) {
+              if (i > 0) {
+                onSplitSystem(regions[i - 1].staffId, regions[i].staffId);
+              }
+              return;
+            }
+          }
+          break;
+        }
+      }
+    },
+    [groups, onSplitSystem],
+  );
+
+  return (
+    <div
+      className={styles.overlay}
+      style={{ width: canvasWidth, height: canvasHeight }}
+      onDoubleClick={handleOverlayDoubleClick}
+    >
+      {/* System rectangles */}
+      {groups.map((group, gi) => (
+        <div
+          key={group.systemIndex}
+          className={`${styles.systemRect} ${SYSTEM_COLORS[gi % 2]}`}
+          style={{
+            top: group.topCanvasY,
+            height: group.bottomCanvasY - group.topCanvasY,
+            width: canvasWidth,
+          }}
+        >
+          {/* Staff preview rectangles within system */}
+          {group.regions.map((region) => (
+            <div
+              key={region.staffId}
+              className={styles.staffPreview}
+              style={{
+                top: region.topCanvasY - group.topCanvasY,
+                height: region.bottomCanvasY - region.topCanvasY,
+                width: canvasWidth,
+              }}
+            />
+          ))}
+        </div>
+      ))}
+
+      {/* System separators between groups */}
+      {systemSeps.map((sep, i) => (
+        <SystemSeparatorLine
+          key={i}
+          index={i}
+          canvasY={sep.canvasY}
+          canvasWidth={canvasWidth}
+          isSelected={selectedSystemSepIndex === i}
+          onSelect={onSelectSystemSep}
+          onDrag={onSystemSepDrag}
+          onMerge={() => onMergeSystem(sep.upperGroup.systemIndex)}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface SystemSeparatorLineProps {
+  index: number;
+  canvasY: number;
+  canvasWidth: number;
+  isSelected: boolean;
+  onSelect: (index: number | null) => void;
+  onDrag: (index: number, newCanvasY: number) => void;
+  onMerge: () => void;
+}
+
+function SystemSeparatorLine({
+  index,
+  canvasY,
+  canvasWidth,
+  isSelected,
+  onSelect,
+  onDrag,
+  onMerge,
+}: SystemSeparatorLineProps) {
+  const clickTimerRef = useRef<number | null>(null);
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const target = e.currentTarget as HTMLElement;
+      target.setPointerCapture(e.pointerId);
+
+      const overlayEl = target.closest(`.${styles.overlay}`) as HTMLElement;
+      if (!overlayEl) return;
+
+      let dragged = false;
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        dragged = true;
+        const rect = overlayEl.getBoundingClientRect();
+        const y = moveEvent.clientY - rect.top;
+        onDrag(index, y);
+      };
+
+      const handlePointerUp = () => {
+        target.removeEventListener('pointermove', handlePointerMove);
+        target.removeEventListener('pointerup', handlePointerUp);
+
+        if (!dragged) {
+          clickTimerRef.current = window.setTimeout(() => {
+            clickTimerRef.current = null;
+            onSelect(index);
+          }, 250);
+        }
+      };
+
+      target.addEventListener('pointermove', handlePointerMove);
+      target.addEventListener('pointerup', handlePointerUp);
+    },
+    [index, onDrag, onSelect],
+  );
+
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (clickTimerRef.current !== null) {
+        clearTimeout(clickTimerRef.current);
+        clickTimerRef.current = null;
+      }
+      onMerge();
+    },
+    [onMerge],
+  );
+
+  return (
+    <div
+      className={`${styles.systemSeparator} ${isSelected ? styles.selected : ''}`}
+      style={{
+        top: canvasY,
+        width: canvasWidth,
+      }}
+      onPointerDown={handlePointerDown}
+      onDoubleClick={handleDoubleClick}
+    >
+      <div className={styles.systemSeparatorHitArea} />
+      <div className={styles.systemSeparatorLine} />
+    </div>
+  );
+}

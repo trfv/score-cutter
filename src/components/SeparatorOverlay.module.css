@@ -5,6 +5,21 @@
   overflow: visible;
 }
 
+/* System background rectangles (read-only context in StaffStep) */
+.systemBackground {
+  position: absolute;
+  left: 0;
+  pointer-events: none;
+}
+
+.systemBackgroundEven {
+  background: rgba(74, 144, 217, 0.06);
+}
+
+.systemBackgroundOdd {
+  background: rgba(217, 144, 74, 0.06);
+}
+
 .region {
   position: absolute;
   left: 0;

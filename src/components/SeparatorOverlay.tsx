@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Staff } from '../core/staffModel';
-import { computeSeparators } from '../core/separatorModel';
+import { computeSystemGroups } from '../core/separatorModel';
 import type { Separator } from '../core/separatorModel';
 import styles from './SeparatorOverlay.module.css';
 
@@ -45,7 +45,9 @@ export function SeparatorOverlay({
   onAddStaff,
 }: SeparatorOverlayProps) {
   const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
-  const { separators, regions } = computeSeparators(pageStaffs, pdfPageHeight, scale);
+  const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale);
+  const separators = groups.flatMap(g => g.separators);
+  const regions = groups.flatMap(g => g.regions);
 
   const handleRegionClick = useCallback(
     (staffId: string) => {
@@ -92,6 +94,18 @@ export function SeparatorOverlay({
       style={{ width: canvasWidth, height: canvasHeight, pointerEvents: dragOnly ? 'none' : 'auto' }}
       onDoubleClick={dragOnly ? undefined : handleOverlayDoubleClick}
     >
+      {/* System background rectangles (read-only) */}
+      {groups.map((group, gi) => (
+        <div
+          key={`sys-${group.systemIndex}`}
+          className={`${styles.systemBackground} ${gi % 2 === 0 ? styles.systemBackgroundEven : styles.systemBackgroundOdd}`}
+          style={{
+            top: group.topCanvasY,
+            height: group.bottomCanvasY - group.topCanvasY,
+            width: canvasWidth,
+          }}
+        />
+      ))}
       {!dragOnly && regions.map((region) => {
         const isSelected = region.staffId === selectedStaffId;
         const height = region.bottomCanvasY - region.topCanvasY;

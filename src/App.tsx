@@ -3,6 +3,7 @@ import { ProjectProvider } from './context/ProjectContext';
 import { useProject } from './context/projectHooks';
 import { useUndoRedoKeyboard } from './hooks/useUndoRedoKeyboard';
 import { ImportStep } from './components/ImportStep';
+import { SystemStep } from './components/SystemStep';
 import { StaffStep } from './components/StaffStep';
 import { LabelStep } from './components/LabelStep';
 import { PreviewStep } from './components/PreviewStep';
@@ -56,7 +57,7 @@ function WizardContent() {
     case 'import':
       return <ImportStep />;
     case 'systems':
-      return <StaffStep />; // Temporary: SystemStep will replace this
+      return <SystemStep />;
     case 'staffs':
       return <StaffStep />;
     case 'label':

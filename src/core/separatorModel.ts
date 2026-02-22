@@ -10,7 +10,7 @@ export interface Separator {
   staffBelowId: string | null;
 }
 
-interface StaffRegion {
+export interface StaffRegion {
   staffId: string;
   topCanvasY: number;
   bottomCanvasY: number;
@@ -18,7 +18,7 @@ interface StaffRegion {
   systemIndex: number;
 }
 
-interface SystemGroup {
+export interface SystemGroup {
   systemIndex: number;
   topCanvasY: number;
   bottomCanvasY: number;

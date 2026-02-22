@@ -24,12 +24,21 @@ export async function completeImportStep(page: Page, pdfPath: string) {
   await clickNext(page);
 }
 
-export async function completeDetectStep(page: Page) {
+async function completeSystemsStep(page: Page) {
   await page.getByRole('button', { name: '譜表を自動検出' }).click();
   await expect(page.getByRole('button', { name: '譜表を自動検出' })).toBeEnabled({
     timeout: 45_000,
   });
-  await clickNext(page);
+  await clickNext(page); // Systems → Staffs
+}
+
+async function completeStaffsStep(page: Page) {
+  await clickNext(page); // Staffs → Label
+}
+
+export async function completeDetectStep(page: Page) {
+  await completeSystemsStep(page);
+  await completeStaffsStep(page);
 }
 
 export async function completeLabelStep(page: Page) {

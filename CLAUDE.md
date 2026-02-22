@@ -22,9 +22,9 @@ Pre-commit hook (.githooks/pre-commit) runs knip → eslint → tsc -b. All thre
 
 Partifi extracts individual instrument parts from orchestral full-score PDFs. It runs entirely in the browser with no backend.
 
-### 5-Step Wizard Flow
+### 6-Step Wizard Flow
 
-Import → Detect → Label → Preview → Export
+Import → Systems → Staffs → Label → Preview → Export
 
 Each step is a React component in `src/components/` rendered by `App.tsx` based on the current `WizardStep`.
 
@@ -33,7 +33,7 @@ Each step is a React component in `src/components/` rendered by `App.tsx` based 
 Pure functions with no React dependencies. This is where all domain logic lives:
 
 - **staffModel.ts** — `Staff`, `Part`, `PageDimension` types; `derivePartsFromStaffs()` groups staffs by label
-- **separatorModel.ts** — `Separator` type; `computeSeparators()` derives separator lines from staffs; `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for editing
+- **separatorModel.ts** — `Separator`, `SystemGroup`, `StaffRegion` types; `computeSeparators()` derives separator lines from staffs; `computeSystemGroups()` groups staffs by system with canvas coordinates; `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for staff editing; `splitSystemAtGap()`, `mergeAdjacentSystems()`, `reassignStaffsByDrag()` for system boundary editing
 - **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
 - **coordinateMapper.ts** — Bidirectional Canvas ↔ PDF coordinate conversion (scale = DPI / 72)

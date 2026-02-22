@@ -1,6 +1,6 @@
 import { test, expect, uploadPdf, clickNext } from './fixtures/pdf';
 
-test.describe('Detect Step', () => {
+test.describe('Systems Step', () => {
   test.beforeEach(async ({ page, samplePdfPath }) => {
     await page.goto('/');
     await uploadPdf(page, samplePdfPath);
