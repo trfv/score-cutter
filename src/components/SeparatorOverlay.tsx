@@ -159,7 +159,7 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
   const { t } = useTranslation();
   const clickTimerRef = useRef<number | null>(null);
 
-  const kindClass = (!dragOnly && separator.kind === 'edge') ? styles.separatorEdge : styles.separatorPart;
+  const kindClass = separator.kind === 'edge' ? styles.separatorEdge : styles.separatorPart;
   const isMergeable = separator.kind === 'part';
 
   const handlePointerDown = useCallback(

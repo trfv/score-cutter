@@ -48,11 +48,13 @@ export function StaffOverlay({
         const topPx = pdfYToCanvasY(staff.top, pdfPageHeight, scale);
         const bottomPx = pdfYToCanvasY(staff.bottom, pdfPageHeight, scale);
 
-        // Extend colored region to midpoint between adjacent staffs
-        const extTop = i > 0
+        // Extend colored region to midpoint between adjacent staffs (same system only)
+        const prevSameSystem = i > 0 && sorted[i - 1].systemIndex === staff.systemIndex;
+        const nextSameSystem = i < sorted.length - 1 && sorted[i + 1].systemIndex === staff.systemIndex;
+        const extTop = prevSameSystem
           ? (pdfYToCanvasY(sorted[i - 1].bottom, pdfPageHeight, scale) + topPx) / 2
           : topPx;
-        const extBottom = i < sorted.length - 1
+        const extBottom = nextSameSystem
           ? (bottomPx + pdfYToCanvasY(sorted[i + 1].top, pdfPageHeight, scale)) / 2
           : bottomPx;
 
