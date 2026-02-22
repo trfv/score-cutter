@@ -20,11 +20,11 @@
   "detect": {
     "detectButton": "Detect Staves",
     "detecting": "Detecting...",
-    "confirmOverwrite": "Overwrite current staff settings?",
     "staffCount": "{{count}} staffs",
     "page": "Page {{current}} / {{total}}",
     "progress": "Processing {{completed}}/{{total}} pages",
     "deleteSeparator": "Delete separator",
+    "deleteSystemSeparator": "System boundary",
     "deleteStaff": "Delete staff"
   },
   "label": {

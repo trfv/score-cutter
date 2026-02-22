@@ -20,11 +20,11 @@
   "detect": {
     "detectButton": "譜表を自動検出",
     "detecting": "検出中...",
-    "confirmOverwrite": "現在の譜表設定を上書きしますか？",
     "staffCount": "{{count}} 個の譜表",
     "page": "ページ {{current}} / {{total}}",
     "progress": "処理中 {{completed}}/{{total}} ページ",
     "deleteSeparator": "区切り線を削除",
+    "deleteSystemSeparator": "組段の境界",
     "deleteStaff": "譜表を削除"
   },
   "label": {

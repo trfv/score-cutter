@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Staff } from '../core/staffModel';
 import { computeSystemGroups } from '../core/separatorModel';
 import type { SystemGroup } from '../core/separatorModel';
@@ -152,7 +153,37 @@ function SystemSeparatorLine({
   onDrag,
   onMerge,
 }: SystemSeparatorLineProps) {
+  const { t } = useTranslation();
   const clickTimerRef = useRef<number | null>(null);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      const step = e.shiftKey ? 10 : 1;
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          onDrag(index, canvasY - step);
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          onDrag(index, canvasY + step);
+          break;
+        case 'Delete':
+        case 'Backspace':
+          e.preventDefault();
+          onMerge();
+          break;
+        case 'Escape':
+          (e.currentTarget as HTMLElement).blur();
+          break;
+      }
+    },
+    [index, canvasY, onDrag, onMerge],
+  );
+
+  const handleFocus = useCallback(() => {
+    onSelect(index);
+  }, [index, onSelect]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -203,6 +234,21 @@ function SystemSeparatorLine({
     [onMerge],
   );
 
+  const handleDeleteClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      onMerge();
+    },
+    [onMerge],
+  );
+
+  const handleDeletePointerDown = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  const ariaLabel = t('detect.deleteSystemSeparator');
+
   return (
     <div
       className={`${styles.systemSeparator} ${isSelected ? styles.selected : ''}`}
@@ -210,11 +256,33 @@ function SystemSeparatorLine({
         top: canvasY,
         width: canvasWidth,
       }}
+      tabIndex={0}
+      role="separator"
+      aria-label={ariaLabel}
+      aria-orientation="horizontal"
       onPointerDown={handlePointerDown}
       onDoubleClick={handleDoubleClick}
+      onKeyDown={handleKeyDown}
+      onFocus={handleFocus}
     >
       <div className={styles.systemSeparatorHitArea} />
       <div className={styles.systemSeparatorLine} />
+      <button
+        className={`${styles.deleteButton} ${styles.deleteButtonLeft}`}
+        onClick={handleDeleteClick}
+        onPointerDown={handleDeletePointerDown}
+        type="button"
+      >
+        <span className={styles.deleteIcon} />
+      </button>
+      <button
+        className={`${styles.deleteButton} ${styles.deleteButtonRight}`}
+        onClick={handleDeleteClick}
+        onPointerDown={handleDeletePointerDown}
+        type="button"
+      >
+        <span className={styles.deleteIcon} />
+      </button>
     </div>
   );
 }
