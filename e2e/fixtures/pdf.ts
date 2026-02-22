@@ -25,11 +25,11 @@ export async function completeImportStep(page: Page, pdfPath: string) {
 }
 
 export async function completeDetectStep(page: Page) {
-  await page.getByRole('button', { name: '段を検出' }).click();
-  await expect(page.getByRole('button', { name: '段を検出' })).toBeEnabled({
+  await page.getByRole('button', { name: '譜表を検出' }).click();
+  await expect(page.getByRole('button', { name: '譜表を検出' })).toBeEnabled({
     timeout: 45_000,
   });
-  await expect(page.getByText(/\d+ 個のセグメントを検出/)).toBeVisible();
+  await expect(page.getByText(/\d+ 個の譜表を検出/)).toBeVisible();
   await clickNext(page);
 }
 

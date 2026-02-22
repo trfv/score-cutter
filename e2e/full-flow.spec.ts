@@ -9,8 +9,8 @@ test('full wizard flow from import to export', async ({ page, samplePdfPath }) =
   await clickNext(page);
 
   // Step 2: Detect
-  await page.getByRole('button', { name: '段を検出' }).click();
-  await expect(page.getByText(/\d+ 個のセグメントを検出/)).toBeVisible({
+  await page.getByRole('button', { name: '譜表を検出' }).click();
+  await expect(page.getByText(/\d+ 個の譜表を検出/)).toBeVisible({
     timeout: 45_000,
   });
   await clickNext(page);
