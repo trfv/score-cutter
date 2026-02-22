@@ -4,32 +4,7 @@ import {
   completeImportStep,
   completeDetectStep,
   completeLabelStep,
-  clickNext,
 } from './fixtures/pdf';
-
-test.describe('Preview Step', () => {
-  test.beforeEach(async ({ page, samplePdfPath }) => {
-    await page.goto('/');
-    await completeImportStep(page, samplePdfPath);
-    await completeDetectStep(page);
-    await completeLabelStep(page);
-  });
-
-  test('shows part list with labeled parts', async ({ page }) => {
-    await expect(page.getByText('パートを選択')).toBeVisible();
-    await expect(page.getByText('Soprano')).toBeVisible();
-  });
-
-  test('shows staff details for selected part', async ({ page }) => {
-    await page.getByText('Soprano').first().click();
-    await expect(page.getByText(/ページ \d+ \/ 6/).first()).toBeVisible();
-  });
-
-  test('Next button navigates to Export step', async ({ page }) => {
-    await clickNext(page);
-    await expect(page.getByRole('heading', { name: 'エクスポート' })).toBeVisible();
-  });
-});
 
 test.describe('Export Step', () => {
   test.beforeEach(async ({ page, samplePdfPath }) => {
@@ -37,11 +12,11 @@ test.describe('Export Step', () => {
     await completeImportStep(page, samplePdfPath);
     await completeDetectStep(page);
     await completeLabelStep(page);
-    await clickNext(page);
+    // completeLabelStep clicks Next, which now goes directly to Export
   });
 
-  test('shows export heading and part cards', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'エクスポート' })).toBeVisible();
+  test('shows part list with labeled parts', async ({ page }) => {
+    await expect(page.getByText('パートを選択')).toBeVisible();
     await expect(page.getByText('Soprano')).toBeVisible();
   });
 
@@ -49,6 +24,10 @@ test.describe('Export Step', () => {
     await expect(
       page.getByRole('button', { name: 'ダウンロード' }).first(),
     ).toBeVisible();
+  });
+
+  test('renders PDF preview for selected part', async ({ page }) => {
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 30_000 });
   });
 
   test('download button triggers file download', async ({ page }) => {

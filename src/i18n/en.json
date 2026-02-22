@@ -8,7 +8,6 @@
     "systems": "Systems",
     "staffs": "Staffs",
     "label": "Label",
-    "preview": "Preview",
     "export": "Export"
   },
   "import": {
@@ -52,12 +51,11 @@
       "basso": "Basso"
     }
   },
-  "preview": {
-    "selectPart": "Select a part",
-    "addPageBreak": "Add Page Break",
-    "noStaffs": "No staffs for this part"
-  },
   "export": {
+    "selectPart": "Select a part",
+    "noStaffs": "No staffs for this part",
+    "assembling": "Assembling part PDF...",
+    "assemblyError": "Failed to generate PDF",
     "download": "Download",
     "downloadAll": "Download All Parts",
     "downloadAllZip": "Download All as ZIP",

@@ -6,12 +6,11 @@ import { ImportStep } from './components/ImportStep';
 import { SystemStep } from './components/SystemStep';
 import { StaffStep } from './components/StaffStep';
 import { LabelStep } from './components/LabelStep';
-import { PreviewStep } from './components/PreviewStep';
 import { ExportStep } from './components/ExportStep';
 import type { WizardStep } from './context/ProjectContext';
 import styles from './App.module.css';
 
-const STEPS: WizardStep[] = ['import', 'systems', 'staffs', 'label', 'preview', 'export'];
+const STEPS: WizardStep[] = ['import', 'systems', 'staffs', 'label', 'export'];
 
 function StepIndicator() {
   const { t } = useTranslation();
@@ -62,8 +61,6 @@ function WizardContent() {
       return <StaffStep />;
     case 'label':
       return <LabelStep />;
-    case 'preview':
-      return <PreviewStep />;
     case 'export':
       return <ExportStep />;
     default:

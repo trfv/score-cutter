@@ -113,7 +113,7 @@ export function LabelStep() {
   }, [dispatch]);
 
   const handleNext = useCallback(() => {
-    dispatch({ type: 'SET_STEP', step: 'preview' });
+    dispatch({ type: 'SET_STEP', step: 'export' });
   }, [dispatch]);
 
   if (!pdfDocument) return null;

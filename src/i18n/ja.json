@@ -8,7 +8,6 @@
     "systems": "組段指定",
     "staffs": "譜表分割",
     "label": "ラベル",
-    "preview": "プレビュー",
     "export": "エクスポート"
   },
   "import": {
@@ -52,12 +51,11 @@
       "basso": "Basso"
     }
   },
-  "preview": {
-    "selectPart": "パートを選択",
-    "addPageBreak": "改ページ追加",
-    "noStaffs": "このパートには譜表がありません"
-  },
   "export": {
+    "selectPart": "パートを選択",
+    "noStaffs": "このパートには譜表がありません",
+    "assembling": "パート PDF を生成中...",
+    "assemblyError": "PDF の生成に失敗しました",
     "download": "ダウンロード",
     "downloadAll": "全パートをダウンロード",
     "downloadAllZip": "全パートをZIPでダウンロード",

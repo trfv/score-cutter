@@ -3,7 +3,7 @@ import type { Dispatch } from 'react';
 import type { Staff, PageDimension } from '../core/staffModel';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
-export type WizardStep = 'import' | 'systems' | 'staffs' | 'label' | 'preview' | 'export';
+export type WizardStep = 'import' | 'systems' | 'staffs' | 'label' | 'export';
 
 export interface ProjectState {
   step: WizardStep;

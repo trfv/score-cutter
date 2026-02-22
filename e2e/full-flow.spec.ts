@@ -22,14 +22,14 @@ test('full wizard flow from import to export', async ({ page, samplePdfPath }) =
   await page.getByRole('button', { name: '全組段に適用' }).click();
   await clickNext(page);
 
-  // Step 5: Preview
+  // Step 5: Export (Preview + Export merged)
   await expect(page.getByText('パートを選択')).toBeVisible();
   await expect(page.getByText('Soprano')).toBeVisible();
   await expect(page.getByText('Alto')).toBeVisible();
-  await clickNext(page);
 
-  // Step 6: Export
-  await expect(page.getByRole('heading', { name: 'エクスポート' })).toBeVisible();
+  // Wait for PDF preview to render
+  await expect(page.locator('canvas').first()).toBeVisible({ timeout: 30_000 });
+
   await expect(
     page.getByRole('button', { name: '全パートをZIPでダウンロード' }),
   ).toBeVisible();

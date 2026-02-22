@@ -22,9 +22,9 @@ Pre-commit hook (.githooks/pre-commit) runs knip → eslint → tsc -b. All thre
 
 Partifi extracts individual instrument parts from orchestral full-score PDFs. It runs entirely in the browser with no backend.
 
-### 6-Step Wizard Flow
+### 5-Step Wizard Flow
 
-Import → Systems → Staffs → Label → Preview → Export
+Import → Systems → Staffs → Label → Export
 
 Each step is a React component in `src/components/` rendered by `App.tsx` based on the current `WizardStep`.
 
@@ -59,6 +59,10 @@ PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horiz
 ### PDF Assembly
 
 pdf-lib `embedPage()` preserves vector quality and text selectability. Auto-paginates to A4 with configurable margins.
+
+### Export Step Preview
+
+The Export step assembles part PDFs on-demand (lazy) and renders them via pdfjs-dist `PageCanvas`. Assembled bytes and `PDFDocumentProxy` instances are cached in `useRef` maps so switching between parts is instant. All `PDFDocumentProxy` instances are destroyed on unmount.
 
 ## Domain Language
 
