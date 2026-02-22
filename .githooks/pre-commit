@@ -1,0 +1,26 @@
+#!/bin/sh
+
+echo "Running pre-commit checks..."
+
+echo "==> knip"
+npm run knip
+if [ $? -ne 0 ]; then
+  echo "knip failed. Commit aborted."
+  exit 1
+fi
+
+echo "==> eslint"
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "eslint failed. Commit aborted."
+  exit 1
+fi
+
+echo "==> typecheck"
+npx tsc -b
+if [ $? -ne 0 ]; then
+  echo "typecheck failed. Commit aborted."
+  exit 1
+fi
+
+echo "All pre-commit checks passed."

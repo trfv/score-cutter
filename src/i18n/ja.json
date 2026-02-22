@@ -1,0 +1,73 @@
+{
+  "app": {
+    "title": "Partifi",
+    "subtitle": "総譜からパート譜を自動作成"
+  },
+  "steps": {
+    "import": "インポート",
+    "detect": "検出",
+    "label": "ラベル",
+    "preview": "プレビュー",
+    "export": "エクスポート"
+  },
+  "import": {
+    "dropzone": "PDF ファイルをドラッグ＆ドロップ、またはクリックして選択",
+    "fileSelected": "{{fileName}} ({{pageCount}} ページ)",
+    "invalidFile": "PDF ファイルを選択してください",
+    "next": "次へ"
+  },
+  "detect": {
+    "detectButton": "段を検出",
+    "detecting": "検出中...",
+    "addSegment": "セグメント追加",
+    "deleteSegment": "セグメント削除",
+    "segmentCount": "{{count}} 個のセグメントを検出",
+    "page": "ページ {{current}} / {{total}}",
+    "systemGapThreshold": "段組間ギャップ",
+    "partGapThreshold": "パート間ギャップ",
+    "progress": "処理中 {{completed}}/{{total}} ページ"
+  },
+  "label": {
+    "placeholder": "楽器名を入力",
+    "applyToAll": "全ページに適用",
+    "instruments": {
+      "violin1": "Violin I",
+      "violin2": "Violin II",
+      "viola": "Viola",
+      "cello": "Cello",
+      "bass": "Contrabass",
+      "flute": "Flute",
+      "oboe": "Oboe",
+      "clarinet": "Clarinet",
+      "bassoon": "Bassoon",
+      "horn": "Horn",
+      "trumpet": "Trumpet",
+      "trombone": "Trombone",
+      "timpani": "Timpani",
+      "soprano": "Soprano",
+      "alto": "Alto",
+      "tenor": "Tenor",
+      "basso": "Basso"
+    }
+  },
+  "preview": {
+    "selectPart": "パートを選択",
+    "addPageBreak": "改ページ追加",
+    "noSegments": "このパートにはセグメントがありません"
+  },
+  "export": {
+    "download": "ダウンロード",
+    "downloadAll": "全パートをダウンロード",
+    "downloadAllZip": "全パートをZIPでダウンロード",
+    "zipping": "生成中 {{current}}/{{total}}: {{label}}...",
+    "generating": "生成中...",
+    "pages": "{{count}} ページ"
+  },
+  "common": {
+    "back": "戻る",
+    "next": "次へ",
+    "language": "言語",
+    "undo": "元に戻す",
+    "redo": "やり直す"
+  }
+}

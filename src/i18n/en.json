@@ -1,0 +1,73 @@
+{
+  "app": {
+    "title": "Partifi",
+    "subtitle": "Automatically create parts from scores"
+  },
+  "steps": {
+    "import": "Import",
+    "detect": "Detect",
+    "label": "Label",
+    "preview": "Preview",
+    "export": "Export"
+  },
+  "import": {
+    "dropzone": "Drag & drop a PDF file, or click to select",
+    "fileSelected": "{{fileName}} ({{pageCount}} pages)",
+    "invalidFile": "Please select a PDF file",
+    "next": "Next"
+  },
+  "detect": {
+    "detectButton": "Detect Staves",
+    "detecting": "Detecting...",
+    "addSegment": "Add Segment",
+    "deleteSegment": "Delete Segment",
+    "segmentCount": "{{count}} segments detected",
+    "page": "Page {{current}} / {{total}}",
+    "systemGapThreshold": "System gap",
+    "partGapThreshold": "Part gap",
+    "progress": "Processing {{completed}}/{{total}} pages"
+  },
+  "label": {
+    "placeholder": "Enter instrument name",
+    "applyToAll": "Apply to all pages",
+    "instruments": {
+      "violin1": "Violin I",
+      "violin2": "Violin II",
+      "viola": "Viola",
+      "cello": "Cello",
+      "bass": "Contrabass",
+      "flute": "Flute",
+      "oboe": "Oboe",
+      "clarinet": "Clarinet",
+      "bassoon": "Bassoon",
+      "horn": "Horn",
+      "trumpet": "Trumpet",
+      "trombone": "Trombone",
+      "timpani": "Timpani",
+      "soprano": "Soprano",
+      "alto": "Alto",
+      "tenor": "Tenor",
+      "basso": "Basso"
+    }
+  },
+  "preview": {
+    "selectPart": "Select a part",
+    "addPageBreak": "Add Page Break",
+    "noSegments": "No segments for this part"
+  },
+  "export": {
+    "download": "Download",
+    "downloadAll": "Download All Parts",
+    "downloadAllZip": "Download All as ZIP",
+    "zipping": "Generating {{current}}/{{total}}: {{label}}...",
+    "generating": "Generating...",
+    "pages": "{{count}} pages"
+  },
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "language": "Language",
+    "undo": "Undo",
+    "redo": "Redo"
+  }
+}

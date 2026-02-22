@@ -1,0 +1,62 @@
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.segment {
+  position: absolute;
+  left: 0;
+  border-top: 2px dashed rgba(0, 0, 0, 0.3);
+  border-bottom: 2px dashed rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.segment.selected {
+  border-color: #4a90d9;
+  border-style: solid;
+}
+
+.label {
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 1px 4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.handle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.handle:hover {
+  background: rgba(74, 144, 217, 0.3);
+}
+
+.top {
+  top: -4px;
+}
+
+.bottom {
+  bottom: -4px;
+}
+
+.systemSeparator {
+  position: absolute;
+  left: 0;
+  height: 3px;
+  background: rgba(74, 144, 217, 0.6);
+  pointer-events: none;
+}
