@@ -66,7 +66,7 @@ export function ImportStep() {
   );
 
   const handleNext = useCallback(() => {
-    dispatch({ type: 'SET_STEP', step: 'detect' });
+    dispatch({ type: 'SET_STEP', step: 'systems' });
   }, [dispatch]);
 
   return (

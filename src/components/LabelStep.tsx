@@ -109,7 +109,7 @@ export function LabelStep() {
   }, [currentPageIndex, pageCount, dispatch]);
 
   const handleBack = useCallback(() => {
-    dispatch({ type: 'SET_STEP', step: 'detect' });
+    dispatch({ type: 'SET_STEP', step: 'staffs' });
   }, [dispatch]);
 
   const handleNext = useCallback(() => {

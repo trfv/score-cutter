@@ -5,7 +5,8 @@
   },
   "steps": {
     "import": "インポート",
-    "detect": "検出",
+    "systems": "組段指定",
+    "staffs": "譜表分割",
     "label": "ラベル",
     "preview": "プレビュー",
     "export": "エクスポート"

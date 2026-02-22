@@ -11,12 +11,12 @@ import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundary } from '../core/staffDetector';
 import type { Staff } from '../core/staffModel';
-import styles from './DetectStep.module.css';
+import styles from './StaffStep.module.css';
 
 const DETECT_DPI = 150;
 const DETECT_SCALE = getScale(DETECT_DPI);
 
-export function DetectStep() {
+export function StaffStep() {
   const { t } = useTranslation();
   const project = useProject();
   const dispatch = useProjectDispatch();
@@ -219,7 +219,7 @@ export function DetectStep() {
   }, [dispatch]);
 
   const handleBack = useCallback(() => {
-    dispatch({ type: 'SET_STEP', step: 'import' });
+    dispatch({ type: 'SET_STEP', step: 'systems' });
   }, [dispatch]);
 
   if (!pdfDocument) return null;

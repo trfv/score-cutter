@@ -3,14 +3,14 @@ import { ProjectProvider } from './context/ProjectContext';
 import { useProject } from './context/projectHooks';
 import { useUndoRedoKeyboard } from './hooks/useUndoRedoKeyboard';
 import { ImportStep } from './components/ImportStep';
-import { DetectStep } from './components/DetectStep';
+import { StaffStep } from './components/StaffStep';
 import { LabelStep } from './components/LabelStep';
 import { PreviewStep } from './components/PreviewStep';
 import { ExportStep } from './components/ExportStep';
 import type { WizardStep } from './context/ProjectContext';
 import styles from './App.module.css';
 
-const STEPS: WizardStep[] = ['import', 'detect', 'label', 'preview', 'export'];
+const STEPS: WizardStep[] = ['import', 'systems', 'staffs', 'label', 'preview', 'export'];
 
 function StepIndicator() {
   const { t } = useTranslation();
@@ -55,8 +55,10 @@ function WizardContent() {
   switch (step) {
     case 'import':
       return <ImportStep />;
-    case 'detect':
-      return <DetectStep />;
+    case 'systems':
+      return <StaffStep />; // Temporary: SystemStep will replace this
+    case 'staffs':
+      return <StaffStep />;
     case 'label':
       return <LabelStep />;
     case 'preview':

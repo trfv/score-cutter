@@ -5,7 +5,8 @@
   },
   "steps": {
     "import": "Import",
-    "detect": "Detect",
+    "systems": "Systems",
+    "staffs": "Staffs",
     "label": "Label",
     "preview": "Preview",
     "export": "Export"
