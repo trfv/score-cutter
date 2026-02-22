@@ -296,27 +296,19 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
       <div className={styles.hitArea} />
       <div className={styles.line} />
       {!dragOnly && (
-        <>
-          <button
-            className={`${styles.deleteButton} ${styles.deleteButtonLeft}`}
-            onClick={handleDeleteClick}
-            onPointerDown={handleDeletePointerDown}
-            aria-label={deleteLabel}
-            type="button"
-          >
-            <span className={styles.deleteIcon} />
-          </button>
-          <button
-            className={`${styles.deleteButton} ${styles.deleteButtonRight}`}
-            onClick={handleDeleteClick}
-            onPointerDown={handleDeletePointerDown}
-            aria-label={deleteLabel}
-            type="button"
-          >
-            <span className={styles.deleteIcon} />
-          </button>
-        </>
+        <button
+          className={`${styles.deleteButton} ${styles.deleteButtonLeft}`}
+          onClick={handleDeleteClick}
+          onPointerDown={handleDeletePointerDown}
+          aria-label={deleteLabel}
+          type="button"
+        >
+          <span className={styles.deleteIcon} />
+        </button>
       )}
+      <div className={styles.gripHandle} aria-hidden="true">
+        <span className={styles.gripIcon} />
+      </div>
     </div>
   );
 }

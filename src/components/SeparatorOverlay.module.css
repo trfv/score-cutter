@@ -140,10 +140,6 @@
   left: 10px;
 }
 
-.deleteButtonRight {
-  right: 10px;
-}
-
 .deleteButton:hover {
   background: rgba(217, 83, 79, 0.15);
   border-color: rgba(217, 83, 79, 0.8);
@@ -179,4 +175,48 @@
 .deleteButton:hover .deleteIcon::before,
 .deleteButton:hover .deleteIcon::after {
   background: rgba(217, 83, 79, 0.9);
+}
+
+/* Drag grip handle: visual indicator on right side */
+.gripHandle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(100, 100, 100, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: ns-resize;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.gripIcon {
+  width: 8px;
+  height: 6px;
+  border-top: 1.5px solid rgba(100, 100, 100, 0.5);
+  border-bottom: 1.5px solid rgba(100, 100, 100, 0.5);
+  pointer-events: none;
+}
+
+.separator:hover .gripHandle {
+  border-color: rgba(74, 144, 217, 0.6);
+}
+
+.separator:hover .gripIcon {
+  border-color: rgba(74, 144, 217, 0.7);
+}
+
+.selectedSeparator .gripHandle {
+  border-color: rgba(74, 144, 217, 0.8);
+}
+
+.selectedSeparator .gripIcon {
+  border-color: rgba(74, 144, 217, 0.9);
 }

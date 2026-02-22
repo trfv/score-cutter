@@ -275,14 +275,9 @@ function SystemSeparatorLine({
       >
         <span className={styles.deleteIcon} />
       </button>
-      <button
-        className={`${styles.deleteButton} ${styles.deleteButtonRight}`}
-        onClick={handleDeleteClick}
-        onPointerDown={handleDeletePointerDown}
-        type="button"
-      >
-        <span className={styles.deleteIcon} />
-      </button>
+      <div className={styles.gripHandle} aria-hidden="true">
+        <span className={styles.gripIcon} />
+      </div>
     </div>
   );
 }
