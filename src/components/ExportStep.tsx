@@ -6,6 +6,7 @@ import { derivePartsFromStaffs } from '../core/staffModel';
 import { assemblePart, defaultAssemblyOptions } from '../core/partAssembler';
 import { loadPdf } from '../core/pdfLoader';
 import { zipParts } from '../core/zipExporter';
+import { getScale } from '../core/coordinateMapper';
 import { PageCanvas } from './PageCanvas';
 import type { Part } from '../core/staffModel';
 import type { ZipProgress } from '../core/zipExporter';
@@ -13,7 +14,8 @@ import { Download, Archive } from './Icons';
 import { StepToolbar } from './StepToolbar';
 import styles from './ExportStep.module.css';
 
-const PREVIEW_SCALE = 1.0;
+const DISPLAY_DPI = 150;
+const DISPLAY_SCALE = getScale(DISPLAY_DPI);
 
 export function ExportStep() {
   const { t } = useTranslation();
@@ -170,8 +172,7 @@ export function ExportStep() {
     <div className={styles.container}>
       <StepToolbar onBack={handleBack} />
 
-      <div className={styles.scrollContent}>
-        <div className={styles.content}>
+      <div className={styles.content}>
           <div className={styles.sidebar}>
             <h3>{t('export.selectPart')}</h3>
           <ul className={styles.partList}>
@@ -244,12 +245,13 @@ export function ExportStep() {
           ) : activeDoc ? (
             <div className={styles.pageList}>
               {Array.from({ length: activePageCount }, (_, i) => (
-                <PageCanvas
-                  key={`${effectiveLabel}-${i}`}
-                  document={activeDoc}
-                  pageIndex={i}
-                  scale={PREVIEW_SCALE}
-                />
+                <div key={`${effectiveLabel}-${i}`} className={styles.canvasContainer}>
+                  <PageCanvas
+                    document={activeDoc}
+                    pageIndex={i}
+                    scale={DISPLAY_SCALE}
+                  />
+                </div>
               ))}
             </div>
           ) : parts.length === 0 ? (
@@ -257,7 +259,6 @@ export function ExportStep() {
           ) : null}
           </div>
         </div>
-      </div>
     </div>
   );
 }
