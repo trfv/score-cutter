@@ -14,7 +14,7 @@ import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundary } from '../core/staffDetector';
 import type { Staff } from '../core/staffModel';
-import { ChevronLeft, ChevronRight } from './Icons';
+import { StepToolbar } from './StepToolbar';
 import styles from './SystemStep.module.css';
 
 const DETECT_DPI = 150;
@@ -194,62 +194,53 @@ export function SystemStep() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.toolbar}>
-        <div className={styles.pageNav}>
-          <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-            <ChevronLeft width={16} height={16} />
-          </button>
-          <span>
-            {t('detect.page', {
-              current: currentPageIndex + 1,
-              total: pageCount,
-            })}
-          </span>
-          <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-            <ChevronRight width={16} height={16} />
-          </button>
-        </div>
+      <StepToolbar
+        onBack={handleBack}
+        onNext={handleGoToStaffs}
+        nextDisabled={staffs.length === 0}
+        pageNav={{
+          currentPage: currentPageIndex,
+          totalPages: pageCount,
+          onPrevPage: handlePrevPage,
+          onNextPage: handleNextPage,
+        }}
+      >
         <span className={styles.staffCount}>
           {t('detect.systemCount', { count: new Set(pageStaffs.map((s) => s.systemIndex)).size })}
         </span>
-      </div>
+      </StepToolbar>
 
-      <div className={styles.canvasContainer}>
-        <PageCanvas
-          document={pdfDocument}
-          pageIndex={currentPageIndex}
-          scale={DETECT_SCALE}
-          onCanvasReady={handleCanvasReady}
-        />
-        {currentDimension && !detecting && (
-          <SystemOverlay
-            staffs={staffs}
+      <div className={styles.scrollContent}>
+        <div className={styles.canvasContainer}>
+          <PageCanvas
+            document={pdfDocument}
             pageIndex={currentPageIndex}
-            pdfPageHeight={currentDimension.height}
-            scale={effectiveScale}
-            canvasWidth={canvasWidth}
-            canvasHeight={canvasHeight}
-            selectedSystemSepIndex={selectedSystemSepIndex}
-            onSelectSystemSep={setSelectedSystemSepIndex}
-            onSystemSepDrag={handleSystemSepDrag}
-            onSplitSystem={handleSplitSystem}
-            onMergeSystem={handleMergeSystem}
+            scale={DETECT_SCALE}
+            onCanvasReady={handleCanvasReady}
           />
-        )}
-        {detecting && (
-          <div className={styles.progressOverlay}>
-            {progress
-              ? t('detect.progress', { completed: progress.completed, total: progress.total })
-              : t('detect.detecting')}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.navigation}>
-        <button onClick={handleBack}>{t('common.back')}</button>
-        <button onClick={handleGoToStaffs} disabled={staffs.length === 0}>
-          {t('common.next')}
-        </button>
+          {currentDimension && !detecting && (
+            <SystemOverlay
+              staffs={staffs}
+              pageIndex={currentPageIndex}
+              pdfPageHeight={currentDimension.height}
+              scale={effectiveScale}
+              canvasWidth={canvasWidth}
+              canvasHeight={canvasHeight}
+              selectedSystemSepIndex={selectedSystemSepIndex}
+              onSelectSystemSep={setSelectedSystemSepIndex}
+              onSystemSepDrag={handleSystemSepDrag}
+              onSplitSystem={handleSplitSystem}
+              onMergeSystem={handleMergeSystem}
+            />
+          )}
+          {detecting && (
+            <div className={styles.progressOverlay}>
+              {progress
+                ? t('detect.progress', { completed: progress.completed, total: progress.total })
+                : t('detect.detecting')}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,117 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: var(--space-3);
+}
+
+.left,
+.right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.left {
+  min-width: 80px;
+}
+
+.right {
+  min-width: 80px;
+  justify-content: flex-end;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+/* --- Page navigation --- */
+.pageNav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.pageNav button {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.pageNav button:hover:not(:disabled) {
+  background: var(--bg-elevated);
+}
+
+.pageNav button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.pageNav span {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* --- Back button (ghost style) --- */
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.backButton:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent);
+}
+
+/* --- Next button (accent style) --- */
+.nextButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: var(--bg-deep);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: opacity 0.15s;
+}
+
+.nextButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.nextButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

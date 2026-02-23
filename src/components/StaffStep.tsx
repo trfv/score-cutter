@@ -5,7 +5,7 @@ import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
-import { ChevronLeft, ChevronRight } from './Icons';
+import { StepToolbar } from './StepToolbar';
 import styles from './StaffStep.module.css';
 
 const DETECT_DPI = 150;
@@ -116,21 +116,17 @@ export function StaffStep() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.toolbar}>
-        <div className={styles.pageNav}>
-          <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-            <ChevronLeft width={16} height={16} />
-          </button>
-          <span>
-            {t('detect.page', {
-              current: currentPageIndex + 1,
-              total: pageCount,
-            })}
-          </span>
-          <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-            <ChevronRight width={16} height={16} />
-          </button>
-        </div>
+      <StepToolbar
+        onBack={handleBack}
+        onNext={handleGoToLabel}
+        nextDisabled={staffs.length === 0}
+        pageNav={{
+          currentPage: currentPageIndex,
+          totalPages: pageCount,
+          onPrevPage: handlePrevPage,
+          onNextPage: handleNextPage,
+        }}
+      >
         <span className={styles.staffCount}>
           {(() => {
             const systemMap = new Map<number, number>();
@@ -146,41 +142,36 @@ export function StaffStep() {
             });
           })()}
         </span>
-      </div>
+      </StepToolbar>
 
-      <div className={styles.canvasContainer}>
-        <PageCanvas
-          document={pdfDocument}
-          pageIndex={currentPageIndex}
-          scale={DETECT_SCALE}
-          onCanvasReady={handleCanvasReady}
-        />
-        {currentDimension && (
-          <SeparatorOverlay
-            staffs={staffs}
+      <div className={styles.scrollContent}>
+        <div className={styles.canvasContainer}>
+          <PageCanvas
+            document={pdfDocument}
             pageIndex={currentPageIndex}
-            pdfPageHeight={currentDimension.height}
-            scale={effectiveScale}
-            canvasWidth={canvasWidth}
-            canvasHeight={canvasHeight}
-            selectedStaffId={selectedStaffId}
-            onSelectStaff={setSelectedStaffId}
-            selectedSeparatorIndex={selectedSeparatorIndex}
-            onSelectSeparator={setSelectedSeparatorIndex}
-            onSeparatorDrag={handleSeparatorDrag}
-            onSplitAtPosition={handleSplitAtPosition}
-            onMergeSeparator={handleMergeSeparator}
-            onDeleteStaff={handleDeleteStaff}
-            onAddStaff={handleAddStaff}
+            scale={DETECT_SCALE}
+            onCanvasReady={handleCanvasReady}
           />
-        )}
-      </div>
-
-      <div className={styles.navigation}>
-        <button onClick={handleBack}>{t('common.back')}</button>
-        <button onClick={handleGoToLabel} disabled={staffs.length === 0}>
-          {t('common.next')}
-        </button>
+          {currentDimension && (
+            <SeparatorOverlay
+              staffs={staffs}
+              pageIndex={currentPageIndex}
+              pdfPageHeight={currentDimension.height}
+              scale={effectiveScale}
+              canvasWidth={canvasWidth}
+              canvasHeight={canvasHeight}
+              selectedStaffId={selectedStaffId}
+              onSelectStaff={setSelectedStaffId}
+              selectedSeparatorIndex={selectedSeparatorIndex}
+              onSelectSeparator={setSelectedSeparatorIndex}
+              onSeparatorDrag={handleSeparatorDrag}
+              onSplitAtPosition={handleSplitAtPosition}
+              onMergeSeparator={handleMergeSeparator}
+              onDeleteStaff={handleDeleteStaff}
+              onAddStaff={handleAddStaff}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

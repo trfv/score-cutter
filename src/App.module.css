@@ -154,7 +154,7 @@
 
 /* --- Main content area --- */
 .main {
-  padding: var(--space-4);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }

@@ -33,6 +33,17 @@ function useTheme() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    const mql = matchMedia('(prefers-color-scheme: light)');
+    const handler = (e: MediaQueryListEvent) => {
+      const next: Theme = e.matches ? 'light' : 'dark';
+      setTheme(next);
+      document.documentElement.setAttribute('data-theme', next);
+    };
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
+
   return { theme, toggle } as const;
 }
 

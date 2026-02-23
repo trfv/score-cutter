@@ -1,6 +1,11 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
   <head>
+    <script>
+      document.documentElement.setAttribute('data-theme',
+        matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark'
+      );
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

@@ -29,7 +29,7 @@ Score Cutter extracts individual instrument parts from orchestral full-score PDF
 
 Import → Systems → Staffs → Label → Export
 
-Each step is a React component in `src/components/` rendered by `App.tsx` based on the current `WizardStep`.
+Each step is a React component in `src/components/` rendered by `App.tsx` based on the current `WizardStep`. All steps (except Import) use the shared `StepToolbar` component for unified top-bar navigation (step back/next + page navigation + step-specific actions).
 
 ### Core Domain (`src/core/`)
 
@@ -90,3 +90,4 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **TypeScript strict mode** — `noUnusedLocals` and `noUnusedParameters` enforced.
 - **ESLint flat config** (v9) in `eslint.config.js`.
 - **Keyboard accessibility** — Separators in both `SeparatorOverlay` and `SystemOverlay` are focusable (`tabIndex`, `role="separator"`) and support ArrowUp/Down (1px, Shift=10px), Delete/Backspace, and Escape. Keyboard event handling lives in each separator component's `onKeyDown`, not in document-level listeners.
+- **Step layout pattern** — Each step uses a two-layer flex layout: a fixed `StepToolbar` at the top (via `flex-shrink: 0`) and a scrollable content area below (`flex: 1; overflow-y: auto`). The `.main` container in `App.module.css` is a flex column with `min-height: 0` to enable child scrolling. Step-specific actions (e.g., "Apply to All" in LabelStep) are passed as `children` to `StepToolbar`.

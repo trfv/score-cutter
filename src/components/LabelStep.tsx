@@ -5,7 +5,7 @@ import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag } from '../core/separatorModel';
-import { ChevronLeft, ChevronRight } from './Icons';
+import { StepToolbar } from './StepToolbar';
 import styles from './LabelStep.module.css';
 
 const DISPLAY_DPI = 150;
@@ -106,73 +106,66 @@ export function LabelStep() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.toolbar}>
-        <button onClick={handleApplyToAll}>{t('label.applyToAll')}</button>
-      </div>
-
-      <div className={styles.content}>
-        <div className={styles.sidebar}>
-          <h3>{t('steps.label')}</h3>
-          {pageStaffs.sort((a, b) => b.top - a.top).map((staff, idx) => (
-            <div
-              key={staff.id}
-              className={styles.staffRow}
-            >
-              <span className={styles.staffIndex}>{idx + 1}</span>
-              <input
-                type="text"
-                value={staff.label}
-                onChange={(e) => handleLabelChange(staff.id, e.target.value)}
-                placeholder={t('label.placeholder')}
-                className={styles.labelInput}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.canvasArea}>
-          <div className={styles.pageNav}>
-            <button onClick={handlePrevPage} disabled={currentPageIndex === 0}>
-              <ChevronLeft width={16} height={16} />
-            </button>
-            <span>
-              {t('detect.page', {
-                current: currentPageIndex + 1,
-                total: pageCount,
-              })}
-            </span>
-            <button onClick={handleNextPage} disabled={currentPageIndex >= pageCount - 1}>
-              <ChevronRight width={16} height={16} />
-            </button>
-          </div>
-          <div className={styles.canvasContainer}>
-            <PageCanvas
-              document={pdfDocument}
-              pageIndex={currentPageIndex}
-              scale={DISPLAY_SCALE}
-              onCanvasReady={handleCanvasReady}
-            />
-            {currentDimension && (
-              <SeparatorOverlay
-                staffs={staffs}
-                pageIndex={currentPageIndex}
-                pdfPageHeight={currentDimension.height}
-                scale={effectiveScale}
-                canvasWidth={canvasWidth}
-                canvasHeight={canvasHeight}
-                onSeparatorDrag={handleSeparatorDrag}
-                dragOnly
-              />
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.navigation}>
-        <button onClick={handleBack}>{t('common.back')}</button>
-        <button onClick={handleNext} disabled={!hasLabels}>
-          {t('common.next')}
+      <StepToolbar
+        onBack={handleBack}
+        onNext={handleNext}
+        nextDisabled={!hasLabels}
+        pageNav={{
+          currentPage: currentPageIndex,
+          totalPages: pageCount,
+          onPrevPage: handlePrevPage,
+          onNextPage: handleNextPage,
+        }}
+      >
+        <button className={styles.applyButton} onClick={handleApplyToAll}>
+          {t('label.applyToAll')}
         </button>
+      </StepToolbar>
+
+      <div className={styles.scrollContent}>
+        <div className={styles.content}>
+          <div className={styles.sidebar}>
+            <h3>{t('steps.label')}</h3>
+            {pageStaffs.sort((a, b) => b.top - a.top).map((staff, idx) => (
+              <div
+                key={staff.id}
+                className={styles.staffRow}
+              >
+                <span className={styles.staffIndex}>{idx + 1}</span>
+                <input
+                  type="text"
+                  value={staff.label}
+                  onChange={(e) => handleLabelChange(staff.id, e.target.value)}
+                  placeholder={t('label.placeholder')}
+                  className={styles.labelInput}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.canvasArea}>
+            <div className={styles.canvasContainer}>
+              <PageCanvas
+                document={pdfDocument}
+                pageIndex={currentPageIndex}
+                scale={DISPLAY_SCALE}
+                onCanvasReady={handleCanvasReady}
+              />
+              {currentDimension && (
+                <SeparatorOverlay
+                  staffs={staffs}
+                  pageIndex={currentPageIndex}
+                  pdfPageHeight={currentDimension.height}
+                  scale={effectiveScale}
+                  canvasWidth={canvasWidth}
+                  canvasHeight={canvasHeight}
+                  onSeparatorDrag={handleSeparatorDrag}
+                  dragOnly
+                />
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

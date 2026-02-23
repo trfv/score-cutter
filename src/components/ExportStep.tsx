@@ -10,6 +10,7 @@ import { PageCanvas } from './PageCanvas';
 import type { Part } from '../core/staffModel';
 import type { ZipProgress } from '../core/zipExporter';
 import { Download, Archive } from './Icons';
+import { StepToolbar } from './StepToolbar';
 import styles from './ExportStep.module.css';
 
 const PREVIEW_SCALE = 1.0;
@@ -167,9 +168,12 @@ export function ExportStep() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.content}>
-        <div className={styles.sidebar}>
-          <h3>{t('export.selectPart')}</h3>
+      <StepToolbar onBack={handleBack} />
+
+      <div className={styles.scrollContent}>
+        <div className={styles.content}>
+          <div className={styles.sidebar}>
+            <h3>{t('export.selectPart')}</h3>
           <ul className={styles.partList}>
             {parts.map((part) => (
               <li
@@ -251,11 +255,8 @@ export function ExportStep() {
           ) : parts.length === 0 ? (
             <p className={styles.empty}>{t('export.noStaffs')}</p>
           ) : null}
+          </div>
         </div>
-      </div>
-
-      <div className={styles.navigation}>
-        <button onClick={handleBack}>{t('common.back')}</button>
       </div>
     </div>
   );

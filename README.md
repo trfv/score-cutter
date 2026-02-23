@@ -92,6 +92,7 @@ src/
     StaffStep.tsx                #   譜表境界の手動調整画面
     LabelStep.tsx                #   楽器名ラベル付け画面
     ExportStep.tsx               #   パート PDF プレビュー＆ダウンロード画面
+    StepToolbar.tsx              #   統合ナビゲーションバー（ステップ遷移 + ページ送り）
     PageCanvas.tsx               #   PDF ページの Canvas レンダリング
     SystemOverlay.tsx            #   組段境界の可視化 + 分割・結合・ドラッグ
     SeparatorOverlay.tsx         #   譜表区切り線の可視化 + ドラッグ・分割・結合・削除

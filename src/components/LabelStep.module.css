@@ -1,17 +1,22 @@
 .container {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.scrollContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-4);
 }
 
-.toolbar {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.toolbar button {
-  padding: var(--space-2) var(--space-4);
+.applyButton {
+  padding: var(--space-1) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-surface);
@@ -22,7 +27,7 @@
   transition: background 0.15s, border-color 0.15s;
 }
 
-.toolbar button:hover {
+.applyButton:hover {
   background: var(--bg-elevated);
   border-color: var(--accent);
 }
@@ -99,30 +104,6 @@
   gap: var(--space-2);
 }
 
-.pageNav {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.pageNav button {
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.pageNav button:hover:not(:disabled) {
-  background: var(--bg-elevated);
-}
-
-.pageNav button:disabled {
-  opacity: 0.3;
-}
-
 .canvasContainer {
   position: relative;
   display: inline-block;
@@ -130,43 +111,4 @@
   border-radius: var(--radius-md);
   background: var(--bg-deep);
   box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15);
-}
-
-.navigation {
-  display: flex;
-  gap: var(--space-4);
-  position: relative;
-  z-index: 2;
-}
-
-.navigation button {
-  padding: var(--space-3) var(--space-6);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.navigation button:hover:not(:disabled) {
-  background: var(--bg-elevated);
-  border-color: var(--accent);
-}
-
-.navigation button:last-child {
-  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-  color: var(--bg-deep);
-  border-color: transparent;
-  font-weight: 500;
-}
-
-.navigation button:last-child:hover:not(:disabled) {
-  opacity: 0.9;
-}
-
-.navigation button:disabled {
-  opacity: 0.4;
 }
