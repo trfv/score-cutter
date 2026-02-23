@@ -1,4 +1,4 @@
-# Partifi Clone ユビキタス言語
+# Score Cutter ユビキタス言語
 
 ## 楽譜ドメイン
 

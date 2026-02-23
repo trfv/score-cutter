@@ -110,7 +110,7 @@ function AppContent() {
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <h1 className={styles.logo}>Partifi</h1>
+        <h1 className={styles.logo}>Score Cutter</h1>
         <div className={styles.headerSpacer} />
         <div className={styles.headerActions}>
           <button

@@ -23,7 +23,7 @@ Pre-commit hook (.githooks/pre-commit) runs knip → eslint → tsc -b. All thre
 
 ## Architecture
 
-Partifi extracts individual instrument parts from orchestral full-score PDFs. It runs entirely in the browser with no backend.
+Score Cutter extracts individual instrument parts from orchestral full-score PDFs. It runs entirely in the browser with no backend.
 
 ### 5-Step Wizard Flow
 

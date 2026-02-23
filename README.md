@@ -1,4 +1,4 @@
-# Partifi Clone
+# Score Cutter
 
 総譜（フルスコア）PDF から個別のパート譜を自動抽出する Web アプリケーション。
 [Partifi](http://partifi.org/) および [Divisi](https://divisi.hv-serve.com/) を参考に開発。
