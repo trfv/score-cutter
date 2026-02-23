@@ -4,10 +4,14 @@ import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { StatusIndicator } from './StatusIndicator';
-import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
+import { canvasYToPdfY, pdfYToCanvasY, getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
-import { getStaffStepValidations, getPageSystems } from '../core/staffModel';
-import type { Staff } from '../core/staffModel';
+import { getStaffStepValidations, getPageSystems, staffsMatchSystems } from '../core/staffModel';
+import type { Staff, System } from '../core/staffModel';
+import type { SystemBoundaryPx } from '../core/systemDetector';
+import type { DetectStaffsResponse } from '../workers/workerProtocol';
+import { runStaffDetection } from '../workers/detectionPipeline';
+import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import { StepToolbar } from './StepToolbar';
 import styles from './StaffStep.module.css';
 
@@ -23,6 +27,7 @@ export function StaffStep() {
   const [bitmapWidth, setBitmapWidth] = useState(0);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
+  const [detectingStaffs, setDetectingStaffs] = useState(false);
 
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
 
@@ -34,6 +39,126 @@ export function StaffStep() {
     setCanvasWidth(canvas.clientWidth);
     setCanvasHeight(canvas.clientHeight);
   }, []);
+
+  // Auto-detect staffs within system boundaries via Worker pool
+  const handleAutoDetectStaffs = useCallback(async () => {
+    if (!pdfDocument || systems.length === 0) return;
+    setDetectingStaffs(true);
+
+    try {
+      // Group systems by page
+      const systemsByPage = new Map<number, System[]>();
+      for (const sys of systems) {
+        const group = systemsByPage.get(sys.pageIndex) ?? [];
+        group.push(sys);
+        systemsByPage.set(sys.pageIndex, group);
+      }
+
+      // Phase 1: Render pages and build per-page system boundaries in pixel coords
+      const pageData: Array<{
+        pageIdx: number;
+        imageData: ImageData;
+        pageSystems: System[];
+        systemBoundaries: SystemBoundaryPx[];
+      }> = [];
+
+      for (const [pageIdx, pageSystems] of systemsByPage) {
+        const dim = pageDimensions[pageIdx];
+        if (!dim) continue;
+
+        const canvas = document.createElement('canvas');
+        const page = await pdfDocument.getPage(pageIdx + 1);
+        const viewport = page.getViewport({ scale: DETECT_SCALE });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvas, viewport }).promise;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        const systemBoundaries: SystemBoundaryPx[] = pageSystems.map((sys) => ({
+          topPx: Math.floor(pdfYToCanvasY(sys.top, dim.height, DETECT_SCALE)),
+          bottomPx: Math.ceil(pdfYToCanvasY(sys.bottom, dim.height, DETECT_SCALE)),
+        }));
+
+        pageData.push({ pageIdx, imageData, pageSystems, systemBoundaries });
+      }
+
+      // Phase 2: Detect staffs via Workers or main thread
+      type PageStaffResult = { pageIdx: number; pageSystems: System[]; staffsBySystem: { topPx: number; bottomPx: number }[][] };
+      let results: PageStaffResult[];
+
+      if (isWorkerAvailable()) {
+        const pool = createWorkerPool();
+        try {
+          const promises = pageData.map(({ pageIdx, imageData, pageSystems, systemBoundaries }) => {
+            const rgbaBuffer = imageData.data.buffer.slice(0);
+            return pool.submitTask({
+              type: 'DETECT_STAFFS',
+              taskId: `staff-${pageIdx}`,
+              pageIndex: pageIdx,
+              rgbaData: rgbaBuffer,
+              width: imageData.width,
+              height: imageData.height,
+              systemBoundaries,
+              partGapHeight: 15,
+            }).then((result) => ({
+              pageIdx,
+              pageSystems,
+              staffsBySystem: (result as DetectStaffsResponse).staffsBySystem,
+            }));
+          });
+          results = await Promise.all(promises);
+        } finally {
+          pool.terminate();
+        }
+      } else {
+        results = pageData.map(({ pageIdx, imageData, pageSystems, systemBoundaries }) => {
+          const result = runStaffDetection({
+            rgbaData: imageData.data,
+            width: imageData.width,
+            height: imageData.height,
+            systemBoundaries,
+            partGapHeight: 15,
+          });
+          return { pageIdx, pageSystems, staffsBySystem: result.staffsBySystem };
+        });
+      }
+
+      // Phase 3: Convert pixel boundaries to Staff entities
+      const allStaffs: Staff[] = [];
+      for (const { pageIdx, pageSystems, staffsBySystem } of results) {
+        const dim = pageDimensions[pageIdx];
+        if (!dim) continue;
+        for (let sysIdx = 0; sysIdx < pageSystems.length; sysIdx++) {
+          const sys = pageSystems[sysIdx];
+          const boundaries = staffsBySystem[sysIdx] ?? [];
+          for (const boundary of boundaries) {
+            allStaffs.push({
+              id: crypto.randomUUID(),
+              pageIndex: pageIdx,
+              top: canvasYToPdfY(boundary.topPx, dim.height, DETECT_SCALE),
+              bottom: canvasYToPdfY(boundary.bottomPx, dim.height, DETECT_SCALE),
+              label: '',
+              systemId: sys.id,
+            });
+          }
+        }
+      }
+
+      dispatch({ type: 'SET_STAFFS', staffs: allStaffs });
+    } finally {
+      setDetectingStaffs(false);
+    }
+  }, [pdfDocument, systems, pageDimensions, dispatch]);
+
+  // Trigger auto-detection when staffs don't match systems
+  const needsStaffDetection = systems.length > 0 && !staffsMatchSystems(staffs, systems);
+  useEffect(() => {
+    if (needsStaffDetection && !detectingStaffs) {
+      handleAutoDetectStaffs();
+    }
+  }, [needsStaffDetection, detectingStaffs, handleAutoDetectStaffs]);
 
   const handleSeparatorDrag = useCallback(
     (separatorIndex: number, newCanvasY: number) => {
