@@ -23,7 +23,7 @@
     "staffCountBySystem": "{{counts}} staffs ({{systemCount}} systems)",
     "systemCount": "{{count}} systems",
     "page": "Page {{current}} / {{total}}",
-    "progress": "Processing {{completed}}/{{total}} pages",
+    "progress": "Processing {{completed}} / {{total}} pages",
     "deleteSeparator": "Delete separator",
     "deleteSystemSeparator": "System boundary",
     "deleteStaff": "Delete staff"
