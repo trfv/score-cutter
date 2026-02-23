@@ -54,6 +54,29 @@ describe('partAssembler', () => {
     expect(outputDoc.getPageCount()).toBeGreaterThan(1);
   });
 
+  it('should handle a staff taller than usable page height', async () => {
+    const sourcePdf = await createTestPdf(1);
+    // Use small page options so the staff exceeds usable height
+    const smallOptions = {
+      ...defaultAssemblyOptions,
+      pageHeight: 200,
+      pageWidth: 595,
+      marginTop: 20,
+      marginBottom: 20,
+      marginLeft: 20,
+      marginRight: 20,
+      gapBetweenStaffs: 10,
+    };
+    // Staff height 500pt, usable height = 200 - 20 - 20 = 160pt -> overflows on first page
+    const staffs: Staff[] = [
+      { id: '1', pageIndex: 0, top: 742, bottom: 242, label: 'Violin I', systemId: 'sys-0' },
+    ];
+
+    const outputBytes = await assemblePart(sourcePdf, staffs, smallOptions);
+    const outputDoc = await PDFDocument.load(outputBytes);
+    expect(outputDoc.getPageCount()).toBe(1);
+  });
+
   it('should return valid PDF bytes', async () => {
     const sourcePdf = await createTestPdf(1);
     const staffs: Staff[] = [

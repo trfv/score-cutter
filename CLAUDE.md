@@ -3,16 +3,27 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Development Rules
-AT THIS POC TIME, DO NOT USE GIT WORKTREE. USE MASTER BRANCH ONLY.
+AT THIS POC TIME, DO NOT USE GIT WORKTREE. USE MAIN BRANCH ONLY.
+
+## Quick Start
+
+```bash
+npm install          # Install dependencies
+npm run prepare      # Configure git hooks (.githooks/pre-commit)
+npm run dev          # Start dev server (http://localhost:5173)
+```
 
 ## Commands
 
 ```bash
 npm run dev          # Start dev server (http://localhost:5173)
 npm run build        # Type-check (tsc -b) + Vite production build
+npm run preview      # Preview production build locally
 npm test             # Run all unit tests (vitest run)
+npm run test:coverage # Unit tests with V8 coverage (100% thresholds)
 npm run test:watch   # Vitest in watch mode
 npm run test:e2e     # Playwright end-to-end tests
+npm run test:e2e:ui  # Playwright with interactive UI
 npm run lint         # ESLint
 npm run knip         # Detect unused code/dependencies
 ```
@@ -35,13 +46,15 @@ Each step is a React component in `src/components/` rendered by `App.tsx` based 
 
 Pure functions with no React dependencies. This is where all domain logic lives:
 
-- **staffModel.ts** — `Staff`, `System`, `Part`, `PageDimension` types; `System` is a first-class entity (`{ id, pageIndex, top, bottom }`) stored in `ProjectState.systems`; `Staff.systemId` references `System.id`; utility functions `getPageSystems()` (filter systems by page) and `getSystemOrdinal()` (derive display position from systems list); `derivePartsFromStaffs()` groups staffs by label; `applySystemLabelsToAll()` copies labels from a template system (by `systemId`) to all other systems by ordinal position; validation functions (`validateStaffCountConsistency()`, `validateLabelCompleteness()`, `validateDuplicateLabelsInSystems()`, `validateLabelConsistency()`) with composite helpers `getStaffStepValidations()` and `getLabelStepValidations()` returning `ValidationMessage[]` for UI display
-- **separatorModel.ts** — `Separator`, `SystemGroup` (with `ordinal` and `systemId`), `StaffRegion` (with `systemId`) types; `computeSystemGroups()` groups staffs by system (using `System[]` when available, fallback to `systemId` grouping); `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for staff editing; `splitSystemAtGap()`, `splitSystemAtPosition()`, `mergeAdjacentSystems()`, `reassignStaffsByDrag()` for system boundary editing — these functions accept and return `{ staffs, systems }` to maintain both entities atomically. `splitSystemAtPosition()` handles three cases: gap between staffs, near-boundary (gap treatment), and mid-staff (splits staff then system).
+- **staffModel.ts** — `Staff`, `System`, `Part`, `PageDimension` types and domain logic. `System` is a first-class entity stored in `ProjectState.systems`; `Staff.systemId` references `System.id`. Includes part derivation (`derivePartsFromStaffs`), label propagation (`applySystemLabelsToAll`), and validation functions consumed by StaffStep/LabelStep via `getStaffStepValidations()` / `getLabelStepValidations()`.
+- **separatorModel.ts** — `Separator`, `SystemGroup`, `StaffRegion` types and staff/system boundary editing logic. Functions accept and return `{ staffs, systems }` to maintain both entities atomically. Covers separator drag, staff split/merge/add, and system split/merge/reassign operations.
 - **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
 - **coordinateMapper.ts** — Bidirectional Canvas ↔ PDF coordinate conversion (scale = DPI / 72)
 - **partAssembler.ts** — Uses pdf-lib `embedPage()` with bounding boxes to extract parts as vector PDFs (no rasterization)
 - **pdfLoader.ts** — pdfjs-dist wrapper for loading and rendering pages
+- **geometry.ts** — Shared geometry utilities: `rectsOverlap()`, `rectContains()`, `clampValue()`, `staffHeight()` used across overlay components and models
+- **zipExporter.ts** — Batch ZIP export using JSZip; assembles all part PDFs into a single `.zip` with progress callback
 - **undoHistory.ts** — Generic undo/redo stack (MAX_UNDO = 50)
 
 ### State Management (`src/context/`)
@@ -50,10 +63,14 @@ useReducer + React Context split into three contexts:
 - **ProjectContext** (read state) / **ProjectDispatchContext** (dispatch actions) / **UndoRedoContext** (canUndo/canRedo flags)
 - Undoable actions (SET_STAFFS, SET_STAFFS_AND_SYSTEMS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF) push to undo history; undo/redo snapshots contain both `staffs` and `systems` atomically via `UndoableSnapshot`
 - Action types defined in `projectContextDefs.ts`, reducer in `ProjectContext.tsx`, consumer hooks (`useProject`, `useProjectDispatch`) in `projectHooks.ts`
+- `ProjectContext.tsx` exports `projectReducer`, `combinedReducer`, `toSnapshot`, `UNDOABLE_ACTIONS`, `MAX_UNDO` for unit testing
 
 ### Web Workers (`src/workers/`)
 
-Worker pool (size = `navigator.hardwareConcurrency || 4`) parallelizes per-page staff detection. Falls back to main thread if Workers are unavailable. Protocol types in `workerProtocol.ts`.
+- **workerPool.ts** — Worker pool (size = `navigator.hardwareConcurrency || 4`) parallelizes per-page staff detection. Falls back to main thread if Workers are unavailable.
+- **detectionWorker.ts** — Worker entry point; exports `handleMessage(request, postMessage)` for testability. Module-level code wires `self.onmessage` to delegate to `handleMessage`.
+- **detectionPipeline.ts** — Grayscale → binary → horizontal projection → system detection pipeline. Used by both the worker (`detectionWorker.ts`) and main thread fallback (`SystemStep.tsx`).
+- **workerProtocol.ts** — Request/response type definitions for worker communication.
 
 ### Detection Pipeline
 
@@ -94,3 +111,4 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **Sidebar pattern** — SystemStep, StaffStep, and LabelStep use a two-column layout: a fixed-width `sidebar` (280px) on the left and a flexible `canvasArea` (`min-width: 600px`) on the right, both independently scrollable. The sidebar displays data structure information (system groups, staff PDF coordinates, labels). In StaffStep, clicking a staff row in the sidebar syncs selection with the canvas overlay; the selected row auto-scrolls into view via `scrollIntoView({ block: 'nearest' })`.
 - **LabelStep design** — The sidebar shows all systems on the current page, grouped by System entities (via `getPageSystems()`). Each system section has its own "Apply to All Systems" button that copies its labels to all other systems across all pages by ordinal position. The sidebar and canvas area scroll independently. Label application logic is a pure function `applySystemLabelsToAll()` in `staffModel.ts`.
 - **Validation indicators** — `StatusIndicator` component displays `ValidationMessage[]` in the `StepToolbar` center area. StaffStep shows staff-count consistency (all systems same count); LabelStep shows label completeness, duplicate detection, and order consistency. Validation logic lives as pure functions in `staffModel.ts`; components consume via `useMemo` + `getStaffStepValidations()` / `getLabelStepValidations()`.
+- **Test coverage** — `src/core/`, `src/workers/`, `src/context/` maintain 100% coverage (lines, functions, branches, statements) enforced by `test:coverage` thresholds in `vite.config.ts`. Unreachable defensive branches use `/* v8 ignore start */` / `/* v8 ignore stop */` comments.

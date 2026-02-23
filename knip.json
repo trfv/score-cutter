@@ -1,4 +1,4 @@
 {
   "ignore": ["public/**"],
-  "ignoreDependencies": ["@testing-library/react", "@testing-library/user-event"]
+  "ignoreDependencies": ["@testing-library/user-event"]
 }

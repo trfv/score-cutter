@@ -117,6 +117,14 @@ describe('applySystemLabelsToAll', () => {
     expect(result).toEqual(staffs);
   });
 
+  it('returns staffs unchanged when templateSystemId is empty string', () => {
+    const staffs = [
+      makeStaff({ id: 'a', systemId: 'sys-0', label: 'Violin' }),
+    ];
+    const result = applySystemLabelsToAll(staffs, '');
+    expect(result).toEqual(staffs);
+  });
+
   it('uses a non-zero system as template when specified', () => {
     const staffs = [
       // System 0
@@ -226,6 +234,24 @@ describe('validateStaffCountConsistency', () => {
     const result = validateStaffCountConsistency(staffs);
     expect(result.mismatches[0].pageIndex).toBe(0);
     expect(result.mismatches[1].pageIndex).toBe(2);
+  });
+
+  it('sorts mismatches by systemId when on the same page', () => {
+    const staffs = [
+      // Expected: 1 staff per system (mode from 3 systems)
+      makeStaff({ id: 'a', pageIndex: 0, systemId: 'sys-0' }),
+      makeStaff({ id: 'b', pageIndex: 1, systemId: 'sys-1' }),
+      makeStaff({ id: 'c', pageIndex: 2, systemId: 'sys-2' }),
+      // Two mismatches on the same page with 2 staffs each
+      makeStaff({ id: 'd1', pageIndex: 0, systemId: 'sys-0b' }),
+      makeStaff({ id: 'd2', pageIndex: 0, systemId: 'sys-0b' }),
+      makeStaff({ id: 'e1', pageIndex: 0, systemId: 'sys-0a' }),
+      makeStaff({ id: 'e2', pageIndex: 0, systemId: 'sys-0a' }),
+    ];
+    const result = validateStaffCountConsistency(staffs);
+    // Same page → sorted by systemId (localeCompare)
+    expect(result.mismatches[0].systemId).toBe('sys-0a');
+    expect(result.mismatches[1].systemId).toBe('sys-0b');
   });
 });
 
@@ -382,6 +408,20 @@ describe('getLabelStepValidations', () => {
     const dupe = messages.find((m) => m.messageKey === 'validation.duplicateLabels');
     expect(dupe).toBeDefined();
     expect(dupe!.severity).toBe('warning');
+  });
+
+  it('warns about label order mismatch across systems', () => {
+    const staffs = [
+      makeStaff({ id: 'a', pageIndex: 0, systemId: 'sys-0', top: 700, bottom: 650, label: 'Violin' }),
+      makeStaff({ id: 'b', pageIndex: 0, systemId: 'sys-0', top: 600, bottom: 550, label: 'Viola' }),
+      // Swapped order in second system
+      makeStaff({ id: 'c', pageIndex: 0, systemId: 'sys-1', top: 400, bottom: 350, label: 'Viola' }),
+      makeStaff({ id: 'd', pageIndex: 0, systemId: 'sys-1', top: 300, bottom: 250, label: 'Violin' }),
+    ];
+    const messages = getLabelStepValidations(staffs);
+    const mismatch = messages.find((m) => m.messageKey === 'validation.labelOrderMismatch');
+    expect(mismatch).toBeDefined();
+    expect(mismatch!.severity).toBe('warning');
   });
 });
 
@@ -600,5 +640,30 @@ describe('derivePartsFromStaffs with systems', () => {
     const parts = derivePartsFromStaffs(staffs);
     expect(parts[0].staffs[0].id).toBe('b'); // sys-0-0 first (alphabetical)
     expect(parts[0].staffs[1].id).toBe('a'); // sys-0-1 second
+  });
+
+  it('falls back to top descending within same systemId when no systems provided', () => {
+    const staffs = [
+      makeStaff({ id: 'a', pageIndex: 0, systemId: 'sys-0', top: 500, bottom: 400, label: 'Violin' }),
+      makeStaff({ id: 'b', pageIndex: 0, systemId: 'sys-0', top: 700, bottom: 600, label: 'Violin' }),
+    ];
+
+    const parts = derivePartsFromStaffs(staffs);
+    expect(parts[0].staffs[0].id).toBe('b'); // top 700 first
+    expect(parts[0].staffs[1].id).toBe('a'); // top 500 second
+  });
+
+  it('sorts by top descending within the same system ordinal', () => {
+    const systems: System[] = [
+      makeSystem({ id: 'sys-0', pageIndex: 0, top: 800, bottom: 300 }),
+    ];
+    const staffs = [
+      makeStaff({ id: 'a', pageIndex: 0, top: 500, bottom: 400, label: 'Violin', systemId: 'sys-0' }),
+      makeStaff({ id: 'b', pageIndex: 0, top: 700, bottom: 600, label: 'Violin', systemId: 'sys-0' }),
+    ];
+
+    const parts = derivePartsFromStaffs(staffs, systems);
+    expect(parts[0].staffs[0].id).toBe('b'); // top 700 first
+    expect(parts[0].staffs[1].id).toBe('a'); // top 500 second
   });
 });

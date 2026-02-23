@@ -25,6 +25,12 @@ describe('geometry', () => {
       const b = { top: 50, bottom: 10, left: 0, right: 100 };
       expect(rectsOverlap(a, b)).toBe(false);
     });
+
+    it('should detect horizontally non-overlapping rectangles', () => {
+      const a = { top: 100, bottom: 50, left: 0, right: 50 };
+      const b = { top: 100, bottom: 50, left: 60, right: 120 };
+      expect(rectsOverlap(a, b)).toBe(false);
+    });
   });
 
   describe('rectContains', () => {

@@ -1,13 +1,12 @@
 /// <reference lib="webworker" />
 
 import { runDetectionPipeline } from './detectionPipeline';
-import type { WorkerRequest, DetectPageResponse, WorkerErrorResponse } from './workerProtocol';
+import type { WorkerRequest, WorkerResponse } from './workerProtocol';
 
-const ctx = self as unknown as DedicatedWorkerGlobalScope;
-
-ctx.onmessage = (event: MessageEvent<WorkerRequest>) => {
-  const request = event.data;
-
+export function handleMessage(
+  request: WorkerRequest,
+  postMessage: (msg: WorkerResponse) => void,
+): void {
   if (request.type === 'DETECT_PAGE') {
     try {
       const rgbaData = new Uint8ClampedArray(request.rgbaData);
@@ -19,20 +18,23 @@ ctx.onmessage = (event: MessageEvent<WorkerRequest>) => {
         partGapHeight: request.partGapHeight,
       });
 
-      const response: DetectPageResponse = {
+      postMessage({
         type: 'DETECT_PAGE_RESULT',
         taskId: request.taskId,
         pageIndex: request.pageIndex,
         systems: result.systems,
-      };
-      ctx.postMessage(response);
+      });
     } catch (err) {
-      const errResponse: WorkerErrorResponse = {
+      postMessage({
         type: 'ERROR',
         taskId: request.taskId,
         message: err instanceof Error ? err.message : String(err),
-      };
-      ctx.postMessage(errResponse);
+      });
     }
   }
+}
+
+const ctx = self as unknown as DedicatedWorkerGlobalScope;
+ctx.onmessage = (event: MessageEvent<WorkerRequest>) => {
+  handleMessage(event.data, (msg) => ctx.postMessage(msg));
 };

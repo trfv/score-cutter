@@ -62,6 +62,7 @@ npm run dev
 | `npm run build` | プロダクションビルド |
 | `npm run preview` | ビルド結果のプレビュー |
 | `npm test` | テスト実行 |
+| `npm run test:coverage` | カバレッジ付きテスト実行（100% 閾値） |
 | `npm run test:watch` | テストをウォッチモードで実行 |
 | `npm run lint` | ESLint 実行 |
 | `npm run knip` | 未使用コード検出 |
@@ -84,10 +85,10 @@ src/
     __tests__/                   #   コアロジックの単体テスト (10 ファイル)
   workers/                       # Web Worker 並列処理
     detectionPipeline.ts         #   検出パイプライン（画像処理→組段・譜表検出）
-    detectionWorker.ts           #   Worker エントリーポイント
+    detectionWorker.ts           #   Worker エントリーポイント（handleMessage を export）
     workerPool.ts                #   Worker プール管理
     workerProtocol.ts            #   Worker 間メッセージ型定義
-    __tests__/                   #   Worker の単体テスト (2 ファイル)
+    __tests__/                   #   Worker の単体テスト (3 ファイル)
   components/                    # React コンポーネント（各 .tsx に対応する .module.css あり）
     ImportStep.tsx               #   PDF アップロード画面
     SystemStep.tsx               #   組段検出 + 組段境界の手動編集画面（組段構造サイドバー付き）
@@ -106,6 +107,7 @@ src/
     projectContextDefs.ts        #   型定義 (ProjectState, ProjectAction, WizardStep)
     ProjectContext.tsx            #   Provider + Reducer (useReducer + Undo/Redo)
     projectHooks.ts              #   カスタムフック (useProject, useProjectDispatch)
+    __tests__/                   #   状態管理の単体テスト (3 ファイル)
   i18n/
     ja.json                      # 日本語翻訳
     en.json                      # 英語翻訳
@@ -146,18 +148,22 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-189 テスト（12 ファイル）:
+250 テスト（16 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
 
 - `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
-- `segmentModel.test.ts` - パートグループ化、ソート順
 - `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加、任意位置での組段分割
 - `geometry.test.ts` - 矩形の重なり判定、包含判定、クランプ
 - `coordinateMapper.test.ts` - Canvas↔PDF 座標変換の往復一致
 - `imageProcessing.test.ts` - グレースケール、二値化、水平投影
 - `staffDetector.test.ts` - 合成投影データでの境界検出
+- `pdfLoader.test.ts` - PDF ロード・レンダリング・キャンセル処理
 - `partAssembler.test.ts` - PDF 生成、ページ分割、出力妥当性
 - `zipExporter.test.ts` - ZIP 生成、ファイル構成、進捗コールバック
 - `undoHistory.test.ts` - Undo/Redo 履歴管理
-- `workerPool.test.ts` - Worker プールのタスク分配・終了処理
+- `workerPool.test.ts` - Worker プールのタスク分配・終了処理・デフォルトサイズ
 - `detectionPipeline.test.ts` - 検出パイプラインの結合テスト
+- `detectionWorker.test.ts` - Worker メッセージハンドラ・エラー処理
+- `projectReducer.test.ts` - projectReducer / combinedReducer / Undo・Redo
+- `projectHooks.test.ts` - useProject / useProjectDispatch フック
+- `projectContextDefs.test.ts` - 初期状態・コンテキスト定義
 

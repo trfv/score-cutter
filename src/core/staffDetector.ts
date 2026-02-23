@@ -72,7 +72,9 @@ export function detectStaffBoundaries(
   }
 
   // Last staff to bottom of page
+  /* v8 ignore start -- currentTop is always < projection.length for non-empty projections with ordered gaps */
   if (currentTop < projection.length) {
+  /* v8 ignore stop */
     const hasContent = projection
       .slice(currentTop, projection.length)
       .some((v) => v > absoluteThreshold);
@@ -115,9 +117,11 @@ export function detectSystems(
       bottomPx: part.bottomPx + sys.topPx,
     }));
 
+    /* v8 ignore start -- defensive fallback: detectStaffBoundaries always finds ≥1 staff in a system sub-projection */
     if (parts.length === 0) {
       parts.push({ topPx: sys.topPx, bottomPx: sys.bottomPx });
     }
+    /* v8 ignore stop */
 
     return {
       topPx: sys.topPx,

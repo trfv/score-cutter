@@ -20,12 +20,12 @@ import type { UndoHistory } from '../core/undoHistory';
 
 export type { WizardStep } from './projectContextDefs';
 
-interface UndoableSnapshot {
+export interface UndoableSnapshot {
   staffs: Staff[];
   systems: System[];
 }
 
-const UNDOABLE_ACTIONS = new Set([
+export const UNDOABLE_ACTIONS = new Set([
   'SET_STAFFS',
   'SET_STAFFS_AND_SYSTEMS',
   'UPDATE_STAFF',
@@ -33,9 +33,10 @@ const UNDOABLE_ACTIONS = new Set([
   'DELETE_STAFF',
 ]);
 
-const MAX_UNDO = 50;
+export const MAX_UNDO = 50;
 
-function projectReducer(state: ProjectState, action: ProjectAction): ProjectState {
+// eslint-disable-next-line react-refresh/only-export-components
+export function projectReducer(state: ProjectState, action: ProjectAction): ProjectState {
   switch (action.type) {
     case 'SET_STEP':
       return { ...state, step: action.step, currentPageIndex: 0 };
@@ -78,16 +79,18 @@ function projectReducer(state: ProjectState, action: ProjectAction): ProjectStat
   }
 }
 
-interface CombinedState {
+export interface CombinedState {
   project: ProjectState;
   history: UndoHistory<UndoableSnapshot>;
 }
 
-function toSnapshot(project: ProjectState): UndoableSnapshot {
+// eslint-disable-next-line react-refresh/only-export-components
+export function toSnapshot(project: ProjectState): UndoableSnapshot {
   return { staffs: project.staffs, systems: project.systems };
 }
 
-function combinedReducer(state: CombinedState, action: ProjectAction): CombinedState {
+// eslint-disable-next-line react-refresh/only-export-components
+export function combinedReducer(state: CombinedState, action: ProjectAction): CombinedState {
   if (action.type === 'UNDO') {
     const newHistory = undoHistory(state.history);
     if (newHistory === state.history) return state;

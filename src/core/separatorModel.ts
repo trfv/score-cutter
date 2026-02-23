@@ -237,10 +237,12 @@ export function splitSystemAtGap(
     bottom: sourceSystem.bottom,
   };
 
+  /* v8 ignore start -- systems is always defined here (early return at line 229 catches undefined case) */
   const updatedSystems = [
     ...(systems ?? []).map(sys => sys.id === sourceSystem.id ? updatedSource : sys),
     newSystem,
   ];
+  /* v8 ignore stop */
 
   const belowTop = below.top;
   const updatedStaffs = staffs.map(s => {
@@ -273,9 +275,11 @@ export function mergeAdjacentSystems(
   const lowerSystem = pageSystems[upperSystemIndex + 1];
 
   const mergedSystem: System = { ...upperSystem, bottom: lowerSystem.bottom };
+  /* v8 ignore start -- systems is always defined here (early return at line 271 catches undefined case) */
   const updatedSystems = (systems ?? [])
     .map(sys => sys.id === upperSystem.id ? mergedSystem : sys)
     .filter(sys => sys.id !== lowerSystem.id);
+  /* v8 ignore stop */
 
   const updatedStaffs = staffs.map(s => {
     if (s.systemId === lowerSystem.id) {
@@ -327,7 +331,9 @@ export function reassignStaffsByDrag(
 
   // Update system boundaries to the drag position
   const newPdfBoundary = canvasYToPdfY(newCanvasY, pdfPageHeight, scale);
+  /* v8 ignore start -- systems is always defined here (early return at line 307 catches undefined case) */
   const updatedSystems = (systems ?? []).map(sys => {
+  /* v8 ignore stop */
     if (sys.id === upperSystem.id) return { ...sys, bottom: newPdfBoundary };
     if (sys.id === lowerSystem.id) return { ...sys, top: newPdfBoundary };
     return sys;

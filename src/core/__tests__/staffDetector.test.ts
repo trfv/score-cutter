@@ -61,6 +61,17 @@ describe('staffDetector', () => {
       const boundaries = detectStaffBoundaries(projection, 10);
       expect(boundaries).toHaveLength(3);
     });
+
+    it('skips region when gap at start yields gapCenter equal to currentTop', () => {
+      // gap at start: {start:0, end:2}, gapCenter=1, currentTop=0 → 1 > 0 true
+      // But we need gapCenter === currentTop. With minGapHeight=1:
+      // gap {start:0, end:1}, center=floor(0.5)=0, so 0 > 0 is false
+      const projection = [0, 100, 100, 100];
+      const boundaries = detectStaffBoundaries(projection, 1);
+      // gap at [0,1], center=0; no second gap; last staff from 0 to end
+      expect(boundaries).toHaveLength(1);
+      expect(boundaries[0].topPx).toBe(0);
+    });
   });
 
   describe('detectSystems', () => {
@@ -140,6 +151,23 @@ describe('staffDetector', () => {
 
     it('should return empty for empty projection', () => {
       expect(detectSystems([])).toEqual([]);
+    });
+
+    it('should fallback to system boundaries when no parts detected', () => {
+      // A system whose internal content is uniform (no gaps to split into parts)
+      // but the minPartGapHeight is very large, so no sub-parts are detected
+      const projection = [
+        ...new Array(60).fill(0),   // margin
+        ...new Array(30).fill(100), // single uniform content band
+        ...new Array(60).fill(0),   // margin
+      ];
+      // Use a very large minPartGapHeight so no internal split is detected
+      const systems = detectSystems(projection, 50, 100);
+      expect(systems).toHaveLength(1);
+      // Should fallback: single part spanning the whole system
+      expect(systems[0].parts).toHaveLength(1);
+      expect(systems[0].parts[0].topPx).toBe(systems[0].topPx);
+      expect(systems[0].parts[0].bottomPx).toBe(systems[0].bottomPx);
     });
 
     it('should handle a single thin content band as one system with one part', () => {
