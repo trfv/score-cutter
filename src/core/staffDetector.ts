@@ -1,6 +1,6 @@
 import { findGaps } from './projectionAnalysis';
 
-interface StaffBoundary {
+export interface StaffBoundary {
   topPx: number;
   bottomPx: number;
 }
