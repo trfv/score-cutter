@@ -17,7 +17,7 @@ interface SystemOverlayProps {
   selectedSystemSepIndex: number | null;
   onSelectSystemSep: (index: number | null) => void;
   onSystemSepDrag: (systemSepIndex: number, newCanvasY: number) => void;
-  onSplitSystem: (staffAboveId: string, staffBelowId: string) => void;
+  onSplitSystem: (canvasY: number) => void;
   onMergeSystem: (upperSystemIndex: number) => void;
 }
 
@@ -51,38 +51,11 @@ export function SystemOverlay({
 
   const handleOverlayDoubleClick = useCallback(
     (e: React.MouseEvent) => {
-      // Double-click on empty area within a system → split system
       const rect = e.currentTarget.getBoundingClientRect();
       const canvasY = e.clientY - rect.top;
-
-      // Find which system group contains this Y
-      for (const group of groups) {
-        if (canvasY >= group.topCanvasY && canvasY <= group.bottomCanvasY) {
-          // Find the gap between two adjacent staffs in this group
-          const regions = group.regions;
-          for (let i = 0; i < regions.length - 1; i++) {
-            const current = regions[i];
-            const next = regions[i + 1];
-            if (canvasY >= current.bottomCanvasY && canvasY <= next.topCanvasY) {
-              onSplitSystem(current.staffId, next.staffId);
-              return;
-            }
-          }
-          // If within a staff region, find nearest gap
-          for (let i = 0; i < regions.length - 1; i++) {
-            const midpoint = (regions[i].bottomCanvasY + regions[i + 1].topCanvasY) / 2;
-            if (canvasY < midpoint) {
-              if (i > 0) {
-                onSplitSystem(regions[i - 1].staffId, regions[i].staffId);
-              }
-              return;
-            }
-          }
-          break;
-        }
-      }
+      onSplitSystem(canvasY);
     },
-    [groups, onSplitSystem],
+    [onSplitSystem],
   );
 
   return (

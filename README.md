@@ -9,7 +9,7 @@
 
 - PDF 総譜のアップロード（ドラッグ＆ドロップ対応）
 - 水平投影法による五線段の自動検出
-- 組段（System）境界の手動編集（分割：ダブルクリック、結合：区切り線ダブルクリック / Delete キー、ドラッグ移動）
+- 組段（System）境界の手動編集（任意位置でのダブルクリック分割、結合：区切り線ダブルクリック / Delete キー、ドラッグ移動）
 - 区切り線（Separator）のドラッグ操作・キーボード操作（Arrow キーで移動、Tab でフォーカス移動）による譜表境界の手動調整
 - 譜表の追加（空白部分ダブルクリック）、分割（譜表上ダブルクリック）、結合（区切り線ダブルクリック）、削除
 - 楽器名ラベル付け（現在ページの各組段ごとにラベルを入力、組段単位で全組段に一括適用）
@@ -20,6 +20,7 @@
 - Undo/Redo（Ctrl+Z / Ctrl+Y）
 - Web Worker による並列検出処理
 - ダーク/ライトテーマ切替
+- 組段ステップ・譜表ステップにデータ構造サイドバー（組段グループ、譜表の PDF 座標、systemIndex をリアルタイム表示）
 - 日本語・英語 UI 切替
 
 ## ワークフロー
@@ -89,8 +90,8 @@ src/
     __tests__/                   #   Worker の単体テスト (2 ファイル)
   components/                    # React コンポーネント（各 .tsx に対応する .module.css あり）
     ImportStep.tsx               #   PDF アップロード画面
-    SystemStep.tsx               #   組段検出 + 組段境界の手動編集画面
-    StaffStep.tsx                #   譜表境界の手動調整画面
+    SystemStep.tsx               #   組段検出 + 組段境界の手動編集画面（組段構造サイドバー付き）
+    StaffStep.tsx                #   譜表境界の手動調整画面（譜表構造サイドバー付き）
     LabelStep.tsx                #   楽器名ラベル付け画面
     ExportStep.tsx               #   パート PDF プレビュー＆ダウンロード画面
     StepToolbar.tsx              #   統合ナビゲーションバー（ステップ遷移 + ページ送り）
@@ -145,11 +146,11 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-147 テスト（12 ファイル）:
+157 テスト（12 ファイル）:
 
 - `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
 - `segmentModel.test.ts` - パートグループ化、ソート順
-- `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加
+- `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加、任意位置での組段分割
 - `geometry.test.ts` - 矩形の重なり判定、包含判定、クランプ
 - `coordinateMapper.test.ts` - Canvas↔PDF 座標変換の往復一致
 - `imageProcessing.test.ts` - グレースケール、二値化、水平投影

@@ -73,6 +73,13 @@
     "labelOrderMismatch": "ラベル順序が異なる組段があります（{{mismatchCount}}箇所）",
     "labelsComplete": "全譜表にラベルが設定されています"
   },
+  "sidebar": {
+    "systemStructure": "組段構造",
+    "staffStructure": "譜表構造",
+    "noStaffsOnPage": "この頁に譜表がありません",
+    "staffCountInSystem": "{{count}} 譜表",
+    "pdfYRange": "Y: {{top}} → {{bottom}}"
+  },
   "common": {
     "back": "戻る",
     "next": "次へ",

@@ -73,6 +73,13 @@
     "labelOrderMismatch": "Label order differs in {{mismatchCount}} system(s)",
     "labelsComplete": "All staffs labeled"
   },
+  "sidebar": {
+    "systemStructure": "System Structure",
+    "staffStructure": "Staff Structure",
+    "noStaffsOnPage": "No staffs on this page",
+    "staffCountInSystem": "{{count}} staffs",
+    "pdfYRange": "Y: {{top}} → {{bottom}}"
+  },
   "common": {
     "back": "Back",
     "next": "Next",

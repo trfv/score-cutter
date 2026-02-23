@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
@@ -7,6 +7,7 @@ import { StatusIndicator } from './StatusIndicator';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
 import { getStaffStepValidations } from '../core/staffModel';
+import type { Staff } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
 import styles from './StaffStep.module.css';
 
@@ -113,6 +114,27 @@ export function StaffStep() {
 
   const staffValidations = useMemo(() => getStaffStepValidations(staffs), [staffs]);
 
+  const currentPageSystems = useMemo(() => {
+    const bySystem = new Map<number, Staff[]>();
+    for (const s of staffs) {
+      if (s.pageIndex !== currentPageIndex) continue;
+      if (!bySystem.has(s.systemIndex)) bySystem.set(s.systemIndex, []);
+      bySystem.get(s.systemIndex)!.push(s);
+    }
+    return [...bySystem.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([systemIndex, stfs]) => ({
+        systemIndex,
+        staffs: stfs.slice().sort((a, b) => b.top - a.top),
+      }));
+  }, [staffs, currentPageIndex]);
+
+  // Scroll the selected staff row into view
+  const selectedRowRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    selectedRowRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [selectedStaffId]);
+
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
@@ -149,33 +171,69 @@ export function StaffStep() {
         <StatusIndicator messages={staffValidations} />
       </StepToolbar>
 
-      <div className={styles.scrollContent}>
-        <div className={styles.canvasContainer}>
-          <PageCanvas
-            document={pdfDocument}
-            pageIndex={currentPageIndex}
-            scale={DETECT_SCALE}
-            onCanvasReady={handleCanvasReady}
-          />
-          {currentDimension && (
-            <SeparatorOverlay
-              staffs={staffs}
-              pageIndex={currentPageIndex}
-              pdfPageHeight={currentDimension.height}
-              scale={effectiveScale}
-              canvasWidth={canvasWidth}
-              canvasHeight={canvasHeight}
-              selectedStaffId={selectedStaffId}
-              onSelectStaff={setSelectedStaffId}
-              selectedSeparatorIndex={selectedSeparatorIndex}
-              onSelectSeparator={setSelectedSeparatorIndex}
-              onSeparatorDrag={handleSeparatorDrag}
-              onSplitAtPosition={handleSplitAtPosition}
-              onMergeSeparator={handleMergeSeparator}
-              onDeleteStaff={handleDeleteStaff}
-              onAddStaff={handleAddStaff}
-            />
+      <div className={styles.content}>
+        <aside className={styles.sidebar}>
+          <h3>{t('sidebar.staffStructure')}</h3>
+          {currentPageSystems.length === 0 ? (
+            <p className={styles.emptyMessage}>{t('sidebar.noStaffsOnPage')}</p>
+          ) : (
+            currentPageSystems.map((sys) => (
+              <div key={sys.systemIndex} className={styles.systemSection}>
+                <div className={styles.systemHeader}>
+                  {t('label.systemHeader', { system: sys.systemIndex + 1 })}
+                </div>
+                {sys.staffs.map((staff, idx) => {
+                  const isSelected = staff.id === selectedStaffId;
+                  return (
+                    <div
+                      key={staff.id}
+                      ref={isSelected ? selectedRowRef : undefined}
+                      className={`${styles.staffRow} ${isSelected ? styles.staffRowSelected : ''}`}
+                      onClick={() => setSelectedStaffId(staff.id)}
+                    >
+                      <span className={styles.staffIndex}>{idx + 1}</span>
+                      <span className={styles.staffCoords}>
+                        {staff.top.toFixed(1)} → {staff.bottom.toFixed(1)}
+                      </span>
+                      {staff.label && (
+                        <span className={styles.staffLabel}>{staff.label}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))
           )}
+        </aside>
+
+        <div className={styles.canvasArea}>
+          <div className={styles.canvasContainer}>
+            <PageCanvas
+              document={pdfDocument}
+              pageIndex={currentPageIndex}
+              scale={DETECT_SCALE}
+              onCanvasReady={handleCanvasReady}
+            />
+            {currentDimension && (
+              <SeparatorOverlay
+                staffs={staffs}
+                pageIndex={currentPageIndex}
+                pdfPageHeight={currentDimension.height}
+                scale={effectiveScale}
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+                selectedStaffId={selectedStaffId}
+                onSelectStaff={setSelectedStaffId}
+                selectedSeparatorIndex={selectedSeparatorIndex}
+                onSelectSeparator={setSelectedSeparatorIndex}
+                onSeparatorDrag={handleSeparatorDrag}
+                onSplitAtPosition={handleSplitAtPosition}
+                onMergeSeparator={handleMergeSeparator}
+                onDeleteStaff={handleDeleteStaff}
+                onAddStaff={handleAddStaff}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

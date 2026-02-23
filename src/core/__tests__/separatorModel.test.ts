@@ -4,6 +4,7 @@ import {
   computeSeparators,
   computeSystemGroups,
   splitSystemAtGap,
+  splitSystemAtPosition,
   mergeAdjacentSystems,
   reassignStaffsByDrag,
   applySeparatorDrag,
@@ -279,6 +280,23 @@ describe('separatorModel', () => {
       ];
       const result = splitSystemAtGap(staffs, 'a', 'b');
       expect(result).toEqual(staffs);
+    });
+
+    it('does not affect staffs on other pages', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', pageIndex: 1, top: 400, bottom: 300, systemIndex: 0 }),
+        makeStaff({ id: 'd', pageIndex: 1, top: 200, bottom: 100, systemIndex: 1 }),
+      ];
+      const result = splitSystemAtGap(staffs, 'a', 'b');
+
+      // Page 0 staffs should be split
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+      // Page 1 staffs must remain unchanged
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'd')!.systemIndex).toBe(1);
     });
   });
 
@@ -681,6 +699,117 @@ describe('separatorModel', () => {
       expect(result[0].top).toBe(700);
       expect(result[0].bottom).toBe(400);
       expect(result[0].systemIndex).toBe(0);
+    });
+  });
+
+  describe('splitSystemAtPosition', () => {
+    it('returns unchanged when no staffs exist on the page', () => {
+      const staffs = [makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemIndex: 0 })];
+      const result = splitSystemAtPosition(staffs, 0, 650);
+      expect(result).toEqual(staffs);
+    });
+
+    it('returns unchanged when pdfY is outside all systems', () => {
+      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 })];
+      // pdfY=100 is below all staffs (bottom=600)
+      const result = splitSystemAtPosition(staffs, 0, 100);
+      expect(result).toEqual(staffs);
+    });
+
+    it('splits at a gap between two staffs in the same system', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+      ];
+      // pdfY=550 is in the gap: a.bottom=600, b.top=500
+      const result = splitSystemAtPosition(staffs, 0, 550);
+      expect(result).toHaveLength(2);
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+    });
+
+    it('splits inside a staff region by splitting the staff first', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 600, bottom: 400, systemIndex: 0 }),
+      ];
+      // pdfY=500 is inside staff b (top=600, bottom=400)
+      const result = splitSystemAtPosition(staffs, 0, 500);
+      // Staff a stays in system 0
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      // Staff b (upper half, keeps id 'b') stays in system 0
+      const upper = result.find(s => s.id === 'b')!;
+      expect(upper.systemIndex).toBe(0);
+      expect(upper.bottom).toBe(500);
+      // New lower half goes to system 1
+      const lower = result.find(s => s.id !== 'a' && s.id !== 'b')!;
+      expect(lower.systemIndex).toBe(1);
+      expect(lower.top).toBe(500);
+      expect(lower.bottom).toBe(400);
+    });
+
+    it('handles single-staff system by splitting staff then system', () => {
+      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 400, systemIndex: 0 })];
+      const result = splitSystemAtPosition(staffs, 0, 550);
+      expect(result).toHaveLength(2);
+      const upper = result.find(s => s.id === 'a')!;
+      expect(upper.systemIndex).toBe(0);
+      expect(upper.bottom).toBe(550);
+      const lower = result.find(s => s.id !== 'a')!;
+      expect(lower.systemIndex).toBe(1);
+      expect(lower.top).toBe(550);
+    });
+
+    it('increments systemIndex of subsequent systems', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
+      ];
+      const result = splitSystemAtPosition(staffs, 0, 550);
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(2);
+    });
+
+    it('does not affect staffs on other pages', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', pageIndex: 1, top: 700, bottom: 600, systemIndex: 0 }),
+      ];
+      const result = splitSystemAtPosition(staffs, 0, 550);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(0);
+    });
+
+    it('treats click near staff boundary as gap split (no staff split)', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 600, bottom: 400, systemIndex: 0 }),
+      ];
+      // pdfY=605 is inside staff a but within MIN_SPLIT_HEIGHT(10) of boundary with b at 600
+      const result = splitSystemAtPosition(staffs, 0, 605);
+      // Should NOT split staff a, should split system at the gap between a and b
+      expect(result).toHaveLength(2);
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
+    });
+
+    it('splits inside middle staff of a three-staff system', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'b', top: 600, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 400, bottom: 300, systemIndex: 0 }),
+      ];
+      // pdfY=500 is in the middle of staff b
+      const result = splitSystemAtPosition(staffs, 0, 500);
+      // a and upper-b stay in system 0
+      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
+      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
+      // lower-b and c move to system 1
+      const lowerB = result.find(s => s.id !== 'a' && s.id !== 'b' && s.id !== 'c')!;
+      expect(lowerB.systemIndex).toBe(1);
+      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
     });
   });
 });

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
@@ -6,7 +6,7 @@ import { PageCanvas } from './PageCanvas';
 import { SystemOverlay } from './SystemOverlay';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import {
-  splitSystemAtGap,
+  splitSystemAtPosition,
   mergeAdjacentSystems,
   reassignStaffsByDrag,
 } from '../core/separatorModel';
@@ -151,11 +151,14 @@ export function SystemStep() {
   );
 
   const handleSplitSystem = useCallback(
-    (staffAboveId: string, staffBelowId: string) => {
-      const updated = splitSystemAtGap(staffs, staffAboveId, staffBelowId);
+    (canvasY: number) => {
+      const dim = pageDimensions[currentPageIndex];
+      if (!dim) return;
+      const pdfY = canvasYToPdfY(canvasY, dim.height, effectiveScale);
+      const updated = splitSystemAtPosition(staffs, currentPageIndex, pdfY);
       dispatch({ type: 'SET_STAFFS', staffs: updated });
     },
-    [staffs, dispatch],
+    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
   const handleMergeSystem = useCallback(
@@ -187,6 +190,26 @@ export function SystemStep() {
     dispatch({ type: 'SET_STEP', step: 'import' });
   }, [dispatch]);
 
+  const currentPageSystems = useMemo(() => {
+    const bySystem = new Map<number, Staff[]>();
+    for (const s of staffs) {
+      if (s.pageIndex !== currentPageIndex) continue;
+      if (!bySystem.has(s.systemIndex)) bySystem.set(s.systemIndex, []);
+      bySystem.get(s.systemIndex)!.push(s);
+    }
+    return [...bySystem.entries()]
+      .sort(([a], [b]) => a - b)
+      .map(([systemIndex, stfs]) => {
+        const sorted = stfs.slice().sort((a, b) => b.top - a.top);
+        return {
+          systemIndex,
+          staffs: sorted,
+          top: sorted[0].top,
+          bottom: sorted[sorted.length - 1].bottom,
+        };
+      });
+  }, [staffs, currentPageIndex]);
+
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
@@ -210,36 +233,62 @@ export function SystemStep() {
         </span>
       </StepToolbar>
 
-      <div className={styles.scrollContent}>
-        <div className={styles.canvasContainer}>
-          <PageCanvas
-            document={pdfDocument}
-            pageIndex={currentPageIndex}
-            scale={DETECT_SCALE}
-            onCanvasReady={handleCanvasReady}
-          />
-          {currentDimension && !detecting && (
-            <SystemOverlay
-              staffs={staffs}
+      <div className={styles.content}>
+        <aside className={styles.sidebar}>
+          <h3>{t('sidebar.systemStructure')}</h3>
+          {currentPageSystems.length === 0 ? (
+            <p className={styles.emptyMessage}>{t('sidebar.noStaffsOnPage')}</p>
+          ) : (
+            currentPageSystems.map((sys) => (
+              <div key={sys.systemIndex} className={styles.systemSection}>
+                <div className={styles.systemHeader}>
+                  {t('label.systemHeader', { system: sys.systemIndex + 1 })}
+                </div>
+                <div className={styles.systemMeta}>
+                  {t('sidebar.staffCountInSystem', { count: sys.staffs.length })}
+                </div>
+                <div className={styles.systemMeta}>
+                  {t('sidebar.pdfYRange', {
+                    top: sys.top.toFixed(1),
+                    bottom: sys.bottom.toFixed(1),
+                  })}
+                </div>
+              </div>
+            ))
+          )}
+        </aside>
+
+        <div className={styles.canvasArea}>
+          <div className={styles.canvasContainer}>
+            <PageCanvas
+              document={pdfDocument}
               pageIndex={currentPageIndex}
-              pdfPageHeight={currentDimension.height}
-              scale={effectiveScale}
-              canvasWidth={canvasWidth}
-              canvasHeight={canvasHeight}
-              selectedSystemSepIndex={selectedSystemSepIndex}
-              onSelectSystemSep={setSelectedSystemSepIndex}
-              onSystemSepDrag={handleSystemSepDrag}
-              onSplitSystem={handleSplitSystem}
-              onMergeSystem={handleMergeSystem}
+              scale={DETECT_SCALE}
+              onCanvasReady={handleCanvasReady}
             />
-          )}
-          {detecting && (
-            <div className={styles.progressOverlay}>
-              {progress
-                ? t('detect.progress', { completed: progress.completed, total: progress.total })
-                : t('detect.detecting')}
-            </div>
-          )}
+            {currentDimension && !detecting && (
+              <SystemOverlay
+                staffs={staffs}
+                pageIndex={currentPageIndex}
+                pdfPageHeight={currentDimension.height}
+                scale={effectiveScale}
+                canvasWidth={canvasWidth}
+                canvasHeight={canvasHeight}
+                selectedSystemSepIndex={selectedSystemSepIndex}
+                onSelectSystemSep={setSelectedSystemSepIndex}
+                onSystemSepDrag={handleSystemSepDrag}
+                onSplitSystem={handleSplitSystem}
+                onMergeSystem={handleMergeSystem}
+              />
+            )}
+            {detecting && (
+              <div className={styles.progressOverlay}>
+                {progress
+                  ? t('detect.progress', { completed: progress.completed, total: progress.total })
+                  : t('detect.detecting')}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

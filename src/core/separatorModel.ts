@@ -143,12 +143,14 @@ export function splitSystemAtGap(staffs: Staff[], staffAboveId: string, staffBel
   if (above.systemIndex !== below.systemIndex) return staffs;
 
   const splitSystemIdx = above.systemIndex;
+  const pageIndex = above.pageIndex;
 
   // Determine which staffs in this system are "below" the split point.
-  // staffBelow and all staffs with top <= below.top in the same system.
+  // staffBelow and all staffs with top <= below.top in the same system on the same page.
   const belowTop = below.top;
 
   return staffs.map(s => {
+    if (s.pageIndex !== pageIndex) return s;
     if (s.systemIndex === splitSystemIdx && s.top <= belowTop) {
       return { ...s, systemIndex: s.systemIndex + 1 };
     }
@@ -261,6 +263,87 @@ export function applySeparatorDrag(
     if (update) return { ...s, ...update };
     return s;
   });
+}
+
+/**
+ * Split a system at an arbitrary PDF Y position on a given page.
+ *
+ * Three cases:
+ * 1. pdfY falls in a gap between two staffs within the same system
+ *    → delegate to splitSystemAtGap
+ * 2. pdfY falls inside a staff but near an adjacent staff boundary (within MIN_SPLIT_HEIGHT)
+ *    → treat as gap split at the nearest boundary (avoids creating tiny staffs)
+ * 3. pdfY falls inside a staff far from boundaries
+ *    → split the staff first, then split the system between the two halves
+ *
+ * Returns staffs unchanged if pdfY is outside all systems on the page.
+ */
+export function splitSystemAtPosition(
+  staffs: Staff[],
+  pageIndex: number,
+  pdfY: number,
+): Staff[] {
+  const pageStaffs = staffs.filter(s => s.pageIndex === pageIndex);
+  if (pageStaffs.length === 0) return staffs;
+
+  // Group by systemIndex
+  const groupMap = new Map<number, Staff[]>();
+  for (const staff of pageStaffs) {
+    const group = groupMap.get(staff.systemIndex) ?? [];
+    group.push(staff);
+    groupMap.set(staff.systemIndex, group);
+  }
+
+  for (const [, groupStaffs] of groupMap) {
+    // Sort by descending top (visual top-to-bottom in PDF coords)
+    const sorted = [...groupStaffs].sort((a, b) => b.top - a.top);
+
+    // Check if pdfY falls within this system's vertical range
+    const systemTop = sorted[0].top;
+    const systemBottom = sorted[sorted.length - 1].bottom;
+    if (pdfY > systemTop || pdfY < systemBottom) continue;
+
+    // Case 1: Check gaps between adjacent staffs
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = sorted[i];
+      const next = sorted[i + 1];
+      if (pdfY <= current.bottom && pdfY >= next.top) {
+        return splitSystemAtGap(staffs, current.id, next.id);
+      }
+    }
+
+    // Case 2 & 3: pdfY is inside a staff
+    for (let i = 0; i < sorted.length; i++) {
+      const staff = sorted[i];
+      if (pdfY <= staff.top && pdfY >= staff.bottom) {
+        // Check proximity to adjacent staff boundaries
+        // Above neighbor: the staff at index i-1 (if exists)
+        if (i > 0) {
+          const above = sorted[i - 1];
+          const distToAboveBoundary = staff.top - pdfY;
+          if (distToAboveBoundary < MIN_SPLIT_HEIGHT) {
+            return splitSystemAtGap(staffs, above.id, staff.id);
+          }
+        }
+        // Below neighbor: the staff at index i+1 (if exists)
+        if (i < sorted.length - 1) {
+          const below = sorted[i + 1];
+          const distToBelowBoundary = pdfY - staff.bottom;
+          if (distToBelowBoundary < MIN_SPLIT_HEIGHT) {
+            return splitSystemAtGap(staffs, staff.id, below.id);
+          }
+        }
+
+        // Far from boundaries: split the staff, then split the system
+        const splitResult = splitStaffAtPosition(staffs, staff.id, pdfY);
+        const upperIdx = splitResult.findIndex(s => s.id === staff.id);
+        const lowerHalf = splitResult[upperIdx + 1];
+        return splitSystemAtGap(splitResult, staff.id, lowerHalf.id);
+      }
+    }
+  }
+
+  return staffs;
 }
 
 const DEFAULT_HALF_HEIGHT = 25;

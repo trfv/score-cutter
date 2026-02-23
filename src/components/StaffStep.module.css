@@ -5,14 +5,106 @@
   min-height: 0;
 }
 
-.scrollContent {
+.content {
+  display: flex;
+  gap: var(--space-5);
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
   padding: var(--space-4);
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.sidebar h3 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-heading);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+}
+
+.systemSection {
+  margin-left: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border);
+}
+
+.systemSection:last-child {
+  margin-bottom: 0;
+}
+
+.systemHeader {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.staffRow {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-bottom: var(--space-1);
+  transition: background 0.15s;
+}
+
+.staffRow:hover {
+  background: var(--bg-elevated);
+}
+
+.staffRowSelected {
+  background: var(--bg-elevated);
+  outline: 1px solid var(--accent);
+}
+
+.staffIndex {
+  width: 1.5rem;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.staffCoords {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.staffLabel {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--accent);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.emptyMessage {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.canvasArea {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
+  overflow-y: auto;
 }
 
 .staffCount {
