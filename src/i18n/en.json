@@ -30,6 +30,7 @@
   },
   "label": {
     "placeholder": "Enter instrument name",
+    "systemHeader": "System {{system}}",
     "applyToAll": "Apply to all systems",
     "instruments": {
       "violin1": "Violin I",

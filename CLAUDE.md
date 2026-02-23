@@ -35,7 +35,7 @@ Each step is a React component in `src/components/` rendered by `App.tsx` based 
 
 Pure functions with no React dependencies. This is where all domain logic lives:
 
-- **staffModel.ts** — `Staff`, `Part`, `PageDimension` types; `derivePartsFromStaffs()` groups staffs by label
+- **staffModel.ts** — `Staff`, `Part`, `PageDimension` types; `derivePartsFromStaffs()` groups staffs by label; `applySystemLabelsToAll()` copies labels from a template system to all other systems by ordinal position
 - **separatorModel.ts** — `Separator`, `SystemGroup`, `StaffRegion` types; `computeSeparators()` derives separator lines from staffs; `computeSystemGroups()` groups staffs by system with canvas coordinates; `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for staff editing; `splitSystemAtGap()`, `mergeAdjacentSystems()`, `reassignStaffsByDrag()` for system boundary editing
 - **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
@@ -90,4 +90,5 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **TypeScript strict mode** — `noUnusedLocals` and `noUnusedParameters` enforced.
 - **ESLint flat config** (v9) in `eslint.config.js`.
 - **Keyboard accessibility** — Separators in both `SeparatorOverlay` and `SystemOverlay` are focusable (`tabIndex`, `role="separator"`) and support ArrowUp/Down (1px, Shift=10px), Delete/Backspace, and Escape. Keyboard event handling lives in each separator component's `onKeyDown`, not in document-level listeners.
-- **Step layout pattern** — Each step uses a two-layer flex layout: a fixed `StepToolbar` at the top (via `flex-shrink: 0`) and a scrollable content area below (`flex: 1; overflow-y: auto`). The `.main` container in `App.module.css` is a flex column with `min-height: 0` to enable child scrolling. Step-specific actions (e.g., "Apply to All" in LabelStep) are passed as `children` to `StepToolbar`.
+- **Step layout pattern** — Each step uses a two-layer flex layout: a fixed `StepToolbar` at the top (via `flex-shrink: 0`) and a scrollable content area below (`flex: 1; overflow-y: auto`). The `.main` container in `App.module.css` is a flex column with `min-height: 0` to enable child scrolling. Step-specific actions can be passed as `children` to `StepToolbar`, or placed within the step's own content area (e.g., LabelStep places "Apply to All" inside the sidebar).
+- **LabelStep design** — The sidebar shows all systems on the current page, grouped by `systemIndex`. Each system section has its own "Apply to All Systems" button that copies its labels to all other systems across all pages by ordinal position. The sidebar and canvas area scroll independently. Label application logic is a pure function `applySystemLabelsToAll()` in `staffModel.ts`.

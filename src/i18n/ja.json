@@ -30,6 +30,7 @@
   },
   "label": {
     "placeholder": "楽器名を入力",
+    "systemHeader": "組段 {{system}}",
     "applyToAll": "全組段に適用",
     "instruments": {
       "violin1": "Violin I",

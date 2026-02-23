@@ -18,15 +18,14 @@
   --border: rgba(255, 255, 255, 0.08);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
-  --overlay-region-hover: rgba(255, 255, 255, 0.04);
   --overlay-region-selected: rgba(244, 162, 97, 0.12);
   --overlay-system-even: rgba(244, 162, 97, 0.06);
   --overlay-system-odd: rgba(96, 165, 250, 0.06);
   --overlay-separator: rgba(244, 162, 97, 0.5);
   --overlay-separator-hover: rgba(244, 162, 97, 0.8);
   --overlay-separator-active: rgba(244, 162, 97, 0.9);
-  --overlay-edge: rgba(255, 255, 255, 0.2);
-  --overlay-edge-hover: rgba(255, 255, 255, 0.35);
+  --overlay-edge: rgba(244, 162, 97, 0.35);
+  --overlay-edge-hover: rgba(244, 162, 97, 0.6);
   --overlay-label-bg: rgba(26, 27, 46, 0.85);
   --overlay-delete-bg: rgba(26, 27, 46, 0.95);
   --overlay-delete-border: rgba(244, 162, 97, 0.6);
@@ -61,7 +60,6 @@
   --border: rgba(0, 0, 0, 0.1);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
-  --overlay-region-hover: rgba(0, 0, 0, 0.03);
   --overlay-region-selected: rgba(244, 162, 97, 0.1);
   --overlay-system-even: rgba(74, 144, 217, 0.06);
   --overlay-system-odd: rgba(217, 144, 74, 0.06);

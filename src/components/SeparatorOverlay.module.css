@@ -24,12 +24,6 @@
   position: absolute;
   left: 0;
   pointer-events: auto;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.region:hover {
-  background: var(--overlay-region-hover);
 }
 
 .region.selected {
