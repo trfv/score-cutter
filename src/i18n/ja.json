@@ -7,7 +7,7 @@
     "import": "インポート",
     "systems": "組段指定",
     "staffs": "譜表分割",
-    "label": "ラベル",
+    "label": "ラベル付与",
     "export": "エクスポート"
   },
   "import": {
