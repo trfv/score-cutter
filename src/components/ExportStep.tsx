@@ -186,7 +186,7 @@ export function ExportStep() {
                 <div className={styles.partInfo}>
                   <span className={styles.partLabel}>{part.label}</span>
                   <span className={styles.partMeta}>
-                    {part.staffs.length} staffs
+                    {t('export.staffCount', { count: part.staffs.length })}
                   </span>
                 </div>
                 <button
@@ -197,7 +197,7 @@ export function ExportStep() {
                   }}
                   disabled={generating !== null || zipProgress !== null}
                 >
-                  <Download width={14} height={14} />{' '}
+                  <Download width={14} height={14} />
                   {generating === part.label
                     ? t('export.generating')
                     : t('export.download')}
@@ -213,7 +213,7 @@ export function ExportStep() {
                 onClick={handleDownloadAll}
                 disabled={generating !== null || zipProgress !== null}
               >
-                <Archive width={16} height={16} />{' '}
+                <Archive width={16} height={16} />
                 {zipProgress !== null
                   ? t('export.zipping', {
                       current: zipProgress.currentPartIndex + 1,

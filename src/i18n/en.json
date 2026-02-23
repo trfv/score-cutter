@@ -62,7 +62,8 @@
     "downloadAllZip": "Download All as ZIP",
     "zipping": "Generating {{current}}/{{total}}: {{label}}...",
     "generating": "Generating...",
-    "pages": "{{count}} pages"
+    "pages": "{{count}} pages",
+    "staffCount": "{{count}} staffs"
   },
   "validation": {
     "staffCountMatch": "Staff count consistent across all systems",
@@ -80,6 +81,7 @@
     "redo": "Redo",
     "themeToggle": "Toggle theme",
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
+    "lightMode": "Light mode",
+    "wizardSteps": "Wizard steps"
   }
 }

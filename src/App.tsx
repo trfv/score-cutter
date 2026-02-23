@@ -53,7 +53,7 @@ function StepIndicator() {
   const currentIdx = STEPS.indexOf(step);
 
   return (
-    <nav className={styles.sideRail} aria-label="Wizard steps">
+    <nav className={styles.sideRail} aria-label={t('common.wizardSteps')}>
       {STEPS.map((s, i) => {
         const isActive = s === step;
         const isCompleted = currentIdx > i;
@@ -121,7 +121,7 @@ function AppContent() {
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <h1 className={styles.logo}>Score Cutter</h1>
+        <h1 className={styles.logo}>{t('app.title')}</h1>
         <div className={styles.headerSpacer} />
         <div className={styles.headerActions}>
           <button

@@ -82,7 +82,10 @@
 }
 
 .downloadButton {
-  padding: var(--space-1) var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   color: var(--bg-deep);
   border: none;
@@ -105,8 +108,12 @@
 }
 
 .downloadAllButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-3);
   background: linear-gradient(135deg, var(--accent), var(--accent-hover));
   color: var(--bg-deep);
   border: none;

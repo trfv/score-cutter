@@ -62,7 +62,8 @@
     "downloadAllZip": "全パートをZIPでダウンロード",
     "zipping": "生成中 {{current}}/{{total}}: {{label}}...",
     "generating": "生成中...",
-    "pages": "{{count}} ページ"
+    "pages": "{{count}} ページ",
+    "staffCount": "{{count}} 譜表"
   },
   "validation": {
     "staffCountMatch": "全組段の譜表数が一致しています",
@@ -80,6 +81,7 @@
     "redo": "やり直す",
     "themeToggle": "テーマ切替",
     "darkMode": "ダークモード",
-    "lightMode": "ライトモード"
+    "lightMode": "ライトモード",
+    "wizardSteps": "ウィザードステップ"
   }
 }
