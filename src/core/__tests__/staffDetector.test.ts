@@ -3,6 +3,10 @@ import { detectStaffBoundaries, detectStaffsInSystem } from '../staffDetector';
 
 describe('staffDetector', () => {
   describe('detectStaffBoundaries', () => {
+    it('should return empty for empty projection', () => {
+      expect(detectStaffBoundaries([])).toEqual([]);
+    });
+
     it('should return empty for all-white projection', () => {
       const projection = new Array(100).fill(0);
       const boundaries = detectStaffBoundaries(projection);
