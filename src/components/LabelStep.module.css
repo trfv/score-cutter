@@ -92,6 +92,7 @@
 
 .canvasArea {
   flex: 1;
+  min-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
