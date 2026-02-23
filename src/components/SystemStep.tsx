@@ -12,6 +12,7 @@ import {
 import { runSystemDetection } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundaryPx } from '../core/systemDetector';
+import type { DetectSystemsResponse } from '../workers/workerProtocol';
 import type { System } from '../core/staffModel';
 import { getPageSystems } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
@@ -82,7 +83,7 @@ export function SystemStep() {
               systemGapHeight: 50,
             }).then(result => {
               setProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
-              return result;
+              return result as DetectSystemsResponse;
             });
           });
           results = await Promise.all(promises);

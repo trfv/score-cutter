@@ -1,21 +1,38 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createWorkerPool, isWorkerAvailable } from '../workerPool';
-import type { DetectSystemsRequest, DetectSystemsResponse } from '../workerProtocol';
+import type {
+  WorkerRequest,
+  DetectSystemsRequest,
+  DetectSystemsResponse,
+  DetectStaffsRequest,
+  DetectStaffsResponse,
+} from '../workerProtocol';
 
 function createMockWorkerFactory() {
   return () => {
     let handler: ((event: MessageEvent) => void) | null = null;
     const worker = {
-      postMessage: vi.fn((msg: DetectSystemsRequest) => {
+      postMessage: vi.fn((msg: WorkerRequest) => {
         setTimeout(() => {
-          handler?.({
-            data: {
-              type: 'DETECT_SYSTEMS_RESULT',
-              taskId: msg.taskId,
-              pageIndex: msg.pageIndex,
-              systems: [],
-            } satisfies DetectSystemsResponse,
-          } as MessageEvent);
+          if (msg.type === 'DETECT_SYSTEMS') {
+            handler?.({
+              data: {
+                type: 'DETECT_SYSTEMS_RESULT',
+                taskId: msg.taskId,
+                pageIndex: msg.pageIndex,
+                systems: [],
+              } satisfies DetectSystemsResponse,
+            } as MessageEvent);
+          } else if (msg.type === 'DETECT_STAFFS') {
+            handler?.({
+              data: {
+                type: 'DETECT_STAFFS_RESULT',
+                taskId: msg.taskId,
+                pageIndex: msg.pageIndex,
+                staffsBySystem: [],
+              } satisfies DetectStaffsResponse,
+            } as MessageEvent);
+          }
         }, 0);
       }),
       terminate: vi.fn(),
@@ -31,7 +48,7 @@ function createErrorWorkerFactory() {
   return () => {
     let handler: ((event: MessageEvent) => void) | null = null;
     const worker = {
-      postMessage: vi.fn((msg: DetectSystemsRequest) => {
+      postMessage: vi.fn((msg: WorkerRequest) => {
         setTimeout(() => {
           handler?.({
             data: {
@@ -51,7 +68,7 @@ function createErrorWorkerFactory() {
   };
 }
 
-function makeRequest(pageIndex: number): DetectSystemsRequest {
+function makeSystemsRequest(pageIndex: number): DetectSystemsRequest {
   return {
     type: 'DETECT_SYSTEMS',
     taskId: `task-${pageIndex}`,
@@ -60,6 +77,19 @@ function makeRequest(pageIndex: number): DetectSystemsRequest {
     width: 2,
     height: 2,
     systemGapHeight: 50,
+  };
+}
+
+function makeStaffsRequest(pageIndex: number): DetectStaffsRequest {
+  return {
+    type: 'DETECT_STAFFS',
+    taskId: `staff-task-${pageIndex}`,
+    pageIndex,
+    rgbaData: new ArrayBuffer(16),
+    width: 2,
+    height: 2,
+    systemBoundaries: [{ topPx: 0, bottomPx: 1 }],
+    partGapHeight: 15,
   };
 }
 
@@ -92,10 +122,18 @@ describe('createWorkerPool', () => {
     vi.unstubAllGlobals();
   });
 
-  it('should resolve a single task', async () => {
+  it('should resolve a DETECT_SYSTEMS task', async () => {
     const pool = createWorkerPool(2, createMockWorkerFactory());
-    const result = await pool.submitTask(makeRequest(0));
+    const result = await pool.submitTask(makeSystemsRequest(0));
     expect(result.type).toBe('DETECT_SYSTEMS_RESULT');
+    expect(result.pageIndex).toBe(0);
+    pool.terminate();
+  });
+
+  it('should resolve a DETECT_STAFFS task', async () => {
+    const pool = createWorkerPool(2, createMockWorkerFactory());
+    const result = await pool.submitTask(makeStaffsRequest(0));
+    expect(result.type).toBe('DETECT_STAFFS_RESULT');
     expect(result.pageIndex).toBe(0);
     pool.terminate();
   });
@@ -103,19 +141,31 @@ describe('createWorkerPool', () => {
   it('should handle more tasks than workers via queuing', async () => {
     const pool = createWorkerPool(2, createMockWorkerFactory());
     const results = await Promise.all([
-      pool.submitTask(makeRequest(0)),
-      pool.submitTask(makeRequest(1)),
-      pool.submitTask(makeRequest(2)),
-      pool.submitTask(makeRequest(3)),
+      pool.submitTask(makeSystemsRequest(0)),
+      pool.submitTask(makeSystemsRequest(1)),
+      pool.submitTask(makeSystemsRequest(2)),
+      pool.submitTask(makeSystemsRequest(3)),
     ]);
     expect(results).toHaveLength(4);
     expect(results.map((r) => r.pageIndex).sort()).toEqual([0, 1, 2, 3]);
     pool.terminate();
   });
 
+  it('should handle mixed request types', async () => {
+    const pool = createWorkerPool(2, createMockWorkerFactory());
+    const results = await Promise.all([
+      pool.submitTask(makeSystemsRequest(0)),
+      pool.submitTask(makeStaffsRequest(1)),
+    ]);
+    expect(results).toHaveLength(2);
+    expect(results[0].type).toBe('DETECT_SYSTEMS_RESULT');
+    expect(results[1].type).toBe('DETECT_STAFFS_RESULT');
+    pool.terminate();
+  });
+
   it('should reject promise on worker error', async () => {
     const pool = createWorkerPool(1, createErrorWorkerFactory());
-    await expect(pool.submitTask(makeRequest(0))).rejects.toThrow('test error');
+    await expect(pool.submitTask(makeSystemsRequest(0))).rejects.toThrow('test error');
     pool.terminate();
   });
 
@@ -172,7 +222,7 @@ describe('createWorkerPool', () => {
     const factory = () => {
       let handler: ((event: MessageEvent) => void) | null = null;
       const worker = {
-        postMessage: vi.fn((msg: DetectSystemsRequest) => {
+        postMessage: vi.fn((msg: WorkerRequest) => {
           setTimeout(() => {
             // Send an unknown taskId response first
             handler?.({
@@ -188,7 +238,7 @@ describe('createWorkerPool', () => {
               data: {
                 type: 'DETECT_SYSTEMS_RESULT',
                 taskId: msg.taskId,
-                pageIndex: msg.pageIndex,
+                pageIndex: (msg as DetectSystemsRequest).pageIndex,
                 systems: [],
               },
             } as MessageEvent);
@@ -203,7 +253,7 @@ describe('createWorkerPool', () => {
     };
 
     const pool = createWorkerPool(1, factory);
-    const result = await pool.submitTask(makeRequest(0));
+    const result = await pool.submitTask(makeSystemsRequest(0));
     expect(result.type).toBe('DETECT_SYSTEMS_RESULT');
     pool.terminate();
   });

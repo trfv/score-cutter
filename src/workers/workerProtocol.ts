@@ -29,7 +29,7 @@ export interface DetectStaffsRequest {
   partGapHeight: number;
 }
 
-interface DetectStaffsResponse {
+export interface DetectStaffsResponse {
   type: 'DETECT_STAFFS_RESULT';
   taskId: string;
   pageIndex: number;
