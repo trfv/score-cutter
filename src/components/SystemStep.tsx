@@ -9,7 +9,7 @@ import {
   splitSystemAtPdfY,
   mergeAdjacentSystemsOnly,
 } from '../core/separatorModel';
-import { runDetectionPipeline } from '../workers/detectionPipeline';
+import { runSystemDetection } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundaryPx } from '../core/systemDetector';
 import type { System } from '../core/staffModel';
@@ -73,7 +73,7 @@ export function SystemStep() {
           const promises = pageImageData.map(({ imageData, pageIdx }) => {
             const rgbaBuffer = imageData.data.buffer.slice(0);
             return pool.submitTask({
-              type: 'DETECT_PAGE',
+              type: 'DETECT_SYSTEMS',
               taskId: `page-${pageIdx}`,
               pageIndex: pageIdx,
               rgbaData: rgbaBuffer,
@@ -91,7 +91,7 @@ export function SystemStep() {
         }
       } else {
         results = pageImageData.map(({ imageData, pageIdx }) => {
-          const result = runDetectionPipeline({
+          const result = runSystemDetection({
             rgbaData: imageData.data,
             width: imageData.width,
             height: imageData.height,

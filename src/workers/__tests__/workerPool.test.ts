@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createWorkerPool, isWorkerAvailable } from '../workerPool';
-import type { DetectPageRequest, DetectPageResponse } from '../workerProtocol';
+import type { DetectSystemsRequest, DetectSystemsResponse } from '../workerProtocol';
 
 function createMockWorkerFactory() {
   return () => {
     let handler: ((event: MessageEvent) => void) | null = null;
     const worker = {
-      postMessage: vi.fn((msg: DetectPageRequest) => {
+      postMessage: vi.fn((msg: DetectSystemsRequest) => {
         setTimeout(() => {
           handler?.({
             data: {
-              type: 'DETECT_PAGE_RESULT',
+              type: 'DETECT_SYSTEMS_RESULT',
               taskId: msg.taskId,
               pageIndex: msg.pageIndex,
               systems: [],
-            } satisfies DetectPageResponse,
+            } satisfies DetectSystemsResponse,
           } as MessageEvent);
         }, 0);
       }),
@@ -31,7 +31,7 @@ function createErrorWorkerFactory() {
   return () => {
     let handler: ((event: MessageEvent) => void) | null = null;
     const worker = {
-      postMessage: vi.fn((msg: DetectPageRequest) => {
+      postMessage: vi.fn((msg: DetectSystemsRequest) => {
         setTimeout(() => {
           handler?.({
             data: {
@@ -51,16 +51,15 @@ function createErrorWorkerFactory() {
   };
 }
 
-function makeRequest(pageIndex: number): DetectPageRequest {
+function makeRequest(pageIndex: number): DetectSystemsRequest {
   return {
-    type: 'DETECT_PAGE',
+    type: 'DETECT_SYSTEMS',
     taskId: `task-${pageIndex}`,
     pageIndex,
     rgbaData: new ArrayBuffer(16),
     width: 2,
     height: 2,
     systemGapHeight: 50,
-    partGapHeight: 15,
   };
 }
 
@@ -96,7 +95,7 @@ describe('createWorkerPool', () => {
   it('should resolve a single task', async () => {
     const pool = createWorkerPool(2, createMockWorkerFactory());
     const result = await pool.submitTask(makeRequest(0));
-    expect(result.type).toBe('DETECT_PAGE_RESULT');
+    expect(result.type).toBe('DETECT_SYSTEMS_RESULT');
     expect(result.pageIndex).toBe(0);
     pool.terminate();
   });
@@ -173,12 +172,12 @@ describe('createWorkerPool', () => {
     const factory = () => {
       let handler: ((event: MessageEvent) => void) | null = null;
       const worker = {
-        postMessage: vi.fn((msg: DetectPageRequest) => {
+        postMessage: vi.fn((msg: DetectSystemsRequest) => {
           setTimeout(() => {
             // Send an unknown taskId response first
             handler?.({
               data: {
-                type: 'DETECT_PAGE_RESULT',
+                type: 'DETECT_SYSTEMS_RESULT',
                 taskId: 'unknown-task',
                 pageIndex: 0,
                 systems: [],
@@ -187,7 +186,7 @@ describe('createWorkerPool', () => {
             // Then send the real response
             handler?.({
               data: {
-                type: 'DETECT_PAGE_RESULT',
+                type: 'DETECT_SYSTEMS_RESULT',
                 taskId: msg.taskId,
                 pageIndex: msg.pageIndex,
                 systems: [],
@@ -205,7 +204,7 @@ describe('createWorkerPool', () => {
 
     const pool = createWorkerPool(1, factory);
     const result = await pool.submitTask(makeRequest(0));
-    expect(result.type).toBe('DETECT_PAGE_RESULT');
+    expect(result.type).toBe('DETECT_SYSTEMS_RESULT');
     pool.terminate();
   });
 });

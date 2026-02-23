@@ -2,18 +2,18 @@ import { toGrayscale, toBinary, horizontalProjection } from '../core/imageProces
 import { detectSystemBoundaries } from '../core/systemDetector';
 import type { SystemBoundaryPx } from '../core/systemDetector';
 
-interface DetectionInput {
+interface SystemDetectionInput {
   rgbaData: Uint8ClampedArray;
   width: number;
   height: number;
   systemGapHeight: number;
 }
 
-interface DetectionResult {
+interface SystemDetectionResult {
   systems: SystemBoundaryPx[];
 }
 
-export function runDetectionPipeline(input: DetectionInput): DetectionResult {
+export function runSystemDetection(input: SystemDetectionInput): SystemDetectionResult {
   const imageData = {
     data: input.rgbaData,
     width: input.width,

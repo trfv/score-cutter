@@ -1,18 +1,18 @@
 import type {
-  DetectPageRequest,
-  DetectPageResponse,
+  DetectSystemsRequest,
+  DetectSystemsResponse,
   WorkerResponse,
   WorkerErrorResponse,
 } from './workerProtocol';
 
 interface PoolTask {
-  request: DetectPageRequest;
-  resolve: (result: DetectPageResponse) => void;
+  request: DetectSystemsRequest;
+  resolve: (result: DetectSystemsResponse) => void;
   reject: (error: Error) => void;
 }
 
 interface DetectionWorkerPool {
-  submitTask(request: DetectPageRequest): Promise<DetectPageResponse>;
+  submitTask(request: DetectSystemsRequest): Promise<DetectSystemsResponse>;
   terminate(): void;
   readonly poolSize: number;
 }
@@ -47,7 +47,7 @@ export function createWorkerPool(
       if (response.type === 'ERROR') {
         task.reject(new Error((response as WorkerErrorResponse).message));
       } else {
-        task.resolve(response as DetectPageResponse);
+        task.resolve(response as DetectSystemsResponse);
       }
 
       const nextTask = queue.shift();
@@ -66,8 +66,8 @@ export function createWorkerPool(
     worker.postMessage(task.request, [task.request.rgbaData]);
   }
 
-  function submitTask(request: DetectPageRequest): Promise<DetectPageResponse> {
-    return new Promise<DetectPageResponse>((resolve, reject) => {
+  function submitTask(request: DetectSystemsRequest): Promise<DetectSystemsResponse> {
+    return new Promise<DetectSystemsResponse>((resolve, reject) => {
       const task: PoolTask = { request, resolve, reject };
       const worker = idleWorkers.shift();
       if (worker) {

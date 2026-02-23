@@ -1,26 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleMessage } from '../detectionWorker';
-import type { DetectPageRequest } from '../workerProtocol';
+import type { DetectSystemsRequest } from '../workerProtocol';
 
 vi.mock('../detectionPipeline', () => ({
-  runDetectionPipeline: vi.fn(),
+  runSystemDetection: vi.fn(),
 }));
 
-import { runDetectionPipeline } from '../detectionPipeline';
+import { runSystemDetection } from '../detectionPipeline';
 
-const mockPipeline = vi.mocked(runDetectionPipeline);
+const mockPipeline = vi.mocked(runSystemDetection);
 
-function makeRequest(overrides?: Partial<DetectPageRequest>): DetectPageRequest {
+function makeRequest(overrides?: Partial<DetectSystemsRequest>): DetectSystemsRequest {
   const rgbaData = new Uint8ClampedArray([0, 0, 0, 255]).buffer;
   return {
-    type: 'DETECT_PAGE',
+    type: 'DETECT_SYSTEMS',
     taskId: 'task-1',
     pageIndex: 0,
     rgbaData,
     width: 1,
     height: 1,
     systemGapHeight: 50,
-    partGapHeight: 15,
     ...overrides,
   };
 }
@@ -37,7 +36,7 @@ describe('module-level wiring', () => {
     expect(handler).toBeTypeOf('function');
 
     // Set up mock pipeline to return data
-    const systems = [{ topPx: 0, bottomPx: 100, parts: [{ topPx: 0, bottomPx: 100 }] }];
+    const systems = [{ topPx: 0, bottomPx: 100 }];
     mockPipeline.mockReturnValue({ systems });
 
     // Mock self.postMessage to capture the response
@@ -48,7 +47,7 @@ describe('module-level wiring', () => {
     handler!({ data: makeRequest() } as MessageEvent);
 
     expect(mockPostMessage).toHaveBeenCalledWith({
-      type: 'DETECT_PAGE_RESULT',
+      type: 'DETECT_SYSTEMS_RESULT',
       taskId: 'task-1',
       pageIndex: 0,
       systems,
@@ -59,22 +58,22 @@ describe('module-level wiring', () => {
 });
 
 describe('handleMessage', () => {
-  it('posts DetectPageResponse for a valid DETECT_PAGE request', () => {
-    const systems = [{ topPx: 0, bottomPx: 100, parts: [{ topPx: 0, bottomPx: 100 }] }];
+  it('posts DetectSystemsResponse for a valid DETECT_SYSTEMS request', () => {
+    const systems = [{ topPx: 0, bottomPx: 100 }];
     mockPipeline.mockReturnValue({ systems });
 
     const postMessage = vi.fn();
     handleMessage(makeRequest(), postMessage);
 
     expect(postMessage).toHaveBeenCalledWith({
-      type: 'DETECT_PAGE_RESULT',
+      type: 'DETECT_SYSTEMS_RESULT',
       taskId: 'task-1',
       pageIndex: 0,
       systems,
     });
   });
 
-  it('posts WorkerErrorResponse when runDetectionPipeline throws Error', () => {
+  it('posts WorkerErrorResponse when runSystemDetection throws Error', () => {
     mockPipeline.mockImplementation(() => { throw new Error('detection failed'); });
 
     const postMessage = vi.fn();

@@ -1,7 +1,7 @@
 import type { SystemBoundaryPx } from '../core/systemDetector';
 
-export interface DetectPageRequest {
-  type: 'DETECT_PAGE';
+export interface DetectSystemsRequest {
+  type: 'DETECT_SYSTEMS';
   taskId: string;
   pageIndex: number;
   rgbaData: ArrayBuffer;
@@ -10,8 +10,8 @@ export interface DetectPageRequest {
   systemGapHeight: number;
 }
 
-export interface DetectPageResponse {
-  type: 'DETECT_PAGE_RESULT';
+export interface DetectSystemsResponse {
+  type: 'DETECT_SYSTEMS_RESULT';
   taskId: string;
   pageIndex: number;
   systems: SystemBoundaryPx[];
@@ -23,5 +23,5 @@ export interface WorkerErrorResponse {
   message: string;
 }
 
-export type WorkerRequest = DetectPageRequest;
-export type WorkerResponse = DetectPageResponse | WorkerErrorResponse;
+export type WorkerRequest = DetectSystemsRequest;
+export type WorkerResponse = DetectSystemsResponse | WorkerErrorResponse;

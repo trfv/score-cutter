@@ -1,25 +1,24 @@
 /// <reference lib="webworker" />
 
-import { runDetectionPipeline } from './detectionPipeline';
+import { runSystemDetection } from './detectionPipeline';
 import type { WorkerRequest, WorkerResponse } from './workerProtocol';
 
 export function handleMessage(
   request: WorkerRequest,
   postMessage: (msg: WorkerResponse) => void,
 ): void {
-  if (request.type === 'DETECT_PAGE') {
+  if (request.type === 'DETECT_SYSTEMS') {
     try {
       const rgbaData = new Uint8ClampedArray(request.rgbaData);
-      const result = runDetectionPipeline({
+      const result = runSystemDetection({
         rgbaData,
         width: request.width,
         height: request.height,
         systemGapHeight: request.systemGapHeight,
-        partGapHeight: request.partGapHeight,
       });
 
       postMessage({
-        type: 'DETECT_PAGE_RESULT',
+        type: 'DETECT_SYSTEMS_RESULT',
         taskId: request.taskId,
         pageIndex: request.pageIndex,
         systems: result.systems,

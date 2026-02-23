@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { runDetectionPipeline } from '../detectionPipeline';
+import { runSystemDetection } from '../detectionPipeline';
 
 function createRgbaRow(width: number, isBlack: boolean): number[] {
   const pixel = isBlack ? [0, 0, 0, 255] : [255, 255, 255, 255];
   return Array.from({ length: width }, () => pixel).flat();
 }
 
-describe('runDetectionPipeline', () => {
+describe('runSystemDetection', () => {
   it('should detect systems from raw RGBA data', () => {
     const width = 100;
     const rows = [
@@ -17,29 +17,28 @@ describe('runDetectionPipeline', () => {
       ...Array.from({ length: 20 }, () => createRgbaRow(width, false)),  // white margin
     ];
     const rgbaData = new Uint8ClampedArray(rows.flat());
-    const result = runDetectionPipeline({
+    const result = runSystemDetection({
       rgbaData,
       width,
       height: 180,
       systemGapHeight: 50,
-      partGapHeight: 15,
     });
     expect(result.systems).toHaveLength(2);
-    // Both systems should have parts
-    expect(result.systems[0].parts.length).toBeGreaterThanOrEqual(1);
-    expect(result.systems[1].parts.length).toBeGreaterThanOrEqual(1);
+    // Systems are simple boundaries (no nested parts)
+    expect(result.systems[0]).toHaveProperty('topPx');
+    expect(result.systems[0]).toHaveProperty('bottomPx');
+    expect(result.systems[0]).not.toHaveProperty('parts');
   });
 
   it('should return empty systems for all-white image', () => {
     const width = 50;
     const height = 100;
     const rgbaData = new Uint8ClampedArray(width * height * 4).fill(255);
-    const result = runDetectionPipeline({
+    const result = runSystemDetection({
       rgbaData,
       width,
       height,
       systemGapHeight: 50,
-      partGapHeight: 15,
     });
     expect(result.systems).toHaveLength(0);
   });
@@ -52,12 +51,11 @@ describe('runDetectionPipeline', () => {
       ...Array.from({ length: 30 }, () => createRgbaRow(width, false)),
     ];
     const rgbaData = new Uint8ClampedArray(rows.flat());
-    const result = runDetectionPipeline({
+    const result = runSystemDetection({
       rgbaData,
       width,
       height: 100,
       systemGapHeight: 20,
-      partGapHeight: 10,
     });
     expect(result.systems).toHaveLength(1);
   });
