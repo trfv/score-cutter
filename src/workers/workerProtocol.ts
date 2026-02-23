@@ -1,4 +1,4 @@
-import type { SystemBoundary } from '../core/staffDetector';
+import type { SystemBoundaryPx } from '../core/systemDetector';
 
 export interface DetectPageRequest {
   type: 'DETECT_PAGE';
@@ -8,14 +8,13 @@ export interface DetectPageRequest {
   width: number;
   height: number;
   systemGapHeight: number;
-  partGapHeight: number;
 }
 
 export interface DetectPageResponse {
   type: 'DETECT_PAGE_RESULT';
   taskId: string;
   pageIndex: number;
-  systems: SystemBoundary[];
+  systems: SystemBoundaryPx[];
 }
 
 export interface WorkerErrorResponse {

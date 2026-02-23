@@ -1,17 +1,16 @@
 import { toGrayscale, toBinary, horizontalProjection } from '../core/imageProcessing';
-import { detectSystems } from '../core/staffDetector';
-import type { SystemBoundary } from '../core/staffDetector';
+import { detectSystemBoundaries } from '../core/systemDetector';
+import type { SystemBoundaryPx } from '../core/systemDetector';
 
 interface DetectionInput {
   rgbaData: Uint8ClampedArray;
   width: number;
   height: number;
   systemGapHeight: number;
-  partGapHeight: number;
 }
 
 interface DetectionResult {
-  systems: SystemBoundary[];
+  systems: SystemBoundaryPx[];
 }
 
 export function runDetectionPipeline(input: DetectionInput): DetectionResult {
@@ -25,7 +24,7 @@ export function runDetectionPipeline(input: DetectionInput): DetectionResult {
   const gray = toGrayscale(imageData);
   const binary = toBinary(gray);
   const projection = horizontalProjection(binary, input.width, input.height);
-  const systems = detectSystems(projection, input.systemGapHeight, input.partGapHeight);
+  const systems = detectSystemBoundaries(projection, input.systemGapHeight);
 
   return { systems };
 }

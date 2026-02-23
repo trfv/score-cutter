@@ -1,19 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { v4 as uuidv4 } from 'uuid';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
 import { SystemOverlay } from './SystemOverlay';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import {
-  splitSystemAtPosition,
-  mergeAdjacentSystems,
-  reassignStaffsByDrag,
+  dragSystemBoundary,
+  splitSystemAtPdfY,
+  mergeAdjacentSystemsOnly,
 } from '../core/separatorModel';
 import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
-import type { SystemBoundary } from '../core/staffDetector';
-import type { Staff, System } from '../core/staffModel';
+import type { SystemBoundaryPx } from '../core/systemDetector';
+import type { System } from '../core/staffModel';
 import { getPageSystems } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
 import styles from './SystemStep.module.css';
@@ -32,7 +31,7 @@ export function SystemStep() {
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
 
-  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
+  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, systems } = project;
 
   const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
   const effectiveScale = DETECT_SCALE * displayRatio;
@@ -65,7 +64,7 @@ export function SystemStep() {
       }
 
       // Phase 2: Process pages via workers or main thread
-      type PageResult = { pageIndex: number; systems: SystemBoundary[] };
+      type PageResult = { pageIndex: number; systems: SystemBoundaryPx[] };
       let results: PageResult[];
 
       if (isWorkerAvailable()) {
@@ -81,7 +80,6 @@ export function SystemStep() {
               width: imageData.width,
               height: imageData.height,
               systemGapHeight: 50,
-              partGapHeight: 15,
             }).then(result => {
               setProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
               return result;
@@ -98,66 +96,51 @@ export function SystemStep() {
             width: imageData.width,
             height: imageData.height,
             systemGapHeight: 50,
-            partGapHeight: 15,
           });
           setProgress(prev => prev ? { ...prev, completed: prev.completed + 1 } : null);
           return { pageIndex: pageIdx, systems: result.systems };
         });
       }
 
-      // Phase 3: Convert results to Systems and Staffs
-      const allStaffs: Staff[] = [];
+      // Phase 3: Convert results to Systems only (Staffs are detected in StaffStep)
       const allSystems: System[] = [];
       for (const result of results) {
         const dim = pageDimensions[result.pageIndex];
-        for (let sysIdx = 0; sysIdx < result.systems.length; sysIdx++) {
-          const sysBoundary = result.systems[sysIdx];
-          const system: System = {
-            id: uuidv4(),
+        for (const sysBoundary of result.systems) {
+          allSystems.push({
+            id: crypto.randomUUID(),
             pageIndex: result.pageIndex,
             top: canvasYToPdfY(sysBoundary.topPx, dim.height, DETECT_SCALE),
             bottom: canvasYToPdfY(sysBoundary.bottomPx, dim.height, DETECT_SCALE),
-          };
-          allSystems.push(system);
-          for (const part of sysBoundary.parts) {
-            allStaffs.push({
-              id: uuidv4(),
-              pageIndex: result.pageIndex,
-              top: canvasYToPdfY(part.topPx, dim.height, DETECT_SCALE),
-              bottom: canvasYToPdfY(part.bottomPx, dim.height, DETECT_SCALE),
-              label: '',
-              systemId: system.id,
-            });
-          }
+          });
         }
       }
 
-      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: allStaffs, systems: allSystems });
+      dispatch({ type: 'SET_SYSTEMS', systems: allSystems });
     } finally {
       setDetecting(false);
       setProgress(null);
     }
   }, [pdfDocument, pageCount, pageDimensions, dispatch]);
 
-  // Auto-detect on mount when no staffs exist yet
+  // Auto-detect on mount when no systems exist yet
   const hasTriggeredRef = useRef(false);
   useEffect(() => {
-    if (pdfDocument && staffs.length === 0 && !hasTriggeredRef.current) {
+    if (pdfDocument && systems.length === 0 && !hasTriggeredRef.current) {
       hasTriggeredRef.current = true;
       handleDetect();
     }
-  }, [pdfDocument, staffs.length, handleDetect]);
+  }, [pdfDocument, systems.length, handleDetect]);
 
   const handleSystemSepDrag = useCallback(
     (systemSepIndex: number, newCanvasY: number) => {
       const dim = pageDimensions[currentPageIndex];
       if (!dim) return;
-      const { staffs: updatedStaffs, systems: updatedSystems } = reassignStaffsByDrag(
-        staffs, currentPageIndex, systemSepIndex, newCanvasY, dim.height, effectiveScale, systems,
-      );
-      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updatedStaffs, systems: updatedSystems });
+      const newPdfY = canvasYToPdfY(newCanvasY, dim.height, effectiveScale);
+      const updatedSystems = dragSystemBoundary(systems, currentPageIndex, systemSepIndex, newPdfY);
+      dispatch({ type: 'SET_SYSTEMS', systems: updatedSystems });
     },
-    [staffs, systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+    [systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
   const handleSplitSystem = useCallback(
@@ -165,18 +148,18 @@ export function SystemStep() {
       const dim = pageDimensions[currentPageIndex];
       if (!dim) return;
       const pdfY = canvasYToPdfY(canvasY, dim.height, effectiveScale);
-      const { staffs: updatedStaffs, systems: updatedSystems } = splitSystemAtPosition(staffs, currentPageIndex, pdfY, systems);
-      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updatedStaffs, systems: updatedSystems });
+      const updatedSystems = splitSystemAtPdfY(systems, currentPageIndex, pdfY);
+      dispatch({ type: 'SET_SYSTEMS', systems: updatedSystems });
     },
-    [staffs, systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+    [systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
   const handleMergeSystem = useCallback(
     (upperSystemIndex: number) => {
-      const { staffs: updatedStaffs, systems: updatedSystems } = mergeAdjacentSystems(staffs, currentPageIndex, upperSystemIndex, systems);
-      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updatedStaffs, systems: updatedSystems });
+      const updatedSystems = mergeAdjacentSystemsOnly(systems, currentPageIndex, upperSystemIndex);
+      dispatch({ type: 'SET_SYSTEMS', systems: updatedSystems });
     },
-    [staffs, systems, currentPageIndex, dispatch],
+    [systems, currentPageIndex, dispatch],
   );
 
 
@@ -202,24 +185,13 @@ export function SystemStep() {
 
   const currentPageSystems = useMemo(() => {
     const pageSystems = getPageSystems(systems, currentPageIndex);
-    const staffsBySystemId = new Map<string, Staff[]>();
-    for (const s of staffs) {
-      if (s.pageIndex !== currentPageIndex) continue;
-      if (!staffsBySystemId.has(s.systemId)) staffsBySystemId.set(s.systemId, []);
-      staffsBySystemId.get(s.systemId)!.push(s);
-    }
-    return pageSystems.map((sys, ordinal) => {
-      const sysStaffs = staffsBySystemId.get(sys.id) ?? [];
-      const sorted = sysStaffs.slice().sort((a, b) => b.top - a.top);
-      return {
-        ordinal: ordinal,
-        systemId: sys.id,
-        staffs: sorted,
-        top: sys.top,
-        bottom: sys.bottom,
-      };
-    });
-  }, [staffs, systems, currentPageIndex]);
+    return pageSystems.map((sys, ordinal) => ({
+      ordinal,
+      systemId: sys.id,
+      top: sys.top,
+      bottom: sys.bottom,
+    }));
+  }, [systems, currentPageIndex]);
 
   if (!pdfDocument) return null;
 
@@ -230,7 +202,7 @@ export function SystemStep() {
       <StepToolbar
         onBack={handleBack}
         onNext={handleGoToStaffs}
-        nextDisabled={staffs.length === 0}
+        nextDisabled={systems.length === 0}
         pageNav={{
           currentPage: currentPageIndex,
           totalPages: pageCount,
@@ -255,9 +227,6 @@ export function SystemStep() {
                   {t('label.systemHeader', { system: sys.ordinal + 1 })}
                 </div>
                 <div className={styles.systemMeta}>
-                  {t('sidebar.staffCountInSystem', { count: sys.staffs.length })}
-                </div>
-                <div className={styles.systemMeta}>
                   {t('sidebar.pdfYRange', {
                     top: sys.top.toFixed(1),
                     bottom: sys.bottom.toFixed(1),
@@ -278,7 +247,6 @@ export function SystemStep() {
             />
             {currentDimension && !detecting && (
               <SystemOverlay
-                staffs={staffs}
                 systems={systems}
                 pageIndex={currentPageIndex}
                 pdfPageHeight={currentDimension.height}

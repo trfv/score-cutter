@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectStaffBoundaries, detectSystems } from '../staffDetector';
+import { detectStaffBoundaries, detectStaffsInSystem } from '../staffDetector';
 
 describe('staffDetector', () => {
   describe('detectStaffBoundaries', () => {
@@ -74,68 +74,63 @@ describe('staffDetector', () => {
     });
   });
 
-  describe('detectSystems', () => {
-    it('should return empty for all-white projection', () => {
+  describe('detectStaffsInSystem', () => {
+    it('should detect multiple staffs within a system region', () => {
+      const projection = [
+        ...new Array(20).fill(0),   // top margin
+        ...new Array(25).fill(100), // staff 1
+        ...new Array(20).fill(0),   // gap (part-level)
+        ...new Array(25).fill(100), // staff 2
+        ...new Array(20).fill(0),   // gap (part-level)
+        ...new Array(25).fill(100), // staff 3
+        ...new Array(20).fill(0),   // bottom margin
+      ];
+      // System region covers 20..135 (all three staffs + gaps)
+      const parts = detectStaffsInSystem(projection, 20, 135, 15);
+      expect(parts).toHaveLength(3);
+    });
+
+    it('should return single boundary when no internal gaps', () => {
+      const projection = [
+        ...new Array(20).fill(0),   // margin
+        ...new Array(60).fill(100), // uniform content
+        ...new Array(20).fill(0),   // margin
+      ];
+      // System covers 20..80
+      const parts = detectStaffsInSystem(projection, 20, 80, 100);
+      expect(parts).toHaveLength(1);
+      expect(parts[0].topPx).toBe(20);
+      expect(parts[0].bottomPx).toBe(80);
+    });
+
+    it('should return global coordinates (offset by systemTopPx)', () => {
+      const projection = [
+        ...new Array(100).fill(0),  // top margin
+        ...new Array(30).fill(100), // staff 1
+        ...new Array(20).fill(0),   // gap
+        ...new Array(30).fill(100), // staff 2
+        ...new Array(100).fill(0),  // bottom margin
+      ];
+      // System covers 100..180
+      const parts = detectStaffsInSystem(projection, 100, 180, 15);
+      expect(parts).toHaveLength(2);
+      // Coordinates should be global, not relative
+      expect(parts[0].topPx).toBeGreaterThanOrEqual(100);
+      expect(parts[1].bottomPx).toBeLessThanOrEqual(180);
+    });
+
+    it('should fallback to full system boundary when sub-projection has no content', () => {
+      // System region covers all zeros — no content detected
       const projection = new Array(100).fill(0);
-      expect(detectSystems(projection)).toEqual([]);
+      const parts = detectStaffsInSystem(projection, 20, 80, 15);
+      expect(parts).toHaveLength(1);
+      expect(parts[0].topPx).toBe(20);
+      expect(parts[0].bottomPx).toBe(80);
     });
 
-    it('should detect a single system with one part', () => {
+    it('should detect staffs matching system-level boundaries', () => {
       const projection = [
         ...new Array(20).fill(0),   // top margin
-        ...new Array(60).fill(100), // one content band
-        ...new Array(20).fill(0),   // bottom margin
-      ];
-      const systems = detectSystems(projection, 50, 10);
-      expect(systems).toHaveLength(1);
-      expect(systems[0].parts).toHaveLength(1);
-    });
-
-    it('should detect two systems each with one part', () => {
-      const projection = [
-        ...new Array(20).fill(0),   // top margin
-        ...new Array(40).fill(100), // system 1 content
-        ...new Array(60).fill(0),   // large gap between systems
-        ...new Array(40).fill(100), // system 2 content
-        ...new Array(20).fill(0),   // bottom margin
-      ];
-      const systems = detectSystems(projection, 50, 10);
-      expect(systems).toHaveLength(2);
-      expect(systems[0].parts).toHaveLength(1);
-      expect(systems[1].parts).toHaveLength(1);
-      expect(systems[0].topPx).toBeLessThan(systems[1].topPx);
-    });
-
-    it('should detect one system with three parts', () => {
-      // Small gaps (20px) between parts, no large gap => one system
-      const projection = [
-        ...new Array(20).fill(0),   // top margin
-        ...new Array(30).fill(100), // part 1
-        ...new Array(20).fill(0),   // small gap between parts
-        ...new Array(30).fill(100), // part 2
-        ...new Array(20).fill(0),   // small gap between parts
-        ...new Array(30).fill(100), // part 3
-        ...new Array(20).fill(0),   // bottom margin
-      ];
-      const systems = detectSystems(projection, 50, 15);
-      expect(systems).toHaveLength(1);
-      expect(systems[0].parts).toHaveLength(3);
-    });
-
-    it('should detect two systems each with three parts', () => {
-      // Two systems separated by large gap (60px),
-      // each system has 3 parts separated by small gaps (20px)
-      const projection = [
-        ...new Array(20).fill(0),   // top margin
-        // System 1
-        ...new Array(25).fill(100), // part 1
-        ...new Array(20).fill(0),   // small gap
-        ...new Array(25).fill(100), // part 2
-        ...new Array(20).fill(0),   // small gap
-        ...new Array(25).fill(100), // part 3
-        // System gap
-        ...new Array(60).fill(0),   // large gap between systems
-        // System 2
         ...new Array(25).fill(100), // part 1
         ...new Array(20).fill(0),   // small gap
         ...new Array(25).fill(100), // part 2
@@ -143,42 +138,20 @@ describe('staffDetector', () => {
         ...new Array(25).fill(100), // part 3
         ...new Array(20).fill(0),   // bottom margin
       ];
-      const systems = detectSystems(projection, 50, 15);
-      expect(systems).toHaveLength(2);
-      expect(systems[0].parts).toHaveLength(3);
-      expect(systems[1].parts).toHaveLength(3);
-    });
+      // Treat whole as one system (system gap large enough)
+      const systemBounds = detectStaffBoundaries(projection, 50);
+      expect(systemBounds).toHaveLength(1);
 
-    it('should return empty for empty projection', () => {
-      expect(detectSystems([])).toEqual([]);
-    });
-
-    it('should fallback to system boundaries when no parts detected', () => {
-      // A system whose internal content is uniform (no gaps to split into parts)
-      // but the minPartGapHeight is very large, so no sub-parts are detected
-      const projection = [
-        ...new Array(60).fill(0),   // margin
-        ...new Array(30).fill(100), // single uniform content band
-        ...new Array(60).fill(0),   // margin
-      ];
-      // Use a very large minPartGapHeight so no internal split is detected
-      const systems = detectSystems(projection, 50, 100);
-      expect(systems).toHaveLength(1);
-      // Should fallback: single part spanning the whole system
-      expect(systems[0].parts).toHaveLength(1);
-      expect(systems[0].parts[0].topPx).toBe(systems[0].topPx);
-      expect(systems[0].parts[0].bottomPx).toBe(systems[0].bottomPx);
-    });
-
-    it('should handle a single thin content band as one system with one part', () => {
-      const projection = [
-        ...new Array(60).fill(0),  // margin
-        ...new Array(10).fill(100), // thin content
-        ...new Array(60).fill(0),  // margin
-      ];
-      const systems = detectSystems(projection, 50, 5);
-      expect(systems).toHaveLength(1);
-      expect(systems[0].parts).toHaveLength(1);
+      // detectStaffsInSystem should find 3 staffs within that system
+      const parts = detectStaffsInSystem(
+        projection, systemBounds[0].topPx, systemBounds[0].bottomPx, 15,
+      );
+      expect(parts).toHaveLength(3);
+      // All parts should be within the system bounds
+      for (const part of parts) {
+        expect(part.topPx).toBeGreaterThanOrEqual(systemBounds[0].topPx);
+        expect(part.bottomPx).toBeLessThanOrEqual(systemBounds[0].bottomPx);
+      }
     });
   });
 });
