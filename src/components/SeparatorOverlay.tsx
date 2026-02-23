@@ -24,6 +24,7 @@ interface SeparatorOverlayProps {
   onMergeSeparator?: (separatorIndex: number) => void;
   onDeleteStaff?: (staffId: string) => void;
   onAddStaff?: (canvasY: number) => void;
+  showLabels?: boolean;
 }
 
 export function SeparatorOverlay({
@@ -43,6 +44,7 @@ export function SeparatorOverlay({
   onMergeSeparator,
   onDeleteStaff,
   onAddStaff,
+  showLabels,
 }: SeparatorOverlayProps) {
   const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
   const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale);
@@ -122,7 +124,7 @@ export function SeparatorOverlay({
             onClick={dragOnly ? undefined : () => handleRegionClick(region.staffId)}
             onDoubleClick={dragOnly ? undefined : (e) => handleRegionDoubleClick(region.staffId, e)}
           >
-            {region.label && <span className={styles.label}>{region.label}</span>}
+            {showLabels && region.label && <span className={styles.label}>{region.label}</span>}
           </div>
         );
       })}

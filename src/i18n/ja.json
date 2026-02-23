@@ -64,6 +64,14 @@
     "generating": "生成中...",
     "pages": "{{count}} ページ"
   },
+  "validation": {
+    "staffCountMatch": "全組段の譜表数が一致しています",
+    "staffCountMismatch": "譜表数が異なる組段があります（{{mismatchCount}}箇所）",
+    "unlabeledStaffs": "未ラベルの譜表があります（{{count}}/{{total}}）",
+    "duplicateLabels": "ラベルが重複する組段があります（{{systemCount}}箇所）",
+    "labelOrderMismatch": "ラベル順序が異なる組段があります（{{mismatchCount}}箇所）",
+    "labelsComplete": "全譜表にラベルが設定されています"
+  },
   "common": {
     "back": "戻る",
     "next": "次へ",

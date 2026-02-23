@@ -21,12 +21,10 @@
   background: var(--overlay-system-odd);
 }
 
-/* Staff preview within a system: thin rectangle */
+/* Staff preview within a system */
 .staffPreview {
   position: absolute;
   left: 0;
-  border: 1px solid var(--overlay-edge);
-  border-radius: 2px;
   pointer-events: none;
 }
 

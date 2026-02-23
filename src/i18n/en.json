@@ -64,6 +64,14 @@
     "generating": "Generating...",
     "pages": "{{count}} pages"
   },
+  "validation": {
+    "staffCountMatch": "Staff count consistent across all systems",
+    "staffCountMismatch": "Staff count differs in {{mismatchCount}} system(s)",
+    "unlabeledStaffs": "{{count}} of {{total}} staffs unlabeled",
+    "duplicateLabels": "Duplicate labels in {{systemCount}} system(s)",
+    "labelOrderMismatch": "Label order differs in {{mismatchCount}} system(s)",
+    "labelsComplete": "All staffs labeled"
+  },
   "common": {
     "back": "Back",
     "next": "Next",

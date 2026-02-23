@@ -1,0 +1,20 @@
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.text {
+  line-height: 1;
+}
+
+.success {
+  color: var(--success);
+}
+
+.warning {
+  color: var(--danger);
+}

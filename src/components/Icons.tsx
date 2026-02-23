@@ -75,6 +75,15 @@ export function Archive(props: IconProps) {
   );
 }
 
+export function AlertTriangle(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M10 3 1.5 17.5h17L10 3Z" />
+      <path d="M10 8v4M10 14.5v.5" />
+    </Icon>
+  );
+}
+
 export function Globe(props: IconProps) {
   return (
     <Icon {...props}>

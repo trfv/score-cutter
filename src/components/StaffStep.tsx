@@ -1,10 +1,12 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
 import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
+import { StatusIndicator } from './StatusIndicator';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
+import { getStaffStepValidations } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
 import styles from './StaffStep.module.css';
 
@@ -109,6 +111,8 @@ export function StaffStep() {
     dispatch({ type: 'SET_STEP', step: 'systems' });
   }, [dispatch]);
 
+  const staffValidations = useMemo(() => getStaffStepValidations(staffs), [staffs]);
+
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
@@ -142,6 +146,7 @@ export function StaffStep() {
             });
           })()}
         </span>
+        <StatusIndicator messages={staffValidations} />
       </StepToolbar>
 
       <div className={styles.scrollContent}>

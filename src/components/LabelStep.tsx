@@ -5,9 +5,10 @@ import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag } from '../core/separatorModel';
-import { applySystemLabelsToAll } from '../core/staffModel';
+import { applySystemLabelsToAll, getLabelStepValidations } from '../core/staffModel';
 import type { Staff } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
+import { StatusIndicator } from './StatusIndicator';
 import styles from './LabelStep.module.css';
 
 const DISPLAY_DPI = 150;
@@ -104,6 +105,8 @@ export function LabelStep() {
     dispatch({ type: 'SET_STEP', step: 'export' });
   }, [dispatch]);
 
+  const labelValidations = useMemo(() => getLabelStepValidations(staffs), [staffs]);
+
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
@@ -121,7 +124,9 @@ export function LabelStep() {
           onPrevPage: handlePrevPage,
           onNextPage: handleNextPage,
         }}
-      />
+      >
+        <StatusIndicator messages={labelValidations} />
+      </StepToolbar>
 
       <div className={styles.content}>
         <aside className={styles.sidebar}>
@@ -173,6 +178,7 @@ export function LabelStep() {
                 canvasHeight={canvasHeight}
                 onSeparatorDrag={handleSeparatorDrag}
                 dragOnly
+                showLabels
               />
             )}
           </div>

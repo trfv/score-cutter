@@ -13,6 +13,7 @@
 - 区切り線（Separator）のドラッグ操作・キーボード操作（Arrow キーで移動、Tab でフォーカス移動）による譜表境界の手動調整
 - 譜表の追加（空白部分ダブルクリック）、分割（譜表上ダブルクリック）、結合（区切り線ダブルクリック）、削除
 - 楽器名ラベル付け（現在ページの各組段ごとにラベルを入力、組段単位で全組段に一括適用）
+- ステップ別バリデーションインジケーター（譜表数の一致、ラベル完全性・重複・順序の整合性を自動チェック）
 - パート別 PDF のリアルタイムプレビュー（組版済みPDFをCanvas描画）
 - パート別 PDF 生成・ダウンロード（ベクター品質を保持）
 - 全パート一括 ZIP ダウンロード
@@ -69,7 +70,7 @@ npm run dev
 ```
 src/
   core/                          # コアロジック（純粋関数、DOM 非依存）
-    staffModel.ts                #   データ型定義 (Staff, Part, PageDimension) + ラベル一括適用
+    staffModel.ts                #   データ型定義 (Staff, Part, PageDimension) + ラベル一括適用 + バリデーション
     separatorModel.ts            #   区切り線モデル (Separator 算出、ドラッグ・分割・結合・追加)
     geometry.ts                  #   矩形演算ユーティリティ
     coordinateMapper.ts          #   Canvas ピクセル座標 ↔ PDF 座標 変換
@@ -96,6 +97,7 @@ src/
     PageCanvas.tsx               #   PDF ページの Canvas レンダリング
     SystemOverlay.tsx            #   組段境界の可視化 + 分割・結合・ドラッグ
     SeparatorOverlay.tsx         #   譜表区切り線の可視化 + ドラッグ・分割・結合・削除
+    StatusIndicator.tsx          #   バリデーション結果のアイコン＋テキスト表示
     Icons.tsx                    #   SVG アイコンコンポーネント集
   hooks/                         # カスタムフック
     useUndoRedoKeyboard.ts       #   Ctrl+Z / Ctrl+Y キーボードショートカット
@@ -143,9 +145,9 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-127 テスト（12 ファイル）:
+147 テスト（12 ファイル）:
 
-- `staffModel.test.ts` - ラベル一括適用、パートグループ化
+- `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
 - `segmentModel.test.ts` - パートグループ化、ソート順
 - `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加
 - `geometry.test.ts` - 矩形の重なり判定、包含判定、クランプ
