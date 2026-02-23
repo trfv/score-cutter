@@ -19,6 +19,7 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
   --overlay-region-selected: rgba(244, 162, 97, 0.12);
+  --overlay-region-hover: rgba(244, 162, 97, 0.08);
   --overlay-system-even: rgba(244, 162, 97, 0.06);
   --overlay-system-odd: rgba(96, 165, 250, 0.06);
   --overlay-separator: rgba(244, 162, 97, 0.5);
@@ -35,9 +36,6 @@
   --overlay-delete-icon-hover: rgba(239, 68, 68, 1);
   --overlay-grip-border: rgba(244, 162, 97, 0.6);
   --overlay-grip-icon: rgba(244, 162, 97, 0.7);
-  --overlay-staff-border: rgba(244, 162, 97, 0.3);
-  --overlay-staff-handle-hover: rgba(244, 162, 97, 0.3);
-
   --progress-bg: rgba(255, 255, 255, 0.08);
   --progress-overlay-bg: rgba(15, 16, 25, 0.7);
 }
@@ -61,6 +59,7 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   --overlay-region-selected: rgba(244, 162, 97, 0.1);
+  --overlay-region-hover: rgba(244, 162, 97, 0.06);
   --overlay-system-even: rgba(74, 144, 217, 0.06);
   --overlay-system-odd: rgba(217, 144, 74, 0.06);
   --overlay-separator: rgba(100, 100, 100, 0.5);
@@ -77,9 +76,6 @@
   --overlay-delete-icon-hover: rgba(217, 83, 79, 1);
   --overlay-grip-border: rgba(100, 100, 100, 0.5);
   --overlay-grip-icon: rgba(100, 100, 100, 0.6);
-  --overlay-staff-border: rgba(0, 0, 0, 0.3);
-  --overlay-staff-handle-hover: rgba(74, 144, 217, 0.3);
-
   --progress-bg: #e0e0e0;
   --progress-overlay-bg: rgba(255, 255, 255, 0.7);
 }
