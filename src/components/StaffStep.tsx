@@ -6,7 +6,7 @@ import { SeparatorOverlay } from './SeparatorOverlay';
 import { StatusIndicator } from './StatusIndicator';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag, splitStaffAtPosition, mergeSeparator, computeSeparators, addStaffAtPosition } from '../core/separatorModel';
-import { getStaffStepValidations } from '../core/staffModel';
+import { getStaffStepValidations, getPageSystems } from '../core/staffModel';
 import type { Staff } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
 import styles from './StaffStep.module.css';
@@ -24,7 +24,7 @@ export function StaffStep() {
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
 
-  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
+  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
 
   const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
   const effectiveScale = DETECT_SCALE * displayRatio;
@@ -85,10 +85,10 @@ export function StaffStep() {
       const dim = pageDimensions[currentPageIndex];
       if (!dim) return;
       const pdfY = canvasYToPdfY(canvasY, dim.height, effectiveScale);
-      const updated = addStaffAtPosition(staffs, currentPageIndex, pdfY, dim.height);
-      dispatch({ type: 'SET_STAFFS', staffs: updated });
+      const { staffs: updated, systems: updatedSystems } = addStaffAtPosition(staffs, currentPageIndex, pdfY, dim.height, systems);
+      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updated, systems: updatedSystems });
     },
-    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+    [staffs, systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
 
@@ -115,19 +115,19 @@ export function StaffStep() {
   const staffValidations = useMemo(() => getStaffStepValidations(staffs), [staffs]);
 
   const currentPageSystems = useMemo(() => {
-    const bySystem = new Map<number, Staff[]>();
+    const pageSystems = getPageSystems(systems, currentPageIndex);
+    const staffsBySystemId = new Map<string, Staff[]>();
     for (const s of staffs) {
       if (s.pageIndex !== currentPageIndex) continue;
-      if (!bySystem.has(s.systemIndex)) bySystem.set(s.systemIndex, []);
-      bySystem.get(s.systemIndex)!.push(s);
+      if (!staffsBySystemId.has(s.systemId)) staffsBySystemId.set(s.systemId, []);
+      staffsBySystemId.get(s.systemId)!.push(s);
     }
-    return [...bySystem.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([systemIndex, stfs]) => ({
-        systemIndex,
-        staffs: stfs.slice().sort((a, b) => b.top - a.top),
-      }));
-  }, [staffs, currentPageIndex]);
+    return pageSystems.map((sys, ordinal) => ({
+      ordinal: ordinal,
+      systemId: sys.id,
+      staffs: (staffsBySystemId.get(sys.id) ?? []).slice().sort((a, b) => b.top - a.top),
+    }));
+  }, [staffs, systems, currentPageIndex]);
 
   // Scroll the selected staff row into view
   const selectedRowRef = useRef<HTMLDivElement>(null);
@@ -138,7 +138,6 @@ export function StaffStep() {
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
-  const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
 
   return (
     <div className={styles.container}>
@@ -155,16 +154,10 @@ export function StaffStep() {
       >
         <span className={styles.staffCount}>
           {(() => {
-            const systemMap = new Map<number, number>();
-            for (const s of pageStaffs) {
-              systemMap.set(s.systemIndex, (systemMap.get(s.systemIndex) ?? 0) + 1);
-            }
-            const sortedCounts = [...systemMap.entries()]
-              .sort(([a], [b]) => a - b)
-              .map(([, count]) => count);
+            const counts = currentPageSystems.map((sys) => sys.staffs.length);
             return t('detect.staffCountBySystem', {
-              counts: sortedCounts.join(' / '),
-              systemCount: systemMap.size,
+              counts: counts.join(' / '),
+              systemCount: currentPageSystems.length,
             });
           })()}
         </span>
@@ -178,9 +171,9 @@ export function StaffStep() {
             <p className={styles.emptyMessage}>{t('sidebar.noStaffsOnPage')}</p>
           ) : (
             currentPageSystems.map((sys) => (
-              <div key={sys.systemIndex} className={styles.systemSection}>
+              <div key={sys.systemId} className={styles.systemSection}>
                 <div className={styles.systemHeader}>
-                  {t('label.systemHeader', { system: sys.systemIndex + 1 })}
+                  {t('label.systemHeader', { system: sys.ordinal + 1 })}
                 </div>
                 {sys.staffs.map((staff, idx) => {
                   const isSelected = staff.id === selectedStaffId;

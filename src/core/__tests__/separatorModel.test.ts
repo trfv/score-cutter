@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Staff } from '../staffModel';
+import type { Staff, System } from '../staffModel';
 import {
   computeSeparators,
   computeSystemGroups,
@@ -20,7 +20,7 @@ function makeStaff(overrides: Partial<Staff> & { id: string }): Staff {
     top: 100,
     bottom: 50,
     label: '',
-    systemIndex: 0,
+    systemId: 'sys-0',
     ...overrides,
   };
 }
@@ -60,8 +60,8 @@ describe('separatorModel', () => {
 
     it('returns 3 separators for 2 staffs in same system (part separator)', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 500, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 300, systemIndex: 0 }),
+        makeStaff({ id: 'a', top: 700, bottom: 500, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 500, bottom: 300, systemId: 'sys-0' }),
       ];
       const result = computeSeparators(staffs, PAGE_HEIGHT, SCALE);
 
@@ -79,8 +79,8 @@ describe('separatorModel', () => {
 
     it('returns separate edge separators for staffs in different systems', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 500, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 400, bottom: 200, systemIndex: 1 }),
+        makeStaff({ id: 'a', top: 700, bottom: 500, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 400, bottom: 200, systemId: 'sys-1' }),
       ];
       const result = computeSeparators(staffs, PAGE_HEIGHT, SCALE);
 
@@ -95,9 +95,9 @@ describe('separatorModel', () => {
 
     it('handles 3 staffs across different systems with per-system separators', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 400, bottom: 300, systemIndex: 1 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, systemId: 'sys-0' }),
+        makeStaff({ id: 'c', top: 400, bottom: 300, systemId: 'sys-1' }),
       ];
       const result = computeSeparators(staffs, PAGE_HEIGHT, SCALE);
 
@@ -114,9 +114,9 @@ describe('separatorModel', () => {
     it('sorts staffs by visual position (top to bottom in canvas)', () => {
       // Staffs provided in random order
       const staffs = [
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemId: 'sys-1' }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
       ];
       const result = computeSeparators(staffs, PAGE_HEIGHT, SCALE);
 
@@ -159,42 +159,42 @@ describe('separatorModel', () => {
 
     it('returns one group for staffs in the same system', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, systemId: 'sys-0' }),
       ];
       const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
 
       expect(result).toHaveLength(1);
-      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].ordinal).toBe(0);
       expect(result[0].separators).toHaveLength(3); // edge, part, edge
       expect(result[0].regions).toHaveLength(2);
     });
 
-    it('returns separate groups for different systemIndex', () => {
+    it('returns separate groups for different systemId', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 400, bottom: 300, systemIndex: 1 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, systemId: 'sys-0' }),
+        makeStaff({ id: 'c', top: 400, bottom: 300, systemId: 'sys-1' }),
       ];
       const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
 
       expect(result).toHaveLength(2);
 
       // System 0
-      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].ordinal).toBe(0);
       expect(result[0].regions).toHaveLength(2);
       expect(result[0].separators).toHaveLength(3); // edge, part, edge
 
       // System 1
-      expect(result[1].systemIndex).toBe(1);
+      expect(result[1].ordinal).toBe(1);
       expect(result[1].regions).toHaveLength(1);
       expect(result[1].separators).toHaveLength(2); // edge, edge
     });
 
     it('computes correct topCanvasY and bottomCanvasY for each group', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 400, bottom: 300, systemIndex: 1 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
       ];
       const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
 
@@ -207,15 +207,15 @@ describe('separatorModel', () => {
       expect(result[1].bottomCanvasY).toBeCloseTo((PAGE_HEIGHT - 300) * SCALE, 5);
     });
 
-    it('groups are sorted by systemIndex', () => {
+    it('groups are sorted by top position (visual order)', () => {
       const staffs = [
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
+        makeStaff({ id: 'c', top: 300, bottom: 200, systemId: 'sys-1' }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
       ];
       const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
 
-      expect(result[0].systemIndex).toBe(0);
-      expect(result[1].systemIndex).toBe(1);
+      expect(result[0].ordinal).toBe(0);
+      expect(result[1].ordinal).toBe(1);
     });
 
     it('handles a single staff as one group', () => {
@@ -223,198 +223,473 @@ describe('separatorModel', () => {
       const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
 
       expect(result).toHaveLength(1);
-      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].ordinal).toBe(0);
       expect(result[0].separators).toHaveLength(2); // edge, edge
       expect(result[0].regions).toHaveLength(1);
+    });
+
+    it('includes systemId on groups derived from staff systemId (no pageSystems)', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-A' }),
+        makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-B' }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      expect(result[0].systemId).toBe('sys-A');
+      expect(result[1].systemId).toBe('sys-B');
+    });
+
+    it('includes systemId on regions', () => {
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-A' }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE);
+
+      expect(result[0].regions[0].systemId).toBe('sys-A');
+    });
+
+    it('groups by systemId when pageSystems is provided', () => {
+      const systems: System[] = [
+        { id: 'sys-A', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-B', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-A' }),
+        makeStaff({ id: 'b', top: 650, bottom: 560, systemId: 'sys-A' }),
+        makeStaff({ id: 'c', top: 400, bottom: 300, systemId: 'sys-B' }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE, systems);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].systemId).toBe('sys-A');
+      expect(result[0].regions).toHaveLength(2);
+      expect(result[1].systemId).toBe('sys-B');
+      expect(result[1].regions).toHaveLength(1);
+    });
+
+    it('uses System boundaries for group bounds when pageSystems provided', () => {
+      const systems: System[] = [
+        { id: 'sys-A', pageIndex: 0, top: 750, bottom: 550 },
+      ];
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-A' }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE, systems);
+
+      // Group bounds come from System (750, 550), not from staff (700, 600)
+      expect(result[0].topCanvasY).toBeCloseTo((PAGE_HEIGHT - 750) * SCALE, 5);
+      expect(result[0].bottomCanvasY).toBeCloseTo((PAGE_HEIGHT - 550) * SCALE, 5);
+    });
+
+    it('includes empty Systems as groups with no regions/separators', () => {
+      const systems: System[] = [
+        { id: 'sys-A', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-B', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      const staffs = [
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-A' }),
+      ];
+      // sys-B has no staffs
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE, systems);
+
+      expect(result).toHaveLength(2);
+      expect(result[0].systemId).toBe('sys-A');
+      expect(result[0].regions).toHaveLength(1);
+      expect(result[1].systemId).toBe('sys-B');
+      expect(result[1].regions).toHaveLength(0);
+      expect(result[1].separators).toHaveLength(0);
+    });
+
+    it('sorts groups by System top descending when pageSystems provided', () => {
+      const systems: System[] = [
+        { id: 'sys-B', pageIndex: 0, top: 400, bottom: 200 },
+        { id: 'sys-A', pageIndex: 0, top: 800, bottom: 600 },
+      ];
+      const staffs = [
+        makeStaff({ id: 'a', top: 750, bottom: 650, systemId: 'sys-A' }),
+        makeStaff({ id: 'b', top: 350, bottom: 250, systemId: 'sys-B' }),
+      ];
+      const result = computeSystemGroups(staffs, PAGE_HEIGHT, SCALE, systems);
+
+      // sys-A (top=800) should be first
+      expect(result[0].systemId).toBe('sys-A');
+      expect(result[1].systemId).toBe('sys-B');
     });
   });
 
   describe('splitSystemAtGap', () => {
-    it('splits a single system into two at the specified gap', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
-      ];
-      const result = splitSystemAtGap(staffs, 'a', 'b');
+    describe('with systems', () => {
+      it('creates a new System for the lower portion', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+        ];
+        const result = splitSystemAtGap(staffs, 'a', 'b', systems);
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-    });
+        expect(result.systems).toHaveLength(2);
+        const originalSys = result.systems.find(sys => sys.id === 'sys-0')!;
+        expect(originalSys.bottom).toBe(550); // (600 + 500) / 2
+        const newSys = result.systems.find(sys => sys.id !== 'sys-0')!;
+        expect(newSys.top).toBe(550);
+        expect(newSys.bottom).toBe(350);
+        expect(newSys.pageIndex).toBe(0);
+      });
 
-    it('increments systemIndex of all staffs below the split', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 0 }),
-      ];
-      const result = splitSystemAtGap(staffs, 'a', 'b');
+      it('reassigns systemId on lower staffs', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+        ];
+        const result = splitSystemAtGap(staffs, 'a', 'b', systems);
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
-    });
+        const staffA = result.staffs.find(s => s.id === 'a')!;
+        const staffB = result.staffs.find(s => s.id === 'b')!;
+        expect(staffA.systemId).toBe('sys-0');
+        expect(staffB.systemId).not.toBe('sys-0');
+        const newSys = result.systems.find(sys => sys.id !== 'sys-0')!;
+        expect(staffB.systemId).toBe(newSys.id);
+      });
 
-    it('shifts subsequent systems when splitting', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
-      ];
-      const result = splitSystemAtGap(staffs, 'a', 'b');
+      it('splits system with three staffs and reassigns lower two', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 150 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+          makeStaff({ id: 'c', top: 300, bottom: 200, systemId: 'sys-0' }),
+        ];
+        const result = splitSystemAtGap(staffs, 'a', 'b', systems);
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(2);
-    });
+        const staffA = result.staffs.find(s => s.id === 'a')!;
+        const staffB = result.staffs.find(s => s.id === 'b')!;
+        const staffC = result.staffs.find(s => s.id === 'c')!;
+        expect(staffA.systemId).toBe('sys-0');
+        // b and c should be in the new system
+        expect(staffB.systemId).not.toBe('sys-0');
+        expect(staffC.systemId).toBe(staffB.systemId);
+      });
 
-    it('returns unchanged if staffAboveId not found', () => {
-      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 })];
-      const result = splitSystemAtGap(staffs, 'nonexistent', 'a');
-      expect(result).toEqual(staffs);
-    });
+      it('shifts subsequent systems when splitting', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+          { id: 'sys-1', pageIndex: 0, top: 250, bottom: 50 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+          makeStaff({ id: 'c', top: 200, bottom: 100, systemId: 'sys-1' }),
+        ];
+        const result = splitSystemAtGap(staffs, 'a', 'b', systems);
 
-    it('returns unchanged if staffs are in different systems', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
-      ];
-      const result = splitSystemAtGap(staffs, 'a', 'b');
-      expect(result).toEqual(staffs);
-    });
+        expect(result.systems).toHaveLength(3);
+        // sys-1 should be preserved
+        const sys1 = result.systems.find(sys => sys.id === 'sys-1')!;
+        expect(sys1).toBeDefined();
+        // staff c remains in sys-1
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-1');
+      });
 
-    it('does not affect staffs on other pages', () => {
-      const staffs = [
-        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', pageIndex: 1, top: 400, bottom: 300, systemIndex: 0 }),
-        makeStaff({ id: 'd', pageIndex: 1, top: 200, bottom: 100, systemIndex: 1 }),
-      ];
-      const result = splitSystemAtGap(staffs, 'a', 'b');
+      it('returns unchanged if staffAboveId not found', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' })];
+        const { staffs: result } = splitSystemAtGap(staffs, 'nonexistent', 'a', systems);
+        expect(result).toEqual(staffs);
+      });
 
-      // Page 0 staffs should be split
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-      // Page 1 staffs must remain unchanged
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'd')!.systemIndex).toBe(1);
+      it('returns unchanged if staffs are in different systems', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        const { staffs: result } = splitSystemAtGap(staffs, 'a', 'b', systems);
+        expect(result).toEqual(staffs);
+      });
+
+      it('does not affect staffs on other pages', () => {
+        const systems: System[] = [
+          { id: 'sys-0-0', pageIndex: 0, top: 750, bottom: 350 },
+          { id: 'sys-1-0', pageIndex: 1, top: 450, bottom: 250 },
+          { id: 'sys-1-1', pageIndex: 1, top: 150, bottom: 50 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemId: 'sys-0-0' }),
+          makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemId: 'sys-0-0' }),
+          makeStaff({ id: 'c', pageIndex: 1, top: 400, bottom: 300, systemId: 'sys-1-0' }),
+          makeStaff({ id: 'd', pageIndex: 1, top: 200, bottom: 100, systemId: 'sys-1-1' }),
+        ];
+        const result = splitSystemAtGap(staffs, 'a', 'b', systems);
+
+        // Page 0 staffs should be split
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).not.toBe('sys-0-0');
+        // Page 1 staffs must remain unchanged
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-1-0');
+        expect(result.staffs.find(s => s.id === 'd')!.systemId).toBe('sys-1-1');
+      });
+
+      it('preserves systems on other pages', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+          { id: 'sys-p1', pageIndex: 1, top: 700, bottom: 200 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemId: 'sys-0' }),
+        ];
+        const result = splitSystemAtGap(staffs, 'a', 'b', systems);
+
+        const page1Sys = result.systems.find(sys => sys.id === 'sys-p1')!;
+        expect(page1Sys).toBeDefined();
+        expect(page1Sys.top).toBe(700);
+        expect(page1Sys.bottom).toBe(200);
+      });
     });
   });
 
   describe('mergeAdjacentSystems', () => {
-    it('merges two adjacent systems into one', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
-      ];
-      const result = mergeAdjacentSystems(staffs, 0, 0);
+    describe('with systems', () => {
+      it('merges two adjacent systems into one', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        const result = mergeAdjacentSystems(staffs, 0, 0, systems);
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
-    });
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+      });
 
-    it('decrements subsequent systems after merge', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 2 }),
-      ];
-      const result = mergeAdjacentSystems(staffs, 0, 0);
+      it('merges two Systems (upper absorbs lower)', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        const result = mergeAdjacentSystems(staffs, 0, 0, systems);
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
-    });
+        expect(result.systems).toHaveLength(1);
+        const merged = result.systems[0];
+        expect(merged.id).toBe('sys-0');
+        expect(merged.top).toBe(750);
+        expect(merged.bottom).toBe(250);
+      });
 
-    it('only affects staffs on the specified page', () => {
-      const staffs = [
-        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemIndex: 1 }),
-        makeStaff({ id: 'c', pageIndex: 1, top: 700, bottom: 600, systemIndex: 1 }),
-      ];
-      const result = mergeAdjacentSystems(staffs, 0, 0);
+      it('reassigns lower staffs systemId to upper system', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        const result = mergeAdjacentSystems(staffs, 0, 0, systems);
 
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
-      // Page 1 staff should be unchanged
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
-    });
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+      });
 
-    it('returns unchanged if upperSystemIndex has no staffs', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-      ];
-      const result = mergeAdjacentSystems(staffs, 0, 5);
-      expect(result).toEqual(staffs);
+      it('decrements subsequent systems after merge', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 350 },
+          { id: 'sys-2', pageIndex: 0, top: 250, bottom: 50 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 360, systemId: 'sys-1' }),
+          makeStaff({ id: 'c', top: 200, bottom: 100, systemId: 'sys-2' }),
+        ];
+        const result = mergeAdjacentSystems(staffs, 0, 0, systems);
+
+        // sys-0 and sys-1 merged, sys-2 still exists
+        expect(result.systems).toHaveLength(2);
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-2');
+      });
+
+      it('only affects staffs on the specified page', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+          { id: 'sys-p1', pageIndex: 1, top: 750, bottom: 550 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', pageIndex: 0, top: 400, bottom: 300, systemId: 'sys-1' }),
+          makeStaff({ id: 'c', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-p1' }),
+        ];
+        const result = mergeAdjacentSystems(staffs, 0, 0, systems);
+
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+        // Page 1 staff should be unchanged
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-p1');
+      });
+
+      it('returns unchanged if upperSystemIndex has no staffs', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        ];
+        const { staffs: result } = mergeAdjacentSystems(staffs, 0, 5, systems);
+        expect(result).toEqual(staffs);
+      });
     });
   });
 
   describe('reassignStaffsByDrag', () => {
-    it('moves a staff to the upper system when dragged below its center', () => {
-      // System 0: staff a (top=700, bottom=600, center=650 → canvasY=(792-650)*scale)
-      // System 1: staff b (top=400, bottom=300, center=350 → canvasY=(792-350)*scale)
-      // System separator between them.
-      // Drag separator below staff b's center → b moves to system 0
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 400, bottom: 300, systemIndex: 1 }),
-      ];
-      // newCanvasY below b's center (canvas Y > center canvas Y means lower on screen)
-      const bCenterCanvasY = (PAGE_HEIGHT - 350) * SCALE;
-      const newCanvasY = bCenterCanvasY + 10;
+    describe('with systems', () => {
+      it('moves a staff to the upper system when dragged below its center', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        // newCanvasY below b's center (canvas Y > center canvas Y means lower on screen)
+        const bCenterCanvasY = (PAGE_HEIGHT - 350) * SCALE;
+        const newCanvasY = bCenterCanvasY + 10;
 
-      const result = reassignStaffsByDrag(staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE);
+        const result = reassignStaffsByDrag(
+          staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE, systems,
+        );
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
-    });
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+      });
 
-    it('moves a staff to the lower system when dragged above its center', () => {
-      // System 0: staff a (center=650) and staff b (center=450)
-      // Drag separator above staff b's center → b moves to system 1
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
-      ];
-      // Drag the separator between system 0 and system 1 (systemSepIndex=0)
-      // to above staff b's center
-      const bCenterCanvasY = (PAGE_HEIGHT - 450) * SCALE;
-      const newCanvasY = bCenterCanvasY - 10;
+      it('moves a staff to the lower system when dragged above its center', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+          { id: 'sys-1', pageIndex: 0, top: 250, bottom: 50 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+          makeStaff({ id: 'c', top: 200, bottom: 100, systemId: 'sys-1' }),
+        ];
+        // Drag the separator between system 0 and system 1 (systemSepIndex=0)
+        // to above staff b's center
+        const bCenterCanvasY = (PAGE_HEIGHT - 450) * SCALE;
+        const newCanvasY = bCenterCanvasY - 10;
 
-      const result = reassignStaffsByDrag(staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE);
+        const result = reassignStaffsByDrag(
+          staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE, systems,
+        );
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
-    });
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-1');
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-1');
+      });
 
-    it('does nothing when drag stays between the same staffs', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 400, bottom: 300, systemIndex: 1 }),
-      ];
-      // Drag to midpoint between systems (no staff centers crossed)
-      const midCanvasY = (PAGE_HEIGHT - 500) * SCALE;
+      it('does nothing when drag stays between the same staffs', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        // Drag to midpoint between systems (no staff centers crossed)
+        const midCanvasY = (PAGE_HEIGHT - 500) * SCALE;
 
-      const result = reassignStaffsByDrag(staffs, 0, 0, midCanvasY, PAGE_HEIGHT, SCALE);
+        const result = reassignStaffsByDrag(
+          staffs, 0, 0, midCanvasY, PAGE_HEIGHT, SCALE, systems,
+        );
 
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-    });
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-1');
+      });
 
-    it('returns unchanged when systemSepIndex is out of range', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-      ];
-      const result = reassignStaffsByDrag(staffs, 0, 5, 100, PAGE_HEIGHT, SCALE);
-      expect(result).toEqual(staffs);
+      it('returns unchanged when systemSepIndex is out of range', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        ];
+        const { staffs: result } = reassignStaffsByDrag(
+          staffs, 0, 5, 100, PAGE_HEIGHT, SCALE, systems,
+        );
+        expect(result).toEqual(staffs);
+      });
+
+      it('reassigns staff systemId based on center position relative to drag', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        // Drag below b's center → b moves to upper system
+        const bCenterCanvasY = (PAGE_HEIGHT - 350) * SCALE;
+        const newCanvasY = bCenterCanvasY + 10;
+
+        const result = reassignStaffsByDrag(
+          staffs, 0, 0, newCanvasY, PAGE_HEIGHT, SCALE, systems,
+        );
+
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+      });
+
+      it('updates system boundaries to the drag position', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+          { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
+        ];
+        // Drag to midpoint (no staff reassignment, just boundary update)
+        const midCanvasY = (PAGE_HEIGHT - 500) * SCALE;
+
+        const result = reassignStaffsByDrag(
+          staffs, 0, 0, midCanvasY, PAGE_HEIGHT, SCALE, systems,
+        );
+
+        const sys0 = result.systems.find(sys => sys.id === 'sys-0')!;
+        const sys1 = result.systems.find(sys => sys.id === 'sys-1')!;
+        expect(sys0.bottom).toBeCloseTo(500, 0);
+        expect(sys1.top).toBeCloseTo(500, 0);
+      });
     });
   });
 
   describe('applySeparatorDrag', () => {
     it('dragging internal separator updates both adjacent staffs', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 500, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 300, systemIndex: 0 }),
+        makeStaff({ id: 'a', top: 700, bottom: 500, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 500, bottom: 300, systemId: 'sys-0' }),
       ];
       const pageStaffs = staffs;
       // Separator index 1 is between a and b
@@ -466,8 +741,8 @@ describe('separatorModel', () => {
 
     it('clamps drag to maintain minimum staff height', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 500, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 300, systemIndex: 0 }),
+        makeStaff({ id: 'a', top: 700, bottom: 500, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 500, bottom: 300, systemId: 'sys-0' }),
       ];
       const pageStaffs = staffs;
       // Try to drag separator 1 to almost the top of staff a (PDF Y 695)
@@ -485,7 +760,7 @@ describe('separatorModel', () => {
     it('does not modify staffs on other pages', () => {
       const staffs = [
         makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 500 }),
-        makeStaff({ id: 'other', pageIndex: 1, top: 600, bottom: 400 }),
+        makeStaff({ id: 'other', pageIndex: 1, top: 600, bottom: 400, systemId: 'sys-p1' }),
       ];
       const pageStaffs = [staffs[0]]; // only page 0 staffs
       const newCanvasY = (PAGE_HEIGHT - 450) * SCALE;
@@ -536,13 +811,13 @@ describe('separatorModel', () => {
       expect(lower.top - lower.bottom).toBeGreaterThanOrEqual(10);
     });
 
-    it('preserves systemIndex, pageIndex, and label', () => {
-      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 500, pageIndex: 2, systemIndex: 1, label: 'Violin I' })];
+    it('preserves systemId, pageIndex, and label', () => {
+      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 500, pageIndex: 2, systemId: 'sys-1', label: 'Violin I' })];
       const result = splitStaffAtPosition(staffs, 'a', 600);
 
       for (const s of result) {
         expect(s.pageIndex).toBe(2);
-        expect(s.systemIndex).toBe(1);
+        expect(s.systemId).toBe('sys-1');
         expect(s.label).toBe('Violin I');
       }
     });
@@ -568,25 +843,28 @@ describe('separatorModel', () => {
 
   describe('addStaffAtPosition', () => {
     it('creates a new staff centered at the given PDF Y', () => {
-      const result = addStaffAtPosition([], 0, 400, PAGE_HEIGHT);
+      const systems: System[] = [];
+      const { staffs: result } = addStaffAtPosition([], 0, 400, PAGE_HEIGHT, systems);
 
       expect(result).toHaveLength(1);
       expect(result[0].pageIndex).toBe(0);
       expect(result[0].top).toBe(425);
       expect(result[0].bottom).toBe(375);
       expect(result[0].label).toBe('');
-      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].systemId).toBe('');
     });
 
     it('clamps to page bounds (near top)', () => {
-      const result = addStaffAtPosition([], 0, PAGE_HEIGHT - 10, PAGE_HEIGHT);
+      const systems: System[] = [];
+      const { staffs: result } = addStaffAtPosition([], 0, PAGE_HEIGHT - 10, PAGE_HEIGHT, systems);
 
       expect(result[0].top).toBe(PAGE_HEIGHT);
       expect(result[0].bottom).toBe(PAGE_HEIGHT - 50);
     });
 
     it('clamps to page bounds (near bottom)', () => {
-      const result = addStaffAtPosition([], 0, 10, PAGE_HEIGHT);
+      const systems: System[] = [];
+      const { staffs: result } = addStaffAtPosition([], 0, 10, PAGE_HEIGHT, systems);
 
       expect(result[0].top).toBe(50);
       expect(result[0].bottom).toBe(0);
@@ -594,53 +872,82 @@ describe('separatorModel', () => {
 
     it('appends to existing staffs', () => {
       const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600 })];
-      const result = addStaffAtPosition(staffs, 0, 400, PAGE_HEIGHT);
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+      ];
+      const { staffs: result } = addStaffAtPosition(staffs, 0, 400, PAGE_HEIGHT, systems);
 
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe('a');
     });
 
     it('uses the correct pageIndex', () => {
-      const result = addStaffAtPosition([], 3, 400, PAGE_HEIGHT);
+      const systems: System[] = [];
+      const { staffs: result } = addStaffAtPosition([], 3, 400, PAGE_HEIGHT, systems);
       expect(result[0].pageIndex).toBe(3);
     });
 
-    it('infers systemIndex from nearest staff above on the same page', () => {
+    it('infers systemId from nearest staff above on the same page', () => {
       const staffs = [
-        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', pageIndex: 0, top: 400, bottom: 300, systemIndex: 1 }),
+        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', pageIndex: 0, top: 400, bottom: 300, systemId: 'sys-1' }),
       ];
-      // Add at pdfY=350, between b's top(400) and bottom(300) → nearest is b (system 1)
-      const result = addStaffAtPosition(staffs, 0, 250, PAGE_HEIGHT);
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      // Add at pdfY=250, nearest is b (system 1)
+      const { staffs: result } = addStaffAtPosition(staffs, 0, 250, PAGE_HEIGHT, systems);
       const added = result.find(s => s.id !== 'a' && s.id !== 'b')!;
-      expect(added.systemIndex).toBe(1);
+      expect(added.systemId).toBe('sys-1');
     });
 
-    it('infers systemIndex from nearest staff below when above the first staff', () => {
+    it('infers systemId from nearest staff below when above the first staff', () => {
       const staffs = [
-        makeStaff({ id: 'a', pageIndex: 0, top: 500, bottom: 400, systemIndex: 2 }),
+        makeStaff({ id: 'a', pageIndex: 0, top: 500, bottom: 400, systemId: 'sys-2' }),
+      ];
+      const systems: System[] = [
+        { id: 'sys-2', pageIndex: 0, top: 550, bottom: 350 },
       ];
       // Add above existing staff
-      const result = addStaffAtPosition(staffs, 0, 700, PAGE_HEIGHT);
+      const { staffs: result } = addStaffAtPosition(staffs, 0, 700, PAGE_HEIGHT, systems);
       const added = result.find(s => s.id !== 'a')!;
-      expect(added.systemIndex).toBe(2);
+      expect(added.systemId).toBe('sys-2');
     });
 
-    it('defaults to systemIndex 0 when no staffs on the same page', () => {
+    it('defaults to empty systemId when no staffs on the same page', () => {
       const staffs = [
-        makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemIndex: 3 }),
+        makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-3' }),
       ];
-      const result = addStaffAtPosition(staffs, 0, 400, PAGE_HEIGHT);
+      const systems: System[] = [
+        { id: 'sys-3', pageIndex: 1, top: 750, bottom: 550 },
+      ];
+      const { staffs: result } = addStaffAtPosition(staffs, 0, 400, PAGE_HEIGHT, systems);
       const added = result.find(s => s.id !== 'a')!;
-      expect(added.systemIndex).toBe(0);
+      expect(added.systemId).toBe('');
+    });
+
+    describe('with systems', () => {
+      it('returns systems unchanged', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        ];
+        const result = addStaffAtPosition(staffs, 0, 500, PAGE_HEIGHT, systems);
+
+        expect(result.systems).toEqual(systems);
+        expect(result.staffs).toHaveLength(2);
+      });
     });
   });
 
   describe('mergeSeparator', () => {
     it('merges two adjacent staffs into one', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 500, systemIndex: 0 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, systemId: 'sys-0' }),
       ];
       const result = mergeSeparator(staffs, 'a', 'b');
 
@@ -651,15 +958,15 @@ describe('separatorModel', () => {
       expect(merged.bottom).toBe(500);
     });
 
-    it('preserves the upper staff label and systemIndex', () => {
+    it('preserves the upper staff label and systemId', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, label: 'Violin I', systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 500, label: 'Viola', systemIndex: 0 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 600, bottom: 500, label: 'Viola', systemId: 'sys-0' }),
       ];
       const result = mergeSeparator(staffs, 'a', 'b');
 
       expect(result[0].label).toBe('Violin I');
-      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].systemId).toBe('sys-0');
     });
 
     it('does not modify other staffs', () => {
@@ -690,126 +997,186 @@ describe('separatorModel', () => {
 
     it('works across system boundaries', () => {
       const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 1 }),
+        makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-1' }),
       ];
       const result = mergeSeparator(staffs, 'a', 'b');
 
       expect(result).toHaveLength(1);
       expect(result[0].top).toBe(700);
       expect(result[0].bottom).toBe(400);
-      expect(result[0].systemIndex).toBe(0);
+      expect(result[0].systemId).toBe('sys-0');
     });
   });
 
   describe('splitSystemAtPosition', () => {
-    it('returns unchanged when no staffs exist on the page', () => {
-      const staffs = [makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemIndex: 0 })];
-      const result = splitSystemAtPosition(staffs, 0, 650);
-      expect(result).toEqual(staffs);
-    });
+    describe('with systems', () => {
+      it('returns unchanged when no staffs exist on the page', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 1, top: 750, bottom: 550 },
+        ];
+        const staffs = [makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-0' })];
+        const result = splitSystemAtPosition(staffs, 0, 650, systems);
+        expect(result.staffs).toEqual(staffs);
+      });
 
-    it('returns unchanged when pdfY is outside all systems', () => {
-      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 })];
-      // pdfY=100 is below all staffs (bottom=600)
-      const result = splitSystemAtPosition(staffs, 0, 100);
-      expect(result).toEqual(staffs);
-    });
+      it('returns unchanged when pdfY is outside all systems', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        ];
+        const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' })];
+        // pdfY=100 is below all staffs (bottom=600)
+        const result = splitSystemAtPosition(staffs, 0, 100, systems);
+        expect(result.staffs).toEqual(staffs);
+      });
 
-    it('splits at a gap between two staffs in the same system', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
-      ];
-      // pdfY=550 is in the gap: a.bottom=600, b.top=500
-      const result = splitSystemAtPosition(staffs, 0, 550);
-      expect(result).toHaveLength(2);
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-    });
+      it('splits at a gap between two staffs in the same system', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+        ];
+        // pdfY=550 is in the gap: a.bottom=600, b.top=500
+        const result = splitSystemAtPosition(staffs, 0, 550, systems);
+        expect(result.staffs).toHaveLength(2);
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).not.toBe('sys-0');
+      });
 
-    it('splits inside a staff region by splitting the staff first', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 400, systemIndex: 0 }),
-      ];
-      // pdfY=500 is inside staff b (top=600, bottom=400)
-      const result = splitSystemAtPosition(staffs, 0, 500);
-      // Staff a stays in system 0
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      // Staff b (upper half, keeps id 'b') stays in system 0
-      const upper = result.find(s => s.id === 'b')!;
-      expect(upper.systemIndex).toBe(0);
-      expect(upper.bottom).toBe(500);
-      // New lower half goes to system 1
-      const lower = result.find(s => s.id !== 'a' && s.id !== 'b')!;
-      expect(lower.systemIndex).toBe(1);
-      expect(lower.top).toBe(500);
-      expect(lower.bottom).toBe(400);
-    });
+      it('splits inside a staff region by splitting the staff first', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 600, bottom: 400, systemId: 'sys-0' }),
+        ];
+        // pdfY=500 is inside staff b (top=600, bottom=400)
+        const result = splitSystemAtPosition(staffs, 0, 500, systems);
+        // Staff a stays in sys-0
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        // Staff b (upper half, keeps id 'b') stays in sys-0
+        const upper = result.staffs.find(s => s.id === 'b')!;
+        expect(upper.systemId).toBe('sys-0');
+        expect(upper.bottom).toBe(500);
+        // New lower half goes to new system
+        const lower = result.staffs.find(s => s.id !== 'a' && s.id !== 'b')!;
+        expect(lower.systemId).not.toBe('sys-0');
+        expect(lower.top).toBe(500);
+        expect(lower.bottom).toBe(400);
+      });
 
-    it('handles single-staff system by splitting staff then system', () => {
-      const staffs = [makeStaff({ id: 'a', top: 700, bottom: 400, systemIndex: 0 })];
-      const result = splitSystemAtPosition(staffs, 0, 550);
-      expect(result).toHaveLength(2);
-      const upper = result.find(s => s.id === 'a')!;
-      expect(upper.systemIndex).toBe(0);
-      expect(upper.bottom).toBe(550);
-      const lower = result.find(s => s.id !== 'a')!;
-      expect(lower.systemIndex).toBe(1);
-      expect(lower.top).toBe(550);
-    });
+      it('handles single-staff system by splitting staff then system', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [makeStaff({ id: 'a', top: 700, bottom: 400, systemId: 'sys-0' })];
+        const result = splitSystemAtPosition(staffs, 0, 550, systems);
+        expect(result.staffs).toHaveLength(2);
+        const upper = result.staffs.find(s => s.id === 'a')!;
+        expect(upper.systemId).toBe('sys-0');
+        expect(upper.bottom).toBe(550);
+        const lower = result.staffs.find(s => s.id !== 'a')!;
+        expect(lower.systemId).not.toBe('sys-0');
+        expect(lower.top).toBe(550);
+      });
 
-    it('increments systemIndex of subsequent systems', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 500, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 300, bottom: 200, systemIndex: 1 }),
-      ];
-      const result = splitSystemAtPosition(staffs, 0, 550);
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(2);
-    });
+      it('preserves subsequent systems when splitting', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+          { id: 'sys-1', pageIndex: 0, top: 250, bottom: 50 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+          makeStaff({ id: 'c', top: 200, bottom: 100, systemId: 'sys-1' }),
+        ];
+        const result = splitSystemAtPosition(staffs, 0, 550, systems);
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).not.toBe('sys-0');
+        // c remains in sys-1
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-1');
+      });
 
-    it('does not affect staffs on other pages', () => {
-      const staffs = [
-        makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', pageIndex: 1, top: 700, bottom: 600, systemIndex: 0 }),
-      ];
-      const result = splitSystemAtPosition(staffs, 0, 550);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(0);
-    });
+      it('does not affect staffs on other pages', () => {
+        const systems: System[] = [
+          { id: 'sys-0-0', pageIndex: 0, top: 750, bottom: 350 },
+          { id: 'sys-1-0', pageIndex: 1, top: 750, bottom: 550 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', pageIndex: 0, top: 700, bottom: 600, systemId: 'sys-0-0' }),
+          makeStaff({ id: 'b', pageIndex: 0, top: 500, bottom: 400, systemId: 'sys-0-0' }),
+          makeStaff({ id: 'c', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-1-0' }),
+        ];
+        const result = splitSystemAtPosition(staffs, 0, 550, systems);
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).toBe('sys-1-0');
+      });
 
-    it('treats click near staff boundary as gap split (no staff split)', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 400, systemIndex: 0 }),
-      ];
-      // pdfY=605 is inside staff a but within MIN_SPLIT_HEIGHT(10) of boundary with b at 600
-      const result = splitSystemAtPosition(staffs, 0, 605);
-      // Should NOT split staff a, should split system at the gap between a and b
-      expect(result).toHaveLength(2);
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(1);
-    });
+      it('treats click near staff boundary as gap split (no staff split)', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 600, bottom: 400, systemId: 'sys-0' }),
+        ];
+        // pdfY=605 is inside staff a but within MIN_SPLIT_HEIGHT(10) of boundary with b at 600
+        const result = splitSystemAtPosition(staffs, 0, 605, systems);
+        // Should NOT split staff a, should split system at the gap between a and b
+        expect(result.staffs).toHaveLength(2);
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).not.toBe('sys-0');
+      });
 
-    it('splits inside middle staff of a three-staff system', () => {
-      const staffs = [
-        makeStaff({ id: 'a', top: 700, bottom: 600, systemIndex: 0 }),
-        makeStaff({ id: 'b', top: 600, bottom: 400, systemIndex: 0 }),
-        makeStaff({ id: 'c', top: 400, bottom: 300, systemIndex: 0 }),
-      ];
-      // pdfY=500 is in the middle of staff b
-      const result = splitSystemAtPosition(staffs, 0, 500);
-      // a and upper-b stay in system 0
-      expect(result.find(s => s.id === 'a')!.systemIndex).toBe(0);
-      expect(result.find(s => s.id === 'b')!.systemIndex).toBe(0);
-      // lower-b and c move to system 1
-      const lowerB = result.find(s => s.id !== 'a' && s.id !== 'b' && s.id !== 'c')!;
-      expect(lowerB.systemIndex).toBe(1);
-      expect(result.find(s => s.id === 'c')!.systemIndex).toBe(1);
+      it('splits inside middle staff of a three-staff system', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 250 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 600, bottom: 400, systemId: 'sys-0' }),
+          makeStaff({ id: 'c', top: 400, bottom: 300, systemId: 'sys-0' }),
+        ];
+        // pdfY=500 is in the middle of staff b
+        const result = splitSystemAtPosition(staffs, 0, 500, systems);
+        // a and upper-b stay in sys-0
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).toBe('sys-0');
+        // lower-b and c move to new system
+        const lowerB = result.staffs.find(s => s.id !== 'a' && s.id !== 'b' && s.id !== 'c')!;
+        expect(lowerB.systemId).not.toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'c')!.systemId).not.toBe('sys-0');
+      });
+
+      it('passes systems through to splitSystemAtGap for gap case', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+          makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
+        ];
+        const result = splitSystemAtPosition(staffs, 0, 550, systems);
+
+        expect(result.systems).toHaveLength(2);
+        expect(result.staffs.find(s => s.id === 'a')!.systemId).toBe('sys-0');
+        expect(result.staffs.find(s => s.id === 'b')!.systemId).not.toBe('sys-0');
+      });
+
+      it('returns systems unchanged when pdfY is outside all systems', () => {
+        const systems: System[] = [
+          { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        ];
+        const staffs = [
+          makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
+        ];
+        const result = splitSystemAtPosition(staffs, 0, 100, systems);
+
+        expect(result.systems).toEqual(systems);
+        expect(result.staffs).toEqual(staffs);
+      });
     });
   });
 });

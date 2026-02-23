@@ -5,7 +5,7 @@
 | 用語 | 英語（コード） | 日本語 | 説明 | コード上の型・関数 |
 |------|---------------|--------|------|-------------------|
 | 譜表 | Staff | 譜表 | 1つの楽器の演奏記譜領域。ページ上の矩形で、top/bottom（PDF Y座標）で範囲を表す。ピアノの大譜表のように複数五線を含む場合もある | `Staff` (`staffModel.ts`) |
-| 組段 | System | 組段 | 全パートが縦に並んだ一括り。スコア1ページに通常1〜3段ある。大きな空白（50px以上）で区切られる | `SystemBoundary` (`staffDetector.ts`) |
+| 組段 | System | 組段 | 全パートが縦に並んだ一括りを表す独立エンティティ（`{ id, pageIndex, top, bottom }`）。`ProjectState.systems` に格納される。Staff は `systemId` で所属する System を参照する。スコア1ページに通常1〜3段ある | `System` (`staffModel.ts`), `SystemBoundary` (`staffDetector.ts`) |
 | パート | Part | パート | 同じ楽器の譜表を全ページ分まとめたもの。label（楽器名）で紐づく | `Part` (`staffModel.ts`) |
 | 楽器名 | Instrument / Label | 楽器名、ラベル | 譜表に付与する楽器の名前（例: Violin I, Cello）。パートの分類キー | `Staff.label`, `COMMON_INSTRUMENTS` |
 | 総譜 | Full Score / Source PDF | 総譜、フルスコア | ユーザーがインポートする元の楽譜PDF。全楽器が含まれる | `sourcePdfBytes` |
@@ -57,4 +57,4 @@
 |------|---------------|------|
 | プロジェクト状態 | ProjectState | アプリ全体の状態。現在のステップ、PDF、譜表一覧、ページ番号を保持 |
 | 元に戻す / やり直す | Undo / Redo | 譜表の変更（追加・削除・更新・一括設定）を最大50手まで記録 |
-| 譜表アクション | Staff Actions | SET_STAFFS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF の4種。Undo/Redo の対象 |
+| 譜表アクション | Undoable Actions | SET_STAFFS, SET_STAFFS_AND_SYSTEMS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF の5種。Undo/Redo の対象。スナップショットは staffs と systems の両方を原子的に保持 |

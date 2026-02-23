@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Staff } from '../core/staffModel';
+import type { Staff, System } from '../core/staffModel';
+import { getPageSystems } from '../core/staffModel';
 import { computeSystemGroups } from '../core/separatorModel';
 import type { SystemGroup } from '../core/separatorModel';
 import styles from './SystemOverlay.module.css';
@@ -9,6 +10,7 @@ const SYSTEM_COLORS = [styles.systemRectEven, styles.systemRectOdd];
 
 interface SystemOverlayProps {
   staffs: Staff[];
+  systems: System[];
   pageIndex: number;
   pdfPageHeight: number;
   scale: number;
@@ -23,6 +25,7 @@ interface SystemOverlayProps {
 
 export function SystemOverlay({
   staffs,
+  systems,
   pageIndex,
   pdfPageHeight,
   scale,
@@ -35,7 +38,8 @@ export function SystemOverlay({
   onMergeSystem,
 }: SystemOverlayProps) {
   const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
-  const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale);
+  const pageSystems = getPageSystems(systems, pageIndex);
+  const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale, pageSystems);
 
   // Build system separator positions (between adjacent system groups)
   const systemSeps: Array<{ canvasY: number; upperGroup: SystemGroup; lowerGroup: SystemGroup }> = [];
@@ -67,7 +71,7 @@ export function SystemOverlay({
       {/* System rectangles */}
       {groups.map((group, gi) => (
         <div
-          key={group.systemIndex}
+          key={group.systemId}
           className={`${styles.systemRect} ${SYSTEM_COLORS[gi % 2]}`}
           style={{
             top: group.topCanvasY,
@@ -100,7 +104,7 @@ export function SystemOverlay({
           isSelected={selectedSystemSepIndex === i}
           onSelect={onSelectSystemSep}
           onDrag={onSystemSepDrag}
-          onMerge={() => onMergeSystem(sep.upperGroup.systemIndex)}
+          onMerge={() => onMergeSystem(sep.upperGroup.ordinal)}
         />
       ))}
     </div>

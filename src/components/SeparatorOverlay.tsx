@@ -99,7 +99,7 @@ export function SeparatorOverlay({
       {/* System background rectangles (read-only) */}
       {groups.map((group, gi) => (
         <div
-          key={`sys-${group.systemIndex}`}
+          key={`sys-${group.systemId}`}
           className={`${styles.systemBackground} ${gi % 2 === 0 ? styles.systemBackgroundEven : styles.systemBackgroundOdd}`}
           style={{
             top: group.topCanvasY,

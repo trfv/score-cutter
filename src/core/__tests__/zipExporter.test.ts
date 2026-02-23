@@ -20,11 +20,11 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Violin I',
-        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' }],
       },
       {
         label: 'Cello',
-        staffs: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemIndex: 0 }],
+        staffs: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemId: 'sys-0' }],
       },
     ];
 
@@ -41,7 +41,7 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Violin I',
-        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' }],
       },
     ];
 
@@ -57,11 +57,11 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Violin I',
-        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' }],
       },
       {
         label: 'Cello',
-        staffs: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemIndex: 0 }],
+        staffs: [{ id: '2', pageIndex: 0, top: 542, bottom: 442, label: 'Cello', systemId: 'sys-0' }],
       },
     ];
 
@@ -88,7 +88,7 @@ describe('zipParts', () => {
     const parts: Part[] = [
       {
         label: 'Basso continuo',
-        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Basso continuo', systemIndex: 0 }],
+        staffs: [{ id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Basso continuo', systemId: 'sys-0' }],
       },
     ];
 

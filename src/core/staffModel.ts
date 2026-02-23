@@ -4,7 +4,14 @@ export interface Staff {
   top: number;
   bottom: number;
   label: string;
-  systemIndex: number;
+  systemId: string;
+}
+
+export interface System {
+  id: string;
+  pageIndex: number;
+  top: number;
+  bottom: number;
 }
 
 export interface Part {
@@ -17,37 +24,56 @@ export interface PageDimension {
   height: number;
 }
 
+export function getPageSystems(systems: System[], pageIndex: number): System[] {
+  return systems
+    .filter(s => s.pageIndex === pageIndex)
+    .sort((a, b) => b.top - a.top);
+}
+
+export function getSystemOrdinal(systems: System[], pageIndex: number, systemId: string): number {
+  const pageSystems = getPageSystems(systems, pageIndex);
+  const index = pageSystems.findIndex(s => s.id === systemId);
+  return index;
+}
+
+export function buildSystemOrdinalMap(systems: System[], pageIndex: number): Map<string, number> {
+  const pageSystems = getPageSystems(systems, pageIndex);
+  const map = new Map<string, number>();
+  for (let i = 0; i < pageSystems.length; i++) {
+    map.set(pageSystems[i].id, i);
+  }
+  return map;
+}
+
 export function applySystemLabelsToAll(
   staffs: Staff[],
-  templatePageIndex: number,
-  templateSystemIndex: number,
+  templateSystemId: string,
 ): Staff[] {
-  const templateStaffs = staffs
-    .filter((s) => s.pageIndex === templatePageIndex && s.systemIndex === templateSystemIndex)
-    .sort((a, b) => b.top - a.top);
+  const resolvedTemplateSystemId = templateSystemId;
+
+  const templateStaffs = resolvedTemplateSystemId
+    ? staffs
+        .filter((s) => s.systemId === resolvedTemplateSystemId)
+        .sort((a, b) => b.top - a.top)
+    : [];
 
   if (templateStaffs.length === 0) return staffs;
-
-  const systemKey = (s: Staff) => `${s.pageIndex}-${s.systemIndex}`;
-  const templateKey = `${templatePageIndex}-${templateSystemIndex}`;
 
   // Pre-group and sort each system for O(1) lookup
   const grouped = new Map<string, Staff[]>();
   for (const s of staffs) {
-    const key = systemKey(s);
-    const group = grouped.get(key) ?? [];
+    const group = grouped.get(s.systemId) ?? [];
     group.push(s);
-    grouped.set(key, group);
+    grouped.set(s.systemId, group);
   }
   for (const group of grouped.values()) {
     group.sort((a, b) => b.top - a.top);
   }
 
   return staffs.map((staff) => {
-    const key = systemKey(staff);
-    if (key === templateKey) return staff;
+    if (staff.systemId === resolvedTemplateSystemId) return staff;
 
-    const group = grouped.get(key)!;
+    const group = grouped.get(staff.systemId)!;
     const idx = group.indexOf(staff);
     if (idx >= 0 && idx < templateStaffs.length) {
       return { ...staff, label: templateStaffs[idx].label };
@@ -69,13 +95,13 @@ export interface ValidationMessage {
 interface StaffCountConsistencyResult {
   isConsistent: boolean;
   expectedCount: number | undefined;
-  mismatches: Array<{ pageIndex: number; systemIndex: number; count: number }>;
+  mismatches: Array<{ pageIndex: number; systemId: string; count: number }>;
 }
 
 interface LabelConsistencyResult {
   isConsistent: boolean;
   expectedLabels: string[];
-  mismatches: Array<{ pageIndex: number; systemIndex: number; labels: string[] }>;
+  mismatches: Array<{ pageIndex: number; systemId: string; labels: string[] }>;
 }
 
 export function validateStaffCountConsistency(staffs: Staff[]): StaffCountConsistencyResult {
@@ -83,14 +109,14 @@ export function validateStaffCountConsistency(staffs: Staff[]): StaffCountConsis
     return { isConsistent: true, expectedCount: undefined, mismatches: [] };
   }
 
-  const systemCounts = new Map<string, { pageIndex: number; systemIndex: number; count: number }>();
+  const systemCounts = new Map<string, { pageIndex: number; systemId: string; count: number }>();
   for (const s of staffs) {
-    const key = `${s.pageIndex}-${s.systemIndex}`;
+    const key = s.systemId;
     const entry = systemCounts.get(key);
     if (entry) {
       entry.count++;
     } else {
-      systemCounts.set(key, { pageIndex: s.pageIndex, systemIndex: s.systemIndex, count: 1 });
+      systemCounts.set(key, { pageIndex: s.pageIndex, systemId: s.systemId, count: 1 });
     }
   }
 
@@ -109,7 +135,7 @@ export function validateStaffCountConsistency(staffs: Staff[]): StaffCountConsis
 
   const mismatches = [...systemCounts.values()]
     .filter((e) => e.count !== expectedCount)
-    .sort((a, b) => a.pageIndex - b.pageIndex || a.systemIndex - b.systemIndex);
+    .sort((a, b) => a.pageIndex - b.pageIndex || a.systemId.localeCompare(b.systemId));
 
   return { isConsistent: mismatches.length === 0, expectedCount, mismatches };
 }
@@ -123,15 +149,15 @@ export function validateLabelCompleteness(staffs: Staff[]): { unlabeledCount: nu
 
 export function validateDuplicateLabelsInSystems(
   staffs: Staff[],
-): Array<{ pageIndex: number; systemIndex: number; duplicateLabels: string[] }> {
+): Array<{ pageIndex: number; systemId: string; duplicateLabels: string[] }> {
   const grouped = new Map<string, Staff[]>();
   for (const s of staffs) {
-    const key = `${s.pageIndex}-${s.systemIndex}`;
+    const key = s.systemId;
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(s);
   }
 
-  const results: Array<{ pageIndex: number; systemIndex: number; duplicateLabels: string[] }> = [];
+  const results: Array<{ pageIndex: number; systemId: string; duplicateLabels: string[] }> = [];
   for (const group of grouped.values()) {
     const labelCounts = new Map<string, number>();
     for (const s of group) {
@@ -142,7 +168,7 @@ export function validateDuplicateLabelsInSystems(
     if (dupes.length > 0) {
       results.push({
         pageIndex: group[0].pageIndex,
-        systemIndex: group[0].systemIndex,
+        systemId: group[0].systemId,
         duplicateLabels: dupes,
       });
     }
@@ -153,7 +179,7 @@ export function validateDuplicateLabelsInSystems(
 export function validateLabelConsistency(staffs: Staff[]): LabelConsistencyResult {
   const grouped = new Map<string, Staff[]>();
   for (const s of staffs) {
-    const key = `${s.pageIndex}-${s.systemIndex}`;
+    const key = s.systemId;
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(s);
   }
@@ -183,7 +209,7 @@ export function validateLabelConsistency(staffs: Staff[]): LabelConsistencyResul
     if (isDifferent) {
       mismatches.push({
         pageIndex: group[0].pageIndex,
-        systemIndex: group[0].systemIndex,
+        systemId: group[0].systemId,
         labels,
       });
     }
@@ -241,7 +267,7 @@ export function getLabelStepValidations(staffs: Staff[]): ValidationMessage[] {
   return messages;
 }
 
-export function derivePartsFromStaffs(staffs: Staff[]): Part[] {
+export function derivePartsFromStaffs(staffs: Staff[], systems?: System[]): Part[] {
   const partMap = new Map<string, Staff[]>();
 
   for (const staff of staffs) {
@@ -252,10 +278,16 @@ export function derivePartsFromStaffs(staffs: Staff[]): Part[] {
   }
 
   const parts: Part[] = [];
-  for (const [label, staffs] of partMap) {
-    const sorted = staffs.slice().sort((a, b) => {
+  for (const [label, groupStaffs] of partMap) {
+    const sorted = groupStaffs.slice().sort((a, b) => {
       if (a.pageIndex !== b.pageIndex) return a.pageIndex - b.pageIndex;
-      if (a.systemIndex !== b.systemIndex) return a.systemIndex - b.systemIndex;
+      if (systems && systems.length > 0) {
+        const ordA = getSystemOrdinal(systems, a.pageIndex, a.systemId);
+        const ordB = getSystemOrdinal(systems, b.pageIndex, b.systemId);
+        if (ordA !== ordB) return ordA - ordB;
+      } else if (a.systemId !== b.systemId) {
+        return a.systemId.localeCompare(b.systemId);
+      }
       return b.top - a.top;
     });
     parts.push({ label, staffs: sorted });

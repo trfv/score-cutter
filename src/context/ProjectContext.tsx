@@ -7,7 +7,7 @@ import {
   initialState,
 } from './projectContextDefs';
 import type { ProjectState, ProjectAction } from './projectContextDefs';
-import type { Staff } from '../core/staffModel';
+import type { Staff, System } from '../core/staffModel';
 import {
   createHistory,
   pushState,
@@ -20,8 +20,14 @@ import type { UndoHistory } from '../core/undoHistory';
 
 export type { WizardStep } from './projectContextDefs';
 
-const STAFF_ACTIONS = new Set([
+interface UndoableSnapshot {
+  staffs: Staff[];
+  systems: System[];
+}
+
+const UNDOABLE_ACTIONS = new Set([
   'SET_STAFFS',
+  'SET_STAFFS_AND_SYSTEMS',
   'UPDATE_STAFF',
   'ADD_STAFF',
   'DELETE_STAFF',
@@ -42,10 +48,13 @@ function projectReducer(state: ProjectState, action: ProjectAction): ProjectStat
         pageCount: action.pageCount,
         pageDimensions: action.pageDimensions,
         staffs: [],
+        systems: [],
         currentPageIndex: 0,
       };
     case 'SET_STAFFS':
       return { ...state, staffs: action.staffs };
+    case 'SET_STAFFS_AND_SYSTEMS':
+      return { ...state, staffs: action.staffs, systems: action.systems };
     case 'UPDATE_STAFF':
       return {
         ...state,
@@ -71,7 +80,11 @@ function projectReducer(state: ProjectState, action: ProjectAction): ProjectStat
 
 interface CombinedState {
   project: ProjectState;
-  history: UndoHistory<Staff[]>;
+  history: UndoHistory<UndoableSnapshot>;
+}
+
+function toSnapshot(project: ProjectState): UndoableSnapshot {
+  return { staffs: project.staffs, systems: project.systems };
 }
 
 function combinedReducer(state: CombinedState, action: ProjectAction): CombinedState {
@@ -79,7 +92,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
     const newHistory = undoHistory(state.history);
     if (newHistory === state.history) return state;
     return {
-      project: { ...state.project, staffs: newHistory.present },
+      project: { ...state.project, ...newHistory.present },
       history: newHistory,
     };
   }
@@ -88,7 +101,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
     const newHistory = redoHistory(state.history);
     if (newHistory === state.history) return state;
     return {
-      project: { ...state.project, staffs: newHistory.present },
+      project: { ...state.project, ...newHistory.present },
       history: newHistory,
     };
   }
@@ -96,7 +109,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
   if (action.type === 'RESET') {
     return {
       project: initialState,
-      history: createHistory<Staff[]>([]),
+      history: createHistory<UndoableSnapshot>(toSnapshot(initialState)),
     };
   }
 
@@ -105,14 +118,14 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
   if (action.type === 'LOAD_PDF') {
     return {
       project: newProject,
-      history: createHistory<Staff[]>(newProject.staffs),
+      history: createHistory<UndoableSnapshot>(toSnapshot(newProject)),
     };
   }
 
-  if (STAFF_ACTIONS.has(action.type)) {
+  if (UNDOABLE_ACTIONS.has(action.type)) {
     return {
       project: newProject,
-      history: pushState(state.history, newProject.staffs, MAX_UNDO),
+      history: pushState(state.history, toSnapshot(newProject), MAX_UNDO),
     };
   }
 
@@ -122,7 +135,7 @@ function combinedReducer(state: CombinedState, action: ProjectAction): CombinedS
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [{ project, history }, dispatch] = useReducer(combinedReducer, {
     project: initialState,
-    history: createHistory<Staff[]>([]),
+    history: createHistory<UndoableSnapshot>(toSnapshot(initialState)),
   });
 
   const undoRedoState = useMemo(

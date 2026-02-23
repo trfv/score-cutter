@@ -17,7 +17,7 @@ describe('partAssembler', () => {
   it('should create a PDF with one staff from one page', async () => {
     const sourcePdf = await createTestPdf(1);
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 },
+      { id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' },
     ];
 
     const outputBytes = await assemblePart(sourcePdf, staffs, defaultAssemblyOptions);
@@ -28,8 +28,8 @@ describe('partAssembler', () => {
   it('should create a PDF with multiple staffs across pages', async () => {
     const sourcePdf = await createTestPdf(2);
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 },
-      { id: '2', pageIndex: 1, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 },
+      { id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' },
+      { id: '2', pageIndex: 1, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' },
     ];
 
     const outputBytes = await assemblePart(sourcePdf, staffs, defaultAssemblyOptions);
@@ -46,7 +46,7 @@ describe('partAssembler', () => {
       top: 742,
       bottom: 542,  // 200pt tall each
       label: 'Violin I',
-      systemIndex: 0,
+      systemId: 'sys-0',
     }));
 
     const outputBytes = await assemblePart(sourcePdf, staffs, defaultAssemblyOptions);
@@ -57,7 +57,7 @@ describe('partAssembler', () => {
   it('should return valid PDF bytes', async () => {
     const sourcePdf = await createTestPdf(1);
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemIndex: 0 },
+      { id: '1', pageIndex: 0, top: 742, bottom: 642, label: 'Violin I', systemId: 'sys-0' },
     ];
 
     const outputBytes = await assemblePart(sourcePdf, staffs, defaultAssemblyOptions);

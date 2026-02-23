@@ -35,8 +35,8 @@ Each step is a React component in `src/components/` rendered by `App.tsx` based 
 
 Pure functions with no React dependencies. This is where all domain logic lives:
 
-- **staffModel.ts** — `Staff`, `Part`, `PageDimension` types; `derivePartsFromStaffs()` groups staffs by label; `applySystemLabelsToAll()` copies labels from a template system to all other systems by ordinal position; validation functions (`validateStaffCountConsistency()`, `validateLabelCompleteness()`, `validateDuplicateLabelsInSystems()`, `validateLabelConsistency()`) with composite helpers `getStaffStepValidations()` and `getLabelStepValidations()` returning `ValidationMessage[]` for UI display
-- **separatorModel.ts** — `Separator`, `SystemGroup`, `StaffRegion` types; `computeSeparators()` derives separator lines from staffs; `computeSystemGroups()` groups staffs by system with canvas coordinates; `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for staff editing; `splitSystemAtGap()`, `splitSystemAtPosition()`, `mergeAdjacentSystems()`, `reassignStaffsByDrag()` for system boundary editing. `splitSystemAtPosition()` handles three cases: gap between staffs, near-boundary (gap treatment), and mid-staff (splits staff then system).
+- **staffModel.ts** — `Staff`, `System`, `Part`, `PageDimension` types; `System` is a first-class entity (`{ id, pageIndex, top, bottom }`) stored in `ProjectState.systems`; `Staff.systemId` references `System.id`; utility functions `getPageSystems()` (filter systems by page) and `getSystemOrdinal()` (derive display position from systems list); `derivePartsFromStaffs()` groups staffs by label; `applySystemLabelsToAll()` copies labels from a template system (by `systemId`) to all other systems by ordinal position; validation functions (`validateStaffCountConsistency()`, `validateLabelCompleteness()`, `validateDuplicateLabelsInSystems()`, `validateLabelConsistency()`) with composite helpers `getStaffStepValidations()` and `getLabelStepValidations()` returning `ValidationMessage[]` for UI display
+- **separatorModel.ts** — `Separator`, `SystemGroup` (with `ordinal` and `systemId`), `StaffRegion` (with `systemId`) types; `computeSystemGroups()` groups staffs by system (using `System[]` when available, fallback to `systemId` grouping); `applySeparatorDrag()`, `splitStaffAtPosition()`, `mergeSeparator()`, `addStaffAtPosition()` for staff editing; `splitSystemAtGap()`, `splitSystemAtPosition()`, `mergeAdjacentSystems()`, `reassignStaffsByDrag()` for system boundary editing — these functions accept and return `{ staffs, systems }` to maintain both entities atomically. `splitSystemAtPosition()` handles three cases: gap between staffs, near-boundary (gap treatment), and mid-staff (splits staff then system).
 - **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
 - **coordinateMapper.ts** — Bidirectional Canvas ↔ PDF coordinate conversion (scale = DPI / 72)
@@ -48,7 +48,7 @@ Pure functions with no React dependencies. This is where all domain logic lives:
 
 useReducer + React Context split into three contexts:
 - **ProjectContext** (read state) / **ProjectDispatchContext** (dispatch actions) / **UndoRedoContext** (canUndo/canRedo flags)
-- Only staff-mutation actions (SET_STAFFS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF) push to undo history
+- Undoable actions (SET_STAFFS, SET_STAFFS_AND_SYSTEMS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF) push to undo history; undo/redo snapshots contain both `staffs` and `systems` atomically via `UndoableSnapshot`
 - Action types defined in `projectContextDefs.ts`, reducer in `ProjectContext.tsx`, consumer hooks (`useProject`, `useProjectDispatch`) in `projectHooks.ts`
 
 ### Web Workers (`src/workers/`)
@@ -57,7 +57,7 @@ Worker pool (size = `navigator.hardwareConcurrency || 4`) parallelizes per-page 
 
 ### Detection Pipeline
 
-PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horizontal projection → gap detection (20px min) → Staff objects with systemIndex
+PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horizontal projection → gap detection (20px min) → System entities + Staff objects (linked via `systemId`)
 
 ### PDF Assembly
 
@@ -72,7 +72,7 @@ The Export step assembles part PDFs on-demand (lazy) and renders them via pdfjs-
 See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 
 - **Staff (譜表)** — A rectangular region on a page representing one instrument's notation, defined by top/bottom in PDF Y coordinates.
-- **System (組段)** — A vertical group of all parts on a page. Separated by large gaps (≥50px). A page typically has 1–3 systems.
+- **System (組段)** — A first-class entity (`{ id, pageIndex, top, bottom }`) representing a vertical group of all parts on a page. Stored independently in `ProjectState.systems`. Staffs reference their parent system via `systemId`. A page typically has 1–3 systems.
 - **Part (パート)** — All staffs with the same label across all pages, assembled into one output PDF.
 - **Gap** — Whitespace between staffs detected via horizontal projection. System gaps (≥50px) separate systems; part gaps (≥15px) separate staffs within a system.
 - **Full Score (総譜)** — The source PDF containing all instruments.
@@ -92,5 +92,5 @@ See `docs/ubiquitous-language.md` for the full glossary. Key terms:
 - **Keyboard accessibility** — Separators in both `SeparatorOverlay` and `SystemOverlay` are focusable (`tabIndex`, `role="separator"`) and support ArrowUp/Down (1px, Shift=10px), Delete/Backspace, and Escape. Keyboard event handling lives in each separator component's `onKeyDown`, not in document-level listeners.
 - **Step layout pattern** — Each step uses a two-layer flex layout: a fixed `StepToolbar` at the top (via `flex-shrink: 0`) and a scrollable content area below (`flex: 1; overflow-y: auto`). The `.main` container in `App.module.css` is a flex column with `min-height: 0` to enable child scrolling. Step-specific actions can be passed as `children` to `StepToolbar`, or placed within the step's own content area (e.g., LabelStep places "Apply to All" inside the sidebar).
 - **Sidebar pattern** — SystemStep, StaffStep, and LabelStep use a two-column layout: a fixed-width `sidebar` (280px) on the left and a flexible `canvasArea` on the right, both independently scrollable. The sidebar displays data structure information (system groups, staff PDF coordinates, labels). In StaffStep, clicking a staff row in the sidebar syncs selection with the canvas overlay; the selected row auto-scrolls into view via `scrollIntoView({ block: 'nearest' })`.
-- **LabelStep design** — The sidebar shows all systems on the current page, grouped by `systemIndex`. Each system section has its own "Apply to All Systems" button that copies its labels to all other systems across all pages by ordinal position. The sidebar and canvas area scroll independently. Label application logic is a pure function `applySystemLabelsToAll()` in `staffModel.ts`.
+- **LabelStep design** — The sidebar shows all systems on the current page, grouped by System entities (via `getPageSystems()`). Each system section has its own "Apply to All Systems" button that copies its labels to all other systems across all pages by ordinal position. The sidebar and canvas area scroll independently. Label application logic is a pure function `applySystemLabelsToAll()` in `staffModel.ts`.
 - **Validation indicators** — `StatusIndicator` component displays `ValidationMessage[]` in the `StepToolbar` center area. StaffStep shows staff-count consistency (all systems same count); LabelStep shows label completeness, duplicate detection, and order consistency. Validation logic lives as pure functions in `staffModel.ts`; components consume via `useMemo` + `getStaffStepValidations()` / `getLabelStepValidations()`.

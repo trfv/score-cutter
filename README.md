@@ -20,7 +20,7 @@
 - Undo/Redo（Ctrl+Z / Ctrl+Y）
 - Web Worker による並列検出処理
 - ダーク/ライトテーマ切替
-- 組段ステップ・譜表ステップにデータ構造サイドバー（組段グループ、譜表の PDF 座標、systemIndex をリアルタイム表示）
+- 組段ステップ・譜表ステップにデータ構造サイドバー（組段グループ、譜表の PDF 座標をリアルタイム表示）
 - 日本語・英語 UI 切替
 
 ## ワークフロー
@@ -71,7 +71,7 @@ npm run dev
 ```
 src/
   core/                          # コアロジック（純粋関数、DOM 非依存）
-    staffModel.ts                #   データ型定義 (Staff, Part, PageDimension) + ラベル一括適用 + バリデーション
+    staffModel.ts                #   データ型定義 (Staff, System, Part, PageDimension) + ラベル一括適用 + バリデーション
     separatorModel.ts            #   区切り線モデル (Separator 算出、ドラッグ・分割・結合・追加)
     geometry.ts                  #   矩形演算ユーティリティ
     coordinateMapper.ts          #   Canvas ピクセル座標 ↔ PDF 座標 変換
@@ -146,7 +146,7 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-157 テスト（12 ファイル）:
+189 テスト（12 ファイル）:
 
 - `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
 - `segmentModel.test.ts` - パートグループ化、ソート順

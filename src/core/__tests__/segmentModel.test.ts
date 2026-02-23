@@ -9,16 +9,16 @@ describe('derivePartsFromStaffs', () => {
 
   it('should skip staffs without labels', () => {
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 0, top: 700, bottom: 600, label: '', systemIndex: 0 },
+      { id: '1', pageIndex: 0, top: 700, bottom: 600, label: '', systemId: 'sys-0' },
     ];
     expect(derivePartsFromStaffs(staffs)).toEqual([]);
   });
 
   it('should group staffs by label', () => {
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemIndex: 0 },
-      { id: '2', pageIndex: 0, top: 500, bottom: 400, label: 'Cello', systemIndex: 0 },
-      { id: '3', pageIndex: 1, top: 700, bottom: 600, label: 'Violin I', systemIndex: 0 },
+      { id: '1', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-0' },
+      { id: '2', pageIndex: 0, top: 500, bottom: 400, label: 'Cello', systemId: 'sys-0' },
+      { id: '3', pageIndex: 1, top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-0' },
     ];
     const parts = derivePartsFromStaffs(staffs);
     expect(parts).toHaveLength(2);
@@ -34,9 +34,9 @@ describe('derivePartsFromStaffs', () => {
 
   it('should sort staffs by page then by top (descending, i.e. top of page first)', () => {
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 1, top: 700, bottom: 600, label: 'Violin I', systemIndex: 0 },
-      { id: '2', pageIndex: 0, top: 500, bottom: 400, label: 'Violin I', systemIndex: 0 },
-      { id: '3', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemIndex: 0 },
+      { id: '1', pageIndex: 1, top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-0' },
+      { id: '2', pageIndex: 0, top: 500, bottom: 400, label: 'Violin I', systemId: 'sys-0' },
+      { id: '3', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-0' },
     ];
     const parts = derivePartsFromStaffs(staffs);
     const violinPart = parts[0];
@@ -45,11 +45,11 @@ describe('derivePartsFromStaffs', () => {
     expect(violinPart.staffs[2].id).toBe('1'); // page 1, top 700
   });
 
-  it('should sort staffs by page, then systemIndex, then top descending', () => {
+  it('should sort staffs by page, then system ordinal, then top descending', () => {
     const staffs: Staff[] = [
-      { id: '1', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemIndex: 1 },
-      { id: '2', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemIndex: 0 },
-      { id: '3', pageIndex: 0, top: 300, bottom: 200, label: 'Violin I', systemIndex: 0 },
+      { id: '1', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-1' },
+      { id: '2', pageIndex: 0, top: 700, bottom: 600, label: 'Violin I', systemId: 'sys-0' },
+      { id: '3', pageIndex: 0, top: 300, bottom: 200, label: 'Violin I', systemId: 'sys-0' },
     ];
     const parts = derivePartsFromStaffs(staffs);
     const violinPart = parts[0];

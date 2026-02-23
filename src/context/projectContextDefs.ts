@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import type { Dispatch } from 'react';
-import type { Staff, PageDimension } from '../core/staffModel';
+import type { Staff, System, PageDimension } from '../core/staffModel';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 
 export type WizardStep = 'import' | 'systems' | 'staffs' | 'label' | 'export';
@@ -13,6 +13,7 @@ export interface ProjectState {
   pageCount: number;
   pageDimensions: PageDimension[];
   staffs: Staff[];
+  systems: System[];
   currentPageIndex: number;
 }
 
@@ -27,6 +28,7 @@ export type ProjectAction =
       pageDimensions: PageDimension[];
     }
   | { type: 'SET_STAFFS'; staffs: Staff[] }
+  | { type: 'SET_STAFFS_AND_SYSTEMS'; staffs: Staff[]; systems: System[] }
   | { type: 'UPDATE_STAFF'; staff: Staff }
   | { type: 'ADD_STAFF'; staff: Staff }
   | { type: 'DELETE_STAFF'; staffId: string }
@@ -43,6 +45,7 @@ export const initialState: ProjectState = {
   pageCount: 0,
   pageDimensions: [],
   staffs: [],
+  systems: [],
   currentPageIndex: 0,
 };
 

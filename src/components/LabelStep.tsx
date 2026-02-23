@@ -5,7 +5,7 @@ import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { getScale } from '../core/coordinateMapper';
 import { applySeparatorDrag } from '../core/separatorModel';
-import { applySystemLabelsToAll, getLabelStepValidations } from '../core/staffModel';
+import { applySystemLabelsToAll, getLabelStepValidations, getPageSystems } from '../core/staffModel';
 import type { Staff } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
 import { StatusIndicator } from './StatusIndicator';
@@ -14,8 +14,9 @@ import styles from './LabelStep.module.css';
 const DISPLAY_DPI = 150;
 const DISPLAY_SCALE = getScale(DISPLAY_DPI);
 
-interface SystemGroup {
-  systemIndex: number;
+interface LabelSystemGroup {
+  ordinal: number;
+  systemId: string;
   staffs: Staff[];
 }
 
@@ -27,27 +28,25 @@ export function LabelStep() {
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
 
-  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
+  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
 
   const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
   const effectiveScale = DISPLAY_SCALE * displayRatio;
 
-  const currentPageSystems: SystemGroup[] = useMemo(() => {
-    const bySystem = new Map<number, Staff[]>();
+  const currentPageSystems: LabelSystemGroup[] = useMemo(() => {
+    const pageSystems = getPageSystems(systems, currentPageIndex);
+    const staffsBySystemId = new Map<string, Staff[]>();
     for (const staff of staffs) {
       if (staff.pageIndex !== currentPageIndex) continue;
-      if (!bySystem.has(staff.systemIndex)) bySystem.set(staff.systemIndex, []);
-      bySystem.get(staff.systemIndex)!.push(staff);
+      if (!staffsBySystemId.has(staff.systemId)) staffsBySystemId.set(staff.systemId, []);
+      staffsBySystemId.get(staff.systemId)!.push(staff);
     }
-
-    const result: SystemGroup[] = [];
-    const sortedIndices = [...bySystem.keys()].sort((a, b) => a - b);
-    for (const si of sortedIndices) {
-      const stfs = bySystem.get(si)!.slice().sort((a, b) => b.top - a.top);
-      result.push({ systemIndex: si, staffs: stfs });
-    }
-    return result;
-  }, [staffs, currentPageIndex]);
+    return pageSystems.map((sys, ordinal) => ({
+      ordinal: ordinal,
+      systemId: sys.id,
+      staffs: (staffsBySystemId.get(sys.id) ?? []).slice().sort((a, b) => b.top - a.top),
+    }));
+  }, [staffs, systems, currentPageIndex]);
 
   const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
     setBitmapWidth(canvas.width);
@@ -78,8 +77,8 @@ export function LabelStep() {
   );
 
   const handleApplyToAll = useCallback(
-    (pageIndex: number, systemIndex: number) => {
-      const updated = applySystemLabelsToAll(staffs, pageIndex, systemIndex);
+    (systemId: string) => {
+      const updated = applySystemLabelsToAll(staffs, systemId);
       dispatch({ type: 'SET_STAFFS', staffs: updated });
     },
     [staffs, dispatch],
@@ -132,9 +131,9 @@ export function LabelStep() {
         <aside className={styles.sidebar}>
           <h3>{t('steps.label')}</h3>
           {currentPageSystems.map((system) => (
-            <div key={system.systemIndex} className={styles.systemSection}>
+            <div key={system.systemId} className={styles.systemSection}>
               <div className={styles.systemHeader}>
-                {t('label.systemHeader', { system: system.systemIndex + 1 })}
+                {t('label.systemHeader', { system: system.ordinal + 1 })}
               </div>
 
               {system.staffs.map((staff, idx) => (
@@ -152,7 +151,7 @@ export function LabelStep() {
 
               <button
                 className={styles.applyButton}
-                onClick={() => handleApplyToAll(currentPageIndex, system.systemIndex)}
+                onClick={() => handleApplyToAll(system.systemId)}
               >
                 {t('label.applyToAll')}
               </button>

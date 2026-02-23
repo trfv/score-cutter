@@ -13,7 +13,8 @@ import {
 import { runDetectionPipeline } from '../workers/detectionPipeline';
 import { createWorkerPool, isWorkerAvailable } from '../workers/workerPool';
 import type { SystemBoundary } from '../core/staffDetector';
-import type { Staff } from '../core/staffModel';
+import type { Staff, System } from '../core/staffModel';
+import { getPageSystems } from '../core/staffModel';
 import { StepToolbar } from './StepToolbar';
 import styles from './SystemStep.module.css';
 
@@ -31,7 +32,7 @@ export function SystemStep() {
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
 
-  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs } = project;
+  const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
 
   const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
   const effectiveScale = DETECT_SCALE * displayRatio;
@@ -104,25 +105,34 @@ export function SystemStep() {
         });
       }
 
-      // Phase 3: Convert results to Staffs
+      // Phase 3: Convert results to Systems and Staffs
       const allStaffs: Staff[] = [];
+      const allSystems: System[] = [];
       for (const result of results) {
         const dim = pageDimensions[result.pageIndex];
         for (let sysIdx = 0; sysIdx < result.systems.length; sysIdx++) {
-          for (const part of result.systems[sysIdx].parts) {
+          const sysBoundary = result.systems[sysIdx];
+          const system: System = {
+            id: uuidv4(),
+            pageIndex: result.pageIndex,
+            top: canvasYToPdfY(sysBoundary.topPx, dim.height, DETECT_SCALE),
+            bottom: canvasYToPdfY(sysBoundary.bottomPx, dim.height, DETECT_SCALE),
+          };
+          allSystems.push(system);
+          for (const part of sysBoundary.parts) {
             allStaffs.push({
               id: uuidv4(),
               pageIndex: result.pageIndex,
               top: canvasYToPdfY(part.topPx, dim.height, DETECT_SCALE),
               bottom: canvasYToPdfY(part.bottomPx, dim.height, DETECT_SCALE),
               label: '',
-              systemIndex: sysIdx,
+              systemId: system.id,
             });
           }
         }
       }
 
-      dispatch({ type: 'SET_STAFFS', staffs: allStaffs });
+      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: allStaffs, systems: allSystems });
     } finally {
       setDetecting(false);
       setProgress(null);
@@ -142,12 +152,12 @@ export function SystemStep() {
     (systemSepIndex: number, newCanvasY: number) => {
       const dim = pageDimensions[currentPageIndex];
       if (!dim) return;
-      const updated = reassignStaffsByDrag(
-        staffs, currentPageIndex, systemSepIndex, newCanvasY, dim.height, effectiveScale,
+      const { staffs: updatedStaffs, systems: updatedSystems } = reassignStaffsByDrag(
+        staffs, currentPageIndex, systemSepIndex, newCanvasY, dim.height, effectiveScale, systems,
       );
-      dispatch({ type: 'SET_STAFFS', staffs: updated });
+      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updatedStaffs, systems: updatedSystems });
     },
-    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+    [staffs, systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
   const handleSplitSystem = useCallback(
@@ -155,18 +165,18 @@ export function SystemStep() {
       const dim = pageDimensions[currentPageIndex];
       if (!dim) return;
       const pdfY = canvasYToPdfY(canvasY, dim.height, effectiveScale);
-      const updated = splitSystemAtPosition(staffs, currentPageIndex, pdfY);
-      dispatch({ type: 'SET_STAFFS', staffs: updated });
+      const { staffs: updatedStaffs, systems: updatedSystems } = splitSystemAtPosition(staffs, currentPageIndex, pdfY, systems);
+      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updatedStaffs, systems: updatedSystems });
     },
-    [staffs, currentPageIndex, pageDimensions, effectiveScale, dispatch],
+    [staffs, systems, currentPageIndex, pageDimensions, effectiveScale, dispatch],
   );
 
   const handleMergeSystem = useCallback(
     (upperSystemIndex: number) => {
-      const updated = mergeAdjacentSystems(staffs, currentPageIndex, upperSystemIndex);
-      dispatch({ type: 'SET_STAFFS', staffs: updated });
+      const { staffs: updatedStaffs, systems: updatedSystems } = mergeAdjacentSystems(staffs, currentPageIndex, upperSystemIndex, systems);
+      dispatch({ type: 'SET_STAFFS_AND_SYSTEMS', staffs: updatedStaffs, systems: updatedSystems });
     },
-    [staffs, currentPageIndex, dispatch],
+    [staffs, systems, currentPageIndex, dispatch],
   );
 
 
@@ -191,29 +201,29 @@ export function SystemStep() {
   }, [dispatch]);
 
   const currentPageSystems = useMemo(() => {
-    const bySystem = new Map<number, Staff[]>();
+    const pageSystems = getPageSystems(systems, currentPageIndex);
+    const staffsBySystemId = new Map<string, Staff[]>();
     for (const s of staffs) {
       if (s.pageIndex !== currentPageIndex) continue;
-      if (!bySystem.has(s.systemIndex)) bySystem.set(s.systemIndex, []);
-      bySystem.get(s.systemIndex)!.push(s);
+      if (!staffsBySystemId.has(s.systemId)) staffsBySystemId.set(s.systemId, []);
+      staffsBySystemId.get(s.systemId)!.push(s);
     }
-    return [...bySystem.entries()]
-      .sort(([a], [b]) => a - b)
-      .map(([systemIndex, stfs]) => {
-        const sorted = stfs.slice().sort((a, b) => b.top - a.top);
-        return {
-          systemIndex,
-          staffs: sorted,
-          top: sorted[0].top,
-          bottom: sorted[sorted.length - 1].bottom,
-        };
-      });
-  }, [staffs, currentPageIndex]);
+    return pageSystems.map((sys, ordinal) => {
+      const sysStaffs = staffsBySystemId.get(sys.id) ?? [];
+      const sorted = sysStaffs.slice().sort((a, b) => b.top - a.top);
+      return {
+        ordinal: ordinal,
+        systemId: sys.id,
+        staffs: sorted,
+        top: sys.top,
+        bottom: sys.bottom,
+      };
+    });
+  }, [staffs, systems, currentPageIndex]);
 
   if (!pdfDocument) return null;
 
   const currentDimension = pageDimensions[currentPageIndex];
-  const pageStaffs = staffs.filter((s) => s.pageIndex === currentPageIndex);
 
   return (
     <div className={styles.container}>
@@ -229,7 +239,7 @@ export function SystemStep() {
         }}
       >
         <span className={styles.staffCount}>
-          {t('detect.systemCount', { count: new Set(pageStaffs.map((s) => s.systemIndex)).size })}
+          {t('detect.systemCount', { count: getPageSystems(systems, currentPageIndex).length })}
         </span>
       </StepToolbar>
 
@@ -240,9 +250,9 @@ export function SystemStep() {
             <p className={styles.emptyMessage}>{t('sidebar.noStaffsOnPage')}</p>
           ) : (
             currentPageSystems.map((sys) => (
-              <div key={sys.systemIndex} className={styles.systemSection}>
+              <div key={sys.ordinal} className={styles.systemSection}>
                 <div className={styles.systemHeader}>
-                  {t('label.systemHeader', { system: sys.systemIndex + 1 })}
+                  {t('label.systemHeader', { system: sys.ordinal + 1 })}
                 </div>
                 <div className={styles.systemMeta}>
                   {t('sidebar.staffCountInSystem', { count: sys.staffs.length })}
@@ -269,6 +279,7 @@ export function SystemStep() {
             {currentDimension && !detecting && (
               <SystemOverlay
                 staffs={staffs}
+                systems={systems}
                 pageIndex={currentPageIndex}
                 pdfPageHeight={currentDimension.height}
                 scale={effectiveScale}
