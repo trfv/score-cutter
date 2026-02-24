@@ -38,15 +38,11 @@ export function detectStaffBoundaries(
   }
 
   // Last staff to bottom of page
-  /* v8 ignore start -- currentTop is always < projection.length for non-empty projections with ordered gaps */
-  if (currentTop < projection.length) {
-  /* v8 ignore stop */
-    const hasContent = projection
-      .slice(currentTop, projection.length)
-      .some((v) => v > absoluteThreshold);
-    if (hasContent) {
-      staffs.push({ topPx: currentTop, bottomPx: projection.length });
-    }
+  const hasContent = projection
+    .slice(currentTop, projection.length)
+    .some((v) => v > absoluteThreshold);
+  if (hasContent) {
+    staffs.push({ topPx: currentTop, bottomPx: projection.length });
   }
 
   return staffs;
