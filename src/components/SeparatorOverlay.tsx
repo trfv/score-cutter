@@ -5,8 +5,6 @@ import { computeSystemGroups } from '../core/separatorModel';
 import type { Separator } from '../core/separatorModel';
 import styles from './SeparatorOverlay.module.css';
 
-const SEPARATOR_EXTENSION = 40;
-
 interface SeparatorOverlayProps {
   staffs: Staff[];
   pageIndex: number;
@@ -48,8 +46,12 @@ export function SeparatorOverlay({
 }: SeparatorOverlayProps) {
   const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
   const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale);
-  const separators = groups.flatMap(g => g.separators);
-  const regions = groups.flatMap(g => g.regions);
+  const separators = groups.flatMap(g =>
+    g.separators.map(sep => ({ ...sep, systemOrdinal: g.ordinal })),
+  );
+  const regions = groups.flatMap(g =>
+    g.regions.map(r => ({ ...r, systemOrdinal: g.ordinal })),
+  );
 
   const handleRegionClick = useCallback(
     (staffId: string) => {
@@ -114,7 +116,7 @@ export function SeparatorOverlay({
         return (
           <div
             key={region.staffId}
-            className={`${styles.region} ${isSelected ? styles.selected : ''}`}
+            className={`${styles.region} ${isSelected ? (region.systemOrdinal % 2 === 0 ? styles.selectedEven : styles.selectedOdd) : ''}`}
             style={{
               top: region.topCanvasY,
               height,
@@ -133,6 +135,7 @@ export function SeparatorOverlay({
           key={i}
           separator={sep}
           index={i}
+          systemOrdinal={sep.systemOrdinal}
           canvasWidth={canvasWidth}
           isSelected={!dragOnly && selectedSeparatorIndex === i}
           onSelect={handleSeparatorSelect}
@@ -149,6 +152,7 @@ export function SeparatorOverlay({
 interface SeparatorLineProps {
   separator: Separator;
   index: number;
+  systemOrdinal: number;
   canvasWidth: number;
   isSelected: boolean;
   onSelect: (index: number) => void;
@@ -158,13 +162,15 @@ interface SeparatorLineProps {
   dragOnly?: boolean;
 }
 
-function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, onDrag, onMerge, onDeleteStaff, dragOnly }: SeparatorLineProps) {
+function SeparatorLine({ separator, index, systemOrdinal, canvasWidth, isSelected, onSelect, onDrag, onMerge, onDeleteStaff, dragOnly }: SeparatorLineProps) {
   const { t } = useTranslation();
   const clickTimerRef = useRef<number | null>(null);
 
-  const kindClass = separator.kind === 'edge' ? styles.separatorEdge : styles.separatorPart;
+  const isEven = systemOrdinal % 2 === 0;
+  const kindClass = separator.kind === 'edge'
+    ? (isEven ? styles.separatorEdgeEven : styles.separatorEdgeOdd)
+    : (isEven ? styles.separatorPartEven : styles.separatorPartOdd);
   const isMergeable = separator.kind === 'part';
-  const leftExtension = dragOnly ? 0 : SEPARATOR_EXTENSION;
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -285,8 +291,7 @@ function SeparatorLine({ separator, index, canvasWidth, isSelected, onSelect, on
       className={`${styles.separator} ${kindClass} ${isSelected ? styles.selectedSeparator : ''}`}
       style={{
         top: separator.canvasY,
-        left: -leftExtension,
-        width: canvasWidth + leftExtension + SEPARATOR_EXTENSION,
+        width: canvasWidth,
       }}
       tabIndex={dragOnly ? -1 : 0}
       role="separator"

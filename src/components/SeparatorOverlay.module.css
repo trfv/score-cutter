@@ -26,8 +26,12 @@
   pointer-events: auto;
 }
 
-.region.selected {
-  background: var(--overlay-region-selected);
+.region.selectedEven {
+  background: var(--overlay-region-selected-even);
+}
+
+.region.selectedOdd {
+  background: var(--overlay-region-selected-odd);
 }
 
 .separator {
@@ -55,23 +59,42 @@
   transition: height 0.2s, background 0.2s, opacity 0.2s;
 }
 
-/* Part (internal) separator */
-.separatorPart .line {
+/* Part (internal) separator — even system */
+.separatorPartEven .line {
   height: 2px;
   top: -0.5px;
-  background: var(--overlay-separator);
+  background: var(--overlay-separator-even);
 }
 
-.separatorPart:hover .line {
+.separatorPartEven:hover .line {
   height: 3px;
   top: -1px;
-  background: var(--overlay-separator-hover);
+  background: var(--overlay-separator-even-hover);
 }
 
-.separatorPart.selectedSeparator .line {
+/* Part (internal) separator — odd system */
+.separatorPartOdd .line {
+  height: 2px;
+  top: -0.5px;
+  background: var(--overlay-separator-odd);
+}
+
+.separatorPartOdd:hover .line {
+  height: 3px;
+  top: -1px;
+  background: var(--overlay-separator-odd-hover);
+}
+
+.separatorPartEven.selectedSeparator .line {
   height: 4px;
   top: -1.5px;
-  background: var(--overlay-separator-active);
+  background: var(--overlay-separator-even-active);
+}
+
+.separatorPartOdd.selectedSeparator .line {
+  height: 4px;
+  top: -1.5px;
+  background: var(--overlay-separator-odd-active);
 }
 
 /* Focus-visible: keyboard focus ring */
@@ -79,24 +102,50 @@
   outline: none;
 }
 
-.separator:focus-visible .line {
+.separatorPartEven:focus-visible .line,
+.separatorEdgeEven:focus-visible .line {
   height: 4px;
   top: -1.5px;
-  background: var(--overlay-separator-active);
+  background: var(--overlay-separator-even-active);
   box-shadow: 0 0 0 2px rgba(244, 162, 97, 0.3);
 }
 
-/* Edge separator */
-.separatorEdge .line {
-  height: 2px;
-  top: -0.5px;
-  background: var(--overlay-edge);
+.separatorPartOdd:focus-visible .line,
+.separatorEdgeOdd:focus-visible .line {
+  height: 4px;
+  top: -1.5px;
+  background: var(--overlay-separator-odd-active);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.3);
 }
 
-.separatorEdge:hover .line {
+/* Edge separator — even system */
+.separatorEdgeEven .line {
+  height: 2px;
+  top: -0.5px;
+  background: var(--overlay-separator-even);
+  opacity: 0.7;
+}
+
+.separatorEdgeEven:hover .line {
   height: 3px;
   top: -1px;
-  background: var(--overlay-edge-hover);
+  background: var(--overlay-separator-even-hover);
+  opacity: 1;
+}
+
+/* Edge separator — odd system */
+.separatorEdgeOdd .line {
+  height: 2px;
+  top: -0.5px;
+  background: var(--overlay-separator-odd);
+  opacity: 0.7;
+}
+
+.separatorEdgeOdd:hover .line {
+  height: 3px;
+  top: -1px;
+  background: var(--overlay-separator-odd-hover);
+  opacity: 1;
 }
 
 .label {
@@ -200,18 +249,42 @@
   pointer-events: none;
 }
 
-.separator:hover .gripHandle {
-  border-color: var(--overlay-separator-hover);
+.separatorPartEven:hover .gripHandle,
+.separatorEdgeEven:hover .gripHandle {
+  border-color: var(--overlay-separator-even-hover);
 }
 
-.separator:hover .gripIcon {
-  border-color: var(--overlay-separator-hover);
+.separatorPartEven:hover .gripIcon,
+.separatorEdgeEven:hover .gripIcon {
+  border-color: var(--overlay-separator-even-hover);
 }
 
-.selectedSeparator .gripHandle {
-  border-color: var(--overlay-separator-active);
+.separatorPartOdd:hover .gripHandle,
+.separatorEdgeOdd:hover .gripHandle {
+  border-color: var(--overlay-separator-odd-hover);
 }
 
-.selectedSeparator .gripIcon {
-  border-color: var(--overlay-separator-active);
+.separatorPartOdd:hover .gripIcon,
+.separatorEdgeOdd:hover .gripIcon {
+  border-color: var(--overlay-separator-odd-hover);
+}
+
+.separatorPartEven.selectedSeparator .gripHandle,
+.separatorEdgeEven.selectedSeparator .gripHandle {
+  border-color: var(--overlay-separator-even-active);
+}
+
+.separatorPartEven.selectedSeparator .gripIcon,
+.separatorEdgeEven.selectedSeparator .gripIcon {
+  border-color: var(--overlay-separator-even-active);
+}
+
+.separatorPartOdd.selectedSeparator .gripHandle,
+.separatorEdgeOdd.selectedSeparator .gripHandle {
+  border-color: var(--overlay-separator-odd-active);
+}
+
+.separatorPartOdd.selectedSeparator .gripIcon,
+.separatorEdgeOdd.selectedSeparator .gripIcon {
+  border-color: var(--overlay-separator-odd-active);
 }

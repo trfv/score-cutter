@@ -53,6 +53,19 @@ export function SystemOverlay({
     });
   }
 
+  // Extend visual bounds so system rects meet at separator midpoints (no gaps)
+  const visualGroups = groups.map((group, i) => {
+    const visualTop =
+      i === 0
+        ? group.topCanvasY
+        : (groups[i - 1].bottomCanvasY + group.topCanvasY) / 2;
+    const visualBottom =
+      i === groups.length - 1
+        ? group.bottomCanvasY
+        : (group.bottomCanvasY + groups[i + 1].topCanvasY) / 2;
+    return { ...group, visualTop, visualBottom };
+  });
+
   const handleOverlayDoubleClick = useCallback(
     (e: React.MouseEvent) => {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -69,13 +82,13 @@ export function SystemOverlay({
       onDoubleClick={handleOverlayDoubleClick}
     >
       {/* System rectangles */}
-      {groups.map((group, gi) => (
+      {visualGroups.map((group, gi) => (
         <div
           key={group.systemId}
           className={`${styles.systemRect} ${SYSTEM_COLORS[gi % 2]}`}
           style={{
-            top: group.topCanvasY,
-            height: group.bottomCanvasY - group.topCanvasY,
+            top: group.visualTop,
+            height: group.visualBottom - group.visualTop,
             width: canvasWidth,
           }}
         />

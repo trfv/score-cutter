@@ -19,12 +19,20 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 
   --overlay-region-selected: rgba(244, 162, 97, 0.12);
+  --overlay-region-selected-even: rgba(244, 162, 97, 0.12);
+  --overlay-region-selected-odd: rgba(96, 165, 250, 0.12);
   --overlay-region-hover: rgba(244, 162, 97, 0.08);
-  --overlay-system-even: rgba(244, 162, 97, 0.06);
-  --overlay-system-odd: rgba(96, 165, 250, 0.06);
+  --overlay-system-even: rgba(244, 162, 97, 0.10);
+  --overlay-system-odd: rgba(96, 165, 250, 0.10);
   --overlay-separator: rgba(244, 162, 97, 0.5);
   --overlay-separator-hover: rgba(244, 162, 97, 0.8);
   --overlay-separator-active: rgba(244, 162, 97, 0.9);
+  --overlay-separator-even: rgba(244, 162, 97, 0.5);
+  --overlay-separator-even-hover: rgba(244, 162, 97, 0.8);
+  --overlay-separator-even-active: rgba(244, 162, 97, 0.9);
+  --overlay-separator-odd: rgba(96, 165, 250, 0.5);
+  --overlay-separator-odd-hover: rgba(96, 165, 250, 0.8);
+  --overlay-separator-odd-active: rgba(96, 165, 250, 0.9);
   --overlay-edge: rgba(244, 162, 97, 0.35);
   --overlay-edge-hover: rgba(244, 162, 97, 0.6);
   --overlay-label-bg: rgba(26, 27, 46, 0.85);
@@ -59,12 +67,20 @@
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   --overlay-region-selected: rgba(244, 162, 97, 0.1);
+  --overlay-region-selected-even: rgba(217, 144, 74, 0.1);
+  --overlay-region-selected-odd: rgba(74, 144, 217, 0.1);
   --overlay-region-hover: rgba(244, 162, 97, 0.06);
-  --overlay-system-even: rgba(74, 144, 217, 0.06);
-  --overlay-system-odd: rgba(217, 144, 74, 0.06);
+  --overlay-system-even: rgba(74, 144, 217, 0.10);
+  --overlay-system-odd: rgba(217, 144, 74, 0.10);
   --overlay-separator: rgba(100, 100, 100, 0.5);
   --overlay-separator-hover: rgba(100, 100, 100, 0.8);
   --overlay-separator-active: rgba(244, 162, 97, 0.9);
+  --overlay-separator-even: rgba(217, 144, 74, 0.5);
+  --overlay-separator-even-hover: rgba(217, 144, 74, 0.8);
+  --overlay-separator-even-active: rgba(217, 144, 74, 0.9);
+  --overlay-separator-odd: rgba(74, 144, 217, 0.5);
+  --overlay-separator-odd-hover: rgba(74, 144, 217, 0.8);
+  --overlay-separator-odd-active: rgba(74, 144, 217, 0.9);
   --overlay-edge: rgba(100, 100, 100, 0.3);
   --overlay-edge-hover: rgba(100, 100, 100, 0.5);
   --overlay-label-bg: rgba(255, 255, 255, 0.85);
