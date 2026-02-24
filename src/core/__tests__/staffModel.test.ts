@@ -12,6 +12,7 @@ import {
   getPageSystems,
   getSystemOrdinal,
   buildSystemOrdinalMap,
+  staffsMatchSystems,
 } from '../staffModel';
 
 function makeStaff(overrides: Partial<Staff> & { id: string }): Staff {
@@ -487,6 +488,45 @@ describe('getSystemOrdinal', () => {
     expect(getSystemOrdinal(systems, 0, 's1')).toBe(0);
     expect(getSystemOrdinal(systems, 0, 's2')).toBe(1);
     expect(getSystemOrdinal(systems, 1, 's3')).toBe(0);
+  });
+});
+
+describe('staffsMatchSystems', () => {
+  it('returns false for empty staffs', () => {
+    const systems: System[] = [makeSystem({ id: 's1' })];
+    expect(staffsMatchSystems([], systems)).toBe(false);
+  });
+
+  it('returns true when all staff systemIds match existing systems', () => {
+    const systems: System[] = [
+      makeSystem({ id: 'sys-A' }),
+      makeSystem({ id: 'sys-B' }),
+    ];
+    const staffs = [
+      makeStaff({ id: 'a', systemId: 'sys-A' }),
+      makeStaff({ id: 'b', systemId: 'sys-B' }),
+    ];
+    expect(staffsMatchSystems(staffs, systems)).toBe(true);
+  });
+
+  it('returns false when a staff systemId does not exist in systems', () => {
+    const systems: System[] = [makeSystem({ id: 'sys-A' })];
+    const staffs = [
+      makeStaff({ id: 'a', systemId: 'sys-A' }),
+      makeStaff({ id: 'b', systemId: 'sys-DELETED' }),
+    ];
+    expect(staffsMatchSystems(staffs, systems)).toBe(false);
+  });
+
+  it('returns false when systems is empty but staffs exist', () => {
+    const staffs = [makeStaff({ id: 'a', systemId: 'sys-A' })];
+    expect(staffsMatchSystems(staffs, [])).toBe(false);
+  });
+
+  it('returns true for single staff matching single system', () => {
+    const systems: System[] = [makeSystem({ id: 'sys-X' })];
+    const staffs = [makeStaff({ id: 'a', systemId: 'sys-X' })];
+    expect(staffsMatchSystems(staffs, systems)).toBe(true);
   });
 });
 

@@ -45,6 +45,11 @@ export function buildSystemOrdinalMap(systems: System[], pageIndex: number): Map
   return map;
 }
 
+export function staffsMatchSystems(staffs: Staff[], systems: System[]): boolean {
+  const systemIds = new Set(systems.map(s => s.id));
+  return staffs.length > 0 && staffs.every(s => systemIds.has(s.systemId));
+}
+
 export function applySystemLabelsToAll(
   staffs: Staff[],
   templateSystemId: string,

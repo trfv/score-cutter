@@ -24,6 +24,7 @@
     "systemCount": "{{count}} systems",
     "page": "Page {{current}} / {{total}}",
     "progress": "Processing {{completed}} / {{total}} pages",
+    "detectingStaffs": "Detecting staffs...",
     "deleteSeparator": "Delete separator",
     "deleteSystemSeparator": "System boundary",
     "deleteStaff": "Delete staff"
@@ -77,7 +78,6 @@
     "systemStructure": "System Structure",
     "staffStructure": "Staff Structure",
     "noStaffsOnPage": "No staffs on this page",
-    "staffCountInSystem": "{{count}} staffs",
     "pdfYRange": "Y: {{top}} → {{bottom}}"
   },
   "common": {

@@ -24,6 +24,7 @@
     "systemCount": "{{count}} 個の組段",
     "page": "ページ {{current}} / {{total}}",
     "progress": "処理中 {{completed}}/{{total}} ページ",
+    "detectingStaffs": "譜表を検出中...",
     "deleteSeparator": "区切り線を削除",
     "deleteSystemSeparator": "組段の境界",
     "deleteStaff": "譜表を削除"
@@ -77,7 +78,6 @@
     "systemStructure": "組段構造",
     "staffStructure": "譜表構造",
     "noStaffsOnPage": "この頁に譜表がありません",
-    "staffCountInSystem": "{{count}} 譜表",
     "pdfYRange": "Y: {{top}} → {{bottom}}"
   },
   "common": {

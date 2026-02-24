@@ -11,6 +11,9 @@ import {
   splitStaffAtPosition,
   mergeSeparator,
   addStaffAtPosition,
+  dragSystemBoundary,
+  splitSystemAtPdfY,
+  mergeAdjacentSystemsOnly,
 } from '../separatorModel';
 
 // Helper: create a Staff with defaults
@@ -1330,6 +1333,169 @@ describe('separatorModel', () => {
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });
+    });
+  });
+
+  describe('dragSystemBoundary', () => {
+    it('updates upper.bottom and lower.top to newPdfY', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      const result = dragSystemBoundary(systems, 0, 0, 500);
+      const sys0 = result.find(s => s.id === 'sys-0')!;
+      const sys1 = result.find(s => s.id === 'sys-1')!;
+      expect(sys0.bottom).toBe(500);
+      expect(sys1.top).toBe(500);
+    });
+
+    it('returns systems unchanged for out-of-range sepIndex', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+      ];
+      expect(dragSystemBoundary(systems, 0, 5, 500)).toEqual(systems);
+    });
+
+    it('returns systems unchanged for negative sepIndex', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      expect(dragSystemBoundary(systems, 0, -1, 500)).toEqual(systems);
+    });
+
+    it('does not affect systems on other pages', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        { id: 'sys-p1', pageIndex: 1, top: 700, bottom: 300 },
+      ];
+      const result = dragSystemBoundary(systems, 0, 0, 500);
+      const sysP1 = result.find(s => s.id === 'sys-p1')!;
+      expect(sysP1.top).toBe(700);
+      expect(sysP1.bottom).toBe(300);
+    });
+
+    it('handles three systems, dragging between second and third', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 350 },
+        { id: 'sys-2', pageIndex: 0, top: 250, bottom: 50 },
+      ];
+      const result = dragSystemBoundary(systems, 0, 1, 300);
+      expect(result.find(s => s.id === 'sys-1')!.bottom).toBe(300);
+      expect(result.find(s => s.id === 'sys-2')!.top).toBe(300);
+      // sys-0 unchanged
+      expect(result.find(s => s.id === 'sys-0')!.bottom).toBe(550);
+    });
+  });
+
+  describe('splitSystemAtPdfY', () => {
+    it('splits a system into two at the given pdfY', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+      ];
+      const result = splitSystemAtPdfY(systems, 0, 550);
+      expect(result).toHaveLength(2);
+      const original = result.find(s => s.id === 'sys-0')!;
+      expect(original.bottom).toBe(550);
+      const newSys = result.find(s => s.id !== 'sys-0')!;
+      expect(newSys.top).toBe(550);
+      expect(newSys.bottom).toBe(350);
+      expect(newSys.pageIndex).toBe(0);
+    });
+
+    it('returns systems unchanged when pdfY is outside all systems', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+      ];
+      expect(splitSystemAtPdfY(systems, 0, 100)).toEqual(systems);
+    });
+
+    it('returns systems unchanged when pdfY is above all systems', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+      ];
+      expect(splitSystemAtPdfY(systems, 0, 800)).toEqual(systems);
+    });
+
+    it('does not affect systems on other pages', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 350 },
+        { id: 'sys-p1', pageIndex: 1, top: 700, bottom: 300 },
+      ];
+      const result = splitSystemAtPdfY(systems, 0, 550);
+      const sysP1 = result.find(s => s.id === 'sys-p1')!;
+      expect(sysP1.top).toBe(700);
+      expect(sysP1.bottom).toBe(300);
+    });
+
+    it('splits one of three systems', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        { id: 'sys-2', pageIndex: 0, top: 150, bottom: 50 },
+      ];
+      const result = splitSystemAtPdfY(systems, 0, 350);
+      expect(result).toHaveLength(4);
+      expect(result.find(s => s.id === 'sys-1')!.bottom).toBe(350);
+      const newSys = result.find(s => s.id !== 'sys-0' && s.id !== 'sys-1' && s.id !== 'sys-2')!;
+      expect(newSys.top).toBe(350);
+      expect(newSys.bottom).toBe(250);
+    });
+  });
+
+  describe('mergeAdjacentSystemsOnly', () => {
+    it('merges two systems: upper absorbs lower bottom', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      const result = mergeAdjacentSystemsOnly(systems, 0, 0);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('sys-0');
+      expect(result[0].top).toBe(750);
+      expect(result[0].bottom).toBe(250);
+    });
+
+    it('returns systems unchanged for out-of-range upperSystemIndex', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+      ];
+      expect(mergeAdjacentSystemsOnly(systems, 0, 5)).toEqual(systems);
+    });
+
+    it('returns systems unchanged for negative upperSystemIndex', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+      ];
+      expect(mergeAdjacentSystemsOnly(systems, 0, -1)).toEqual(systems);
+    });
+
+    it('merges middle pair of three systems', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 350 },
+        { id: 'sys-2', pageIndex: 0, top: 250, bottom: 50 },
+      ];
+      const result = mergeAdjacentSystemsOnly(systems, 0, 1);
+      expect(result).toHaveLength(2);
+      expect(result.find(s => s.id === 'sys-0')!.top).toBe(750);
+      expect(result.find(s => s.id === 'sys-1')!.bottom).toBe(50);
+      expect(result.find(s => s.id === 'sys-2')).toBeUndefined();
+    });
+
+    it('does not affect systems on other pages', () => {
+      const systems: System[] = [
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 550 },
+        { id: 'sys-1', pageIndex: 0, top: 450, bottom: 250 },
+        { id: 'sys-p1', pageIndex: 1, top: 700, bottom: 300 },
+      ];
+      const result = mergeAdjacentSystemsOnly(systems, 0, 0);
+      const sysP1 = result.find(s => s.id === 'sys-p1')!;
+      expect(sysP1.top).toBe(700);
+      expect(sysP1.bottom).toBe(300);
     });
   });
 });

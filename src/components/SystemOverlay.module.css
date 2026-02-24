@@ -21,13 +21,6 @@
   background: var(--overlay-system-odd);
 }
 
-/* Staff preview within a system */
-.staffPreview {
-  position: absolute;
-  left: 0;
-  pointer-events: none;
-}
-
 /* System separator between two system groups */
 .systemSeparator {
   position: absolute;

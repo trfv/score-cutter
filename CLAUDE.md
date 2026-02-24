@@ -46,8 +46,10 @@ Each step is a React component in `src/components/` rendered by `App.tsx` based 
 
 Pure functions with no React dependencies. This is where all domain logic lives:
 
-- **staffModel.ts** — `Staff`, `System`, `Part`, `PageDimension` types and domain logic. `System` is a first-class entity stored in `ProjectState.systems`; `Staff.systemId` references `System.id`. Includes part derivation (`derivePartsFromStaffs`), label propagation (`applySystemLabelsToAll`), and validation functions consumed by StaffStep/LabelStep via `getStaffStepValidations()` / `getLabelStepValidations()`.
-- **separatorModel.ts** — `Separator`, `SystemGroup`, `StaffRegion` types and staff/system boundary editing logic. Functions accept and return `{ staffs, systems }` to maintain both entities atomically. Covers separator drag, staff split/merge/add, and system split/merge/reassign operations.
+- **staffModel.ts** — `Staff`, `System`, `Part`, `PageDimension` types and domain logic. `System` is a first-class entity stored in `ProjectState.systems`; `Staff.systemId` references `System.id`. Includes part derivation (`derivePartsFromStaffs`), label propagation (`applySystemLabelsToAll`), consistency check (`staffsMatchSystems`), and validation functions consumed by StaffStep/LabelStep via `getStaffStepValidations()` / `getLabelStepValidations()`.
+- **separatorModel.ts** — `Separator` type and staff/system boundary editing logic (`SystemGroup`, `StaffRegion` are module-private). Staff-level functions accept and return `{ staffs, systems }` to maintain both entities atomically. Covers separator drag, staff split/merge/add, and system split/merge/reassign operations. Also provides system-only boundary operations (`dragSystemBoundary`, `splitSystemAtPdfY`, `mergeAdjacentSystemsOnly`) that modify only `System[]` without touching staffs.
+- **systemDetector.ts** — Detects system boundaries from horizontal projection data; extends first/last system to page edges. Uses `projectionAnalysis.ts` utilities.
+- **projectionAnalysis.ts** — Shared utilities for gap detection (`findGaps`) and content-bound calculation (`findContentBounds`) used by both system and staff detectors.
 - **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
 - **coordinateMapper.ts** — Bidirectional Canvas ↔ PDF coordinate conversion (scale = DPI / 72)
@@ -61,7 +63,7 @@ Pure functions with no React dependencies. This is where all domain logic lives:
 
 useReducer + React Context split into three contexts:
 - **ProjectContext** (read state) / **ProjectDispatchContext** (dispatch actions) / **UndoRedoContext** (canUndo/canRedo flags)
-- Undoable actions (SET_STAFFS, SET_STAFFS_AND_SYSTEMS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF) push to undo history; undo/redo snapshots contain both `staffs` and `systems` atomically via `UndoableSnapshot`
+- Undoable actions (SET_STAFFS, SET_STAFFS_AND_SYSTEMS, SET_SYSTEMS, UPDATE_STAFF, ADD_STAFF, DELETE_STAFF) push to undo history; undo/redo snapshots contain both `staffs` and `systems` atomically via `UndoableSnapshot`
 - Action types defined in `projectContextDefs.ts`, reducer in `ProjectContext.tsx`, consumer hooks (`useProject`, `useProjectDispatch`) in `projectHooks.ts`
 - `ProjectContext.tsx` exports `projectReducer`, `combinedReducer`, `toSnapshot`, `UNDOABLE_ACTIONS`, `MAX_UNDO` for unit testing
 
@@ -74,7 +76,7 @@ useReducer + React Context split into three contexts:
 
 ### Detection Pipeline
 
-PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horizontal projection → gap detection (20px min) → System entities + Staff objects (linked via `systemId`)
+PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horizontal projection → gap detection (20px min) → System entities + Staff objects (linked via `systemId`). First/last system boundaries are extended to page edges so system regions cover the full page extent.
 
 ### PDF Assembly
 

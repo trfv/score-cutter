@@ -11,7 +11,7 @@ describe('detectSystemBoundaries', () => {
     expect(detectSystemBoundaries([])).toEqual([]);
   });
 
-  it('should return boundaries tight to content edges for a single system', () => {
+  it('should extend single system to page edges', () => {
     const projection = [
       ...new Array(20).fill(0),   // top margin
       ...new Array(60).fill(100), // content (20..80)
@@ -19,21 +19,21 @@ describe('detectSystemBoundaries', () => {
     ];
     const systems = detectSystemBoundaries(projection, 10);
     expect(systems).toHaveLength(1);
-    expect(systems[0]).toEqual({ topPx: 20, bottomPx: 80 });
+    expect(systems[0]).toEqual({ topPx: 0, bottomPx: 100 });
   });
 
-  it('should return boundaries tight to content edges for two systems', () => {
+  it('should extend first and last system to page edges for two systems', () => {
     const projection = [
       ...new Array(20).fill(0),   // top margin
-      ...new Array(40).fill(100), // system 1 (20..60)
+      ...new Array(40).fill(100), // system 1 (content 20..60)
       ...new Array(60).fill(0),   // large gap
-      ...new Array(40).fill(100), // system 2 (120..160)
+      ...new Array(40).fill(100), // system 2 (content 120..160)
       ...new Array(20).fill(0),   // bottom margin
     ];
     const systems = detectSystemBoundaries(projection, 50);
     expect(systems).toHaveLength(2);
-    expect(systems[0]).toEqual({ topPx: 20, bottomPx: 60 });
-    expect(systems[1]).toEqual({ topPx: 120, bottomPx: 160 });
+    expect(systems[0]).toEqual({ topPx: 0, bottomPx: 60 });
+    expect(systems[1]).toEqual({ topPx: 120, bottomPx: 180 });
   });
 
   it('should not split on gaps smaller than minGapHeight', () => {
@@ -46,10 +46,10 @@ describe('detectSystemBoundaries', () => {
     ];
     const systems = detectSystemBoundaries(projection, 50);
     expect(systems).toHaveLength(1);
-    expect(systems[0]).toEqual({ topPx: 10, bottomPx: 90 });
+    expect(systems[0]).toEqual({ topPx: 0, bottomPx: 100 });
   });
 
-  it('should skip empty regions between gaps', () => {
+  it('should extend single system to page edges even with large margins', () => {
     // Two large gaps with no content between them
     const projection = [
       ...new Array(60).fill(0),   // large gap 1
@@ -58,6 +58,26 @@ describe('detectSystemBoundaries', () => {
     ];
     const systems = detectSystemBoundaries(projection, 50);
     expect(systems).toHaveLength(1);
-    expect(systems[0]).toEqual({ topPx: 60, bottomPx: 90 });
+    expect(systems[0]).toEqual({ topPx: 0, bottomPx: 150 });
+  });
+
+  it('should keep internal boundaries tight to content for three systems', () => {
+    const projection = [
+      ...new Array(10).fill(0),   // top margin
+      ...new Array(20).fill(100), // system 1
+      ...new Array(60).fill(0),   // gap
+      ...new Array(20).fill(100), // system 2 (content 90..110)
+      ...new Array(60).fill(0),   // gap
+      ...new Array(20).fill(100), // system 3
+      ...new Array(10).fill(0),   // bottom margin
+    ];
+    const systems = detectSystemBoundaries(projection, 50);
+    expect(systems).toHaveLength(3);
+    // First system extends to page top
+    expect(systems[0].topPx).toBe(0);
+    // Middle system keeps content-tight boundaries
+    expect(systems[1]).toEqual({ topPx: 90, bottomPx: 110 });
+    // Last system extends to page bottom
+    expect(systems[2].bottomPx).toBe(200);
   });
 });

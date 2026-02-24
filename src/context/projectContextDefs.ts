@@ -29,6 +29,7 @@ export type ProjectAction =
     }
   | { type: 'SET_STAFFS'; staffs: Staff[] }
   | { type: 'SET_STAFFS_AND_SYSTEMS'; staffs: Staff[]; systems: System[] }
+  | { type: 'SET_SYSTEMS'; systems: System[] }
   | { type: 'UPDATE_STAFF'; staff: Staff }
   | { type: 'ADD_STAFF'; staff: Staff }
   | { type: 'DELETE_STAFF'; staffId: string }

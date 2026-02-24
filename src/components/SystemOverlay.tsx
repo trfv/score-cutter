@@ -1,15 +1,13 @@
 import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Staff, System } from '../core/staffModel';
+import type { System } from '../core/staffModel';
 import { getPageSystems } from '../core/staffModel';
-import { computeSystemGroups } from '../core/separatorModel';
-import type { SystemGroup } from '../core/separatorModel';
+import { pdfYToCanvasY } from '../core/coordinateMapper';
 import styles from './SystemOverlay.module.css';
 
 const SYSTEM_COLORS = [styles.systemRectEven, styles.systemRectOdd];
 
 interface SystemOverlayProps {
-  staffs: Staff[];
   systems: System[];
   pageIndex: number;
   pdfPageHeight: number;
@@ -24,7 +22,6 @@ interface SystemOverlayProps {
 }
 
 export function SystemOverlay({
-  staffs,
   systems,
   pageIndex,
   pdfPageHeight,
@@ -37,19 +34,22 @@ export function SystemOverlay({
   onSplitSystem,
   onMergeSystem,
 }: SystemOverlayProps) {
-  const pageStaffs = staffs.filter((s) => s.pageIndex === pageIndex);
   const pageSystems = getPageSystems(systems, pageIndex);
-  const groups = computeSystemGroups(pageStaffs, pdfPageHeight, scale, pageSystems);
+  const groups = pageSystems.map((sys, ordinal) => ({
+    ordinal,
+    systemId: sys.id,
+    topCanvasY: pdfYToCanvasY(sys.top, pdfPageHeight, scale),
+    bottomCanvasY: pdfYToCanvasY(sys.bottom, pdfPageHeight, scale),
+  }));
 
   // Build system separator positions (between adjacent system groups)
-  const systemSeps: Array<{ canvasY: number; upperGroup: SystemGroup; lowerGroup: SystemGroup }> = [];
+  const systemSeps: Array<{ canvasY: number; upperOrdinal: number }> = [];
   for (let i = 0; i < groups.length - 1; i++) {
     const upper = groups[i];
     const lower = groups[i + 1];
     systemSeps.push({
       canvasY: (upper.bottomCanvasY + lower.topCanvasY) / 2,
-      upperGroup: upper,
-      lowerGroup: lower,
+      upperOrdinal: upper.ordinal,
     });
   }
 
@@ -78,20 +78,7 @@ export function SystemOverlay({
             height: group.bottomCanvasY - group.topCanvasY,
             width: canvasWidth,
           }}
-        >
-          {/* Staff preview rectangles within system */}
-          {group.regions.map((region) => (
-            <div
-              key={region.staffId}
-              className={styles.staffPreview}
-              style={{
-                top: region.topCanvasY - group.topCanvasY,
-                height: region.bottomCanvasY - region.topCanvasY,
-                width: canvasWidth,
-              }}
-            />
-          ))}
-        </div>
+        />
       ))}
 
       {/* System separators between groups */}
@@ -104,7 +91,7 @@ export function SystemOverlay({
           isSelected={selectedSystemSepIndex === i}
           onSelect={onSelectSystemSep}
           onDrag={onSystemSepDrag}
-          onMerge={() => onMergeSystem(sep.upperGroup.ordinal)}
+          onMerge={() => onMergeSystem(sep.upperOrdinal)}
         />
       ))}
     </div>

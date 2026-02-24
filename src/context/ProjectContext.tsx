@@ -28,6 +28,7 @@ export interface UndoableSnapshot {
 export const UNDOABLE_ACTIONS = new Set([
   'SET_STAFFS',
   'SET_STAFFS_AND_SYSTEMS',
+  'SET_SYSTEMS',
   'UPDATE_STAFF',
   'ADD_STAFF',
   'DELETE_STAFF',
@@ -56,6 +57,8 @@ export function projectReducer(state: ProjectState, action: ProjectAction): Proj
       return { ...state, staffs: action.staffs };
     case 'SET_STAFFS_AND_SYSTEMS':
       return { ...state, staffs: action.staffs, systems: action.systems };
+    case 'SET_SYSTEMS':
+      return { ...state, systems: action.systems };
     case 'UPDATE_STAFF':
       return {
         ...state,

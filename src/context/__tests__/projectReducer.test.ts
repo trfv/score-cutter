@@ -123,6 +123,14 @@ describe('projectReducer', () => {
     expect(result).toEqual(initialState);
   });
 
+  it('SET_SYSTEMS replaces systems array leaving staffs unchanged', () => {
+    const state = { ...initialState, staffs: [mockStaff], systems: [] };
+    const newSystems = [mockSystem];
+    const result = projectReducer(state, { type: 'SET_SYSTEMS', systems: newSystems });
+    expect(result.systems).toBe(newSystems);
+    expect(result.staffs).toBe(state.staffs);
+  });
+
   it('unknown action type returns state unchanged', () => {
     const result = projectReducer(initialState, { type: 'UNKNOWN' } as unknown as ProjectAction);
     expect(result).toBe(initialState);
@@ -200,6 +208,20 @@ describe('combinedReducer', () => {
     const result = combinedReducer(state, { type: 'SET_CURRENT_PAGE', pageIndex: 2 });
     expect(result.history).toBe(state.history);
   });
+
+  it('SET_SYSTEMS pushes to history and supports undo/redo', () => {
+    const state = makeCombinedState({ systems: [] });
+    const newSystems = [mockSystem];
+    const withSystems = combinedReducer(state, { type: 'SET_SYSTEMS', systems: newSystems });
+    expect(withSystems.project.systems).toEqual(newSystems);
+    expect(withSystems.history.past).toHaveLength(1);
+
+    const undone = combinedReducer(withSystems, { type: 'UNDO' });
+    expect(undone.project.systems).toEqual([]);
+
+    const redone = combinedReducer(undone, { type: 'REDO' });
+    expect(redone.project.systems).toEqual(newSystems);
+  });
 });
 
 describe('toSnapshot', () => {
@@ -214,6 +236,7 @@ describe('constants', () => {
   it('UNDOABLE_ACTIONS contains expected action types', () => {
     expect(UNDOABLE_ACTIONS.has('SET_STAFFS')).toBe(true);
     expect(UNDOABLE_ACTIONS.has('SET_STAFFS_AND_SYSTEMS')).toBe(true);
+    expect(UNDOABLE_ACTIONS.has('SET_SYSTEMS')).toBe(true);
     expect(UNDOABLE_ACTIONS.has('UPDATE_STAFF')).toBe(true);
     expect(UNDOABLE_ACTIONS.has('ADD_STAFF')).toBe(true);
     expect(UNDOABLE_ACTIONS.has('DELETE_STAFF')).toBe(true);

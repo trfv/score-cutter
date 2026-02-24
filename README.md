@@ -41,7 +41,6 @@
 | PDF 生成 | pdf-lib 1.17 |
 | ZIP 生成 | JSZip |
 | 多言語対応 | react-i18next |
-| ID 生成 | uuid |
 | テスト | Vitest + React Testing Library + jsdom |
 | スタイリング | CSS Modules + CSS カスタムプロパティ (デザイントークン) |
 
@@ -73,7 +72,9 @@ npm run dev
 src/
   core/                          # コアロジック（純粋関数、DOM 非依存）
     staffModel.ts                #   データ型定義 (Staff, System, Part, PageDimension) + ラベル一括適用 + バリデーション
-    separatorModel.ts            #   区切り線モデル (Separator 算出、ドラッグ・分割・結合・追加)
+    separatorModel.ts            #   区切り線モデル (Separator 算出、ドラッグ・分割・結合・追加) + 組段のみの境界操作
+    systemDetector.ts            #   水平投影データから組段境界を検出（ページ端まで拡張）
+    projectionAnalysis.ts        #   空白帯検出・コンテンツ境界算出（共通ユーティリティ）
     geometry.ts                  #   矩形演算ユーティリティ
     coordinateMapper.ts          #   Canvas ピクセル座標 ↔ PDF 座標 変換
     imageProcessing.ts           #   グレースケール / 二値化 / 水平投影
@@ -82,7 +83,7 @@ src/
     partAssembler.ts             #   pdf-lib でパート PDF を組み立て
     zipExporter.ts               #   全パート一括 ZIP 生成
     undoHistory.ts               #   Undo/Redo 履歴管理
-    __tests__/                   #   コアロジックの単体テスト (10 ファイル)
+    __tests__/                   #   コアロジックの単体テスト (12 ファイル)
   workers/                       # Web Worker 並列処理
     detectionPipeline.ts         #   検出パイプライン（画像処理→組段・譜表検出）
     detectionWorker.ts           #   Worker エントリーポイント（handleMessage を export）
@@ -130,6 +131,7 @@ src/
 4. 各行の黒ピクセル数を集計（水平投影プロファイル）
 5. 投影値が最大値の 5% 以下の行が 20px 以上連続する帯を「空白帯」として検出
 6. 空白帯の中央を段の区切り位置とし、コンテンツのある領域をセグメントとして出力
+7. 最初の組段の上端をページ上端（0px）に、最後の組段の下端をページ下端に拡張
 
 検出結果はユーザーがドラッグ操作で調整可能。
 
@@ -148,14 +150,16 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-250 テスト（16 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
+296 テスト（18 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
 
 - `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
-- `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加、任意位置での組段分割
+- `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加、任意位置での組段分割、組段のみの境界操作
 - `geometry.test.ts` - 矩形の重なり判定、包含判定、クランプ
 - `coordinateMapper.test.ts` - Canvas↔PDF 座標変換の往復一致
 - `imageProcessing.test.ts` - グレースケール、二値化、水平投影
 - `staffDetector.test.ts` - 合成投影データでの境界検出
+- `systemDetector.test.ts` - 組段境界検出（ページ端拡張・複数組段）
+- `projectionAnalysis.test.ts` - 空白帯検出・コンテンツ境界算出
 - `pdfLoader.test.ts` - PDF ロード・レンダリング・キャンセル処理
 - `partAssembler.test.ts` - PDF 生成、ページ分割、出力妥当性
 - `zipExporter.test.ts` - ZIP 生成、ファイル構成、進捗コールバック

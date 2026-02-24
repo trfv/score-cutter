@@ -11,7 +11,7 @@ export interface Separator {
   staffBelowId: string | null;
 }
 
-export interface StaffRegion {
+interface StaffRegion {
   staffId: string;
   topCanvasY: number;
   bottomCanvasY: number;
@@ -19,7 +19,7 @@ export interface StaffRegion {
   systemId: string;
 }
 
-export interface SystemGroup {
+interface SystemGroup {
   ordinal: number;
   systemId: string;
   topCanvasY: number;
@@ -568,4 +568,77 @@ export function mergeSeparator(staffs: Staff[], staffAboveId: string, staffBelow
   return staffs
     .filter(s => s.id !== staffBelowId)
     .map(s => s.id === staffAboveId ? merged : s);
+}
+
+/**
+ * Drag a system separator to a new PDF Y position.
+ * Only modifies the adjacent systems' boundaries. No staff involvement.
+ */
+export function dragSystemBoundary(
+  systems: System[],
+  pageIndex: number,
+  sepIndex: number,
+  newPdfY: number,
+): System[] {
+  const pageSystems = getPageSystems(systems, pageIndex);
+  if (sepIndex < 0 || sepIndex >= pageSystems.length - 1) {
+    return systems;
+  }
+  const upperSystem = pageSystems[sepIndex];
+  const lowerSystem = pageSystems[sepIndex + 1];
+
+  return systems.map(sys => {
+    if (sys.id === upperSystem.id) return { ...sys, bottom: newPdfY };
+    if (sys.id === lowerSystem.id) return { ...sys, top: newPdfY };
+    return sys;
+  });
+}
+
+/**
+ * Split a system at a given PDF Y position.
+ * Creates a new System entity; no staff involvement.
+ */
+export function splitSystemAtPdfY(
+  systems: System[],
+  pageIndex: number,
+  pdfY: number,
+): System[] {
+  const pageSystems = getPageSystems(systems, pageIndex);
+  const target = pageSystems.find(sys => pdfY <= sys.top && pdfY >= sys.bottom);
+  if (!target) return systems;
+
+  const newSystem: System = {
+    id: crypto.randomUUID(),
+    pageIndex,
+    top: pdfY,
+    bottom: target.bottom,
+  };
+  const updatedTarget: System = { ...target, bottom: pdfY };
+
+  return [
+    ...systems.map(sys => sys.id === target.id ? updatedTarget : sys),
+    newSystem,
+  ];
+}
+
+/**
+ * Merge two adjacent systems on a page.
+ * Upper system absorbs lower system's bottom boundary. No staff involvement.
+ */
+export function mergeAdjacentSystemsOnly(
+  systems: System[],
+  pageIndex: number,
+  upperSystemIndex: number,
+): System[] {
+  const pageSystems = getPageSystems(systems, pageIndex);
+  if (upperSystemIndex < 0 || upperSystemIndex >= pageSystems.length - 1) {
+    return systems;
+  }
+  const upperSystem = pageSystems[upperSystemIndex];
+  const lowerSystem = pageSystems[upperSystemIndex + 1];
+
+  const mergedSystem: System = { ...upperSystem, bottom: lowerSystem.bottom };
+  return systems
+    .map(sys => sys.id === upperSystem.id ? mergedSystem : sys)
+    .filter(sys => sys.id !== lowerSystem.id);
 }
