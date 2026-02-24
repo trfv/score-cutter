@@ -408,29 +408,29 @@ describe('separatorModel', () => {
         expect(result).toEqual(staffs);
       });
 
-      it('returns empty systems when staff not found and systems param omitted', () => {
+      it('returns empty systems when staff not found with empty systems', () => {
         const staffs = [makeStaff({ id: 'a', top: 700, bottom: 600 })];
-        const result = splitSystemAtGap(staffs, 'nonexistent', 'a');
+        const result = splitSystemAtGap(staffs, 'nonexistent', 'a', []);
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });
 
-      it('returns empty systems when staffs in different systems and systems param omitted', () => {
+      it('returns empty systems when staffs in different systems with empty systems', () => {
         const staffs = [
           makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
           makeStaff({ id: 'b', top: 400, bottom: 300, systemId: 'sys-1' }),
         ];
-        const result = splitSystemAtGap(staffs, 'a', 'b');
+        const result = splitSystemAtGap(staffs, 'a', 'b', []);
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });
 
-      it('returns empty systems when systems param omitted and staffs in same system', () => {
+      it('returns empty systems when staffs in same system with empty systems', () => {
         const staffs = [
           makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
           makeStaff({ id: 'b', top: 500, bottom: 400, systemId: 'sys-0' }),
         ];
-        const result = splitSystemAtGap(staffs, 'a', 'b');
+        const result = splitSystemAtGap(staffs, 'a', 'b', []);
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });
@@ -588,11 +588,11 @@ describe('separatorModel', () => {
         expect(result).toEqual(staffs);
       });
 
-      it('returns unchanged when systems param is omitted', () => {
+      it('returns unchanged with empty systems', () => {
         const staffs = [
           makeStaff({ id: 'a', top: 700, bottom: 600 }),
         ];
-        const result = mergeAdjacentSystems(staffs, 0, 0);
+        const result = mergeAdjacentSystems(staffs, 0, 0, []);
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });
@@ -679,12 +679,12 @@ describe('separatorModel', () => {
         expect(result).toEqual(staffs);
       });
 
-      it('returns empty systems when systems param is omitted', () => {
+      it('returns empty systems with empty systems', () => {
         const staffs = [
           makeStaff({ id: 'a', top: 700, bottom: 600 }),
         ];
         const result = reassignStaffsByDrag(
-          staffs, 0, 0, 500, PAGE_HEIGHT, SCALE,
+          staffs, 0, 0, 500, PAGE_HEIGHT, SCALE, [],
         );
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
@@ -1038,13 +1038,13 @@ describe('separatorModel', () => {
         makeStaff({ id: 'b', pageIndex: 0, top: 400, bottom: 300, systemId: 'sys-1' }),
       ];
       // pdfY=650 is closest to staff a (center 650), farther from staff b (center 350)
-      const { staffs: result } = addStaffAtPosition(staffs, 0, 650, PAGE_HEIGHT);
+      const { staffs: result } = addStaffAtPosition(staffs, 0, 650, PAGE_HEIGHT, []);
       const added = result.find(s => s.id !== 'a' && s.id !== 'b')!;
       expect(added.systemId).toBe('sys-0');
     });
 
-    it('returns empty systems array when systems param omitted', () => {
-      const result = addStaffAtPosition([], 0, 400, PAGE_HEIGHT);
+    it('returns empty systems array with empty systems', () => {
+      const result = addStaffAtPosition([], 0, 400, PAGE_HEIGHT, []);
       expect(result.systems).toEqual([]);
       expect(result.staffs).toHaveLength(1);
     });
@@ -1316,20 +1316,20 @@ describe('separatorModel', () => {
         expect(result.staffs).toEqual(staffs);
       });
 
-      it('returns empty systems when pdfY is outside all groups and systems param omitted', () => {
+      it('returns empty systems when pdfY is outside all groups with empty systems', () => {
         const staffs = [
           makeStaff({ id: 'a', top: 700, bottom: 600, systemId: 'sys-0' }),
         ];
-        const result = splitSystemAtPosition(staffs, 0, 100);
+        const result = splitSystemAtPosition(staffs, 0, 100, []);
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });
 
-      it('returns empty systems when page has no staffs and systems param omitted', () => {
+      it('returns empty systems when page has no staffs with empty systems', () => {
         const staffs = [
           makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-0' }),
         ];
-        const result = splitSystemAtPosition(staffs, 0, 650);
+        const result = splitSystemAtPosition(staffs, 0, 650, []);
         expect(result.staffs).toEqual(staffs);
         expect(result.systems).toEqual([]);
       });

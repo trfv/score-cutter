@@ -215,18 +215,18 @@ export function splitSystemAtGap(
   staffs: Staff[],
   staffAboveId: string,
   staffBelowId: string,
-  systems?: System[],
+  systems: System[],
 ): { staffs: Staff[]; systems: System[] } {
   const above = staffs.find(s => s.id === staffAboveId);
   const below = staffs.find(s => s.id === staffBelowId);
-  if (!above || !below) return { staffs, systems: systems ?? [] };
+  if (!above || !below) return { staffs, systems };
 
   const pageIndex = above.pageIndex;
 
-  if (above.systemId !== below.systemId) return { staffs, systems: systems ?? [] };
+  if (above.systemId !== below.systemId) return { staffs, systems };
 
-  const sourceSystem = systems?.find(sys => sys.id === above.systemId);
-  if (!sourceSystem) return { staffs, systems: systems ?? [] };
+  const sourceSystem = systems.find(sys => sys.id === above.systemId);
+  if (!sourceSystem) return { staffs, systems };
 
   const splitPdfY = (above.bottom + below.top) / 2;
   const updatedSource: System = { ...sourceSystem, bottom: splitPdfY };
@@ -237,12 +237,10 @@ export function splitSystemAtGap(
     bottom: sourceSystem.bottom,
   };
 
-  /* v8 ignore start -- systems is always defined here (early return at line 229 catches undefined case) */
   const updatedSystems = [
-    ...(systems ?? []).map(sys => sys.id === sourceSystem.id ? updatedSource : sys),
+    ...systems.map(sys => sys.id === sourceSystem.id ? updatedSource : sys),
     newSystem,
   ];
-  /* v8 ignore stop */
 
   const belowTop = below.top;
   const updatedStaffs = staffs.map(s => {
@@ -265,21 +263,19 @@ export function mergeAdjacentSystems(
   staffs: Staff[],
   pageIndex: number,
   upperSystemIndex: number,
-  systems?: System[],
+  systems: System[],
 ): { staffs: Staff[]; systems: System[] } {
-  const pageSystems = getPageSystems(systems ?? [], pageIndex);
+  const pageSystems = getPageSystems(systems, pageIndex);
   if (upperSystemIndex < 0 || upperSystemIndex >= pageSystems.length - 1) {
-    return { staffs, systems: systems ?? [] };
+    return { staffs, systems };
   }
   const upperSystem = pageSystems[upperSystemIndex];
   const lowerSystem = pageSystems[upperSystemIndex + 1];
 
   const mergedSystem: System = { ...upperSystem, bottom: lowerSystem.bottom };
-  /* v8 ignore start -- systems is always defined here (early return at line 271 catches undefined case) */
-  const updatedSystems = (systems ?? [])
+  const updatedSystems = systems
     .map(sys => sys.id === upperSystem.id ? mergedSystem : sys)
     .filter(sys => sys.id !== lowerSystem.id);
-  /* v8 ignore stop */
 
   const updatedStaffs = staffs.map(s => {
     if (s.systemId === lowerSystem.id) {
@@ -304,11 +300,11 @@ export function reassignStaffsByDrag(
   newCanvasY: number,
   pdfPageHeight: number,
   scale: number,
-  systems?: System[],
+  systems: System[],
 ): { staffs: Staff[]; systems: System[] } {
-  const pageSystems = getPageSystems(systems ?? [], pageIndex);
+  const pageSystems = getPageSystems(systems, pageIndex);
   if (systemSepIndex < 0 || systemSepIndex >= pageSystems.length - 1) {
-    return { staffs, systems: systems ?? [] };
+    return { staffs, systems };
   }
   const upperSystem = pageSystems[systemSepIndex];
   const lowerSystem = pageSystems[systemSepIndex + 1];
@@ -331,9 +327,7 @@ export function reassignStaffsByDrag(
 
   // Update system boundaries to the drag position
   const newPdfBoundary = canvasYToPdfY(newCanvasY, pdfPageHeight, scale);
-  /* v8 ignore start -- systems is always defined here (early return at line 307 catches undefined case) */
-  const updatedSystems = (systems ?? []).map(sys => {
-  /* v8 ignore stop */
+  const updatedSystems = systems.map(sys => {
     if (sys.id === upperSystem.id) return { ...sys, bottom: newPdfBoundary };
     if (sys.id === lowerSystem.id) return { ...sys, top: newPdfBoundary };
     return sys;
@@ -398,10 +392,10 @@ export function splitSystemAtPosition(
   staffs: Staff[],
   pageIndex: number,
   pdfY: number,
-  systems?: System[],
+  systems: System[],
 ): { staffs: Staff[]; systems: System[] } {
   const pageStaffs = staffs.filter(s => s.pageIndex === pageIndex);
-  if (pageStaffs.length === 0) return { staffs, systems: systems ?? [] };
+  if (pageStaffs.length === 0) return { staffs, systems };
 
   // Group by systemId
   const groupMap = new Map<string, Staff[]>();
@@ -454,7 +448,7 @@ export function splitSystemAtPosition(
     }
   }
 
-  return { staffs, systems: systems ?? [] };
+  return { staffs, systems };
 }
 
 const DEFAULT_HALF_HEIGHT = 25;
@@ -469,7 +463,7 @@ export function addStaffAtPosition(
   pageIndex: number,
   pdfY: number,
   pdfPageHeight: number,
-  systems?: System[],
+  systems: System[],
 ): { staffs: Staff[]; systems: System[] } {
   const rawTop = pdfY + DEFAULT_HALF_HEIGHT;
   const rawBottom = pdfY - DEFAULT_HALF_HEIGHT;
@@ -516,7 +510,7 @@ export function addStaffAtPosition(
     systemId,
   };
 
-  return { staffs: [...staffs, newStaff], systems: systems ?? [] };
+  return { staffs: [...staffs, newStaff], systems };
 }
 
 const MIN_SPLIT_HEIGHT = 10;
