@@ -50,7 +50,7 @@ Pure functions with no React dependencies. This is where all domain logic lives:
 - **separatorModel.ts** — `Separator` type and staff/system boundary editing logic (`SystemGroup`, `StaffRegion` are module-private). Staff-level functions accept and return `{ staffs, systems }` to maintain both entities atomically. Covers separator drag, staff split/merge/add, and system split/merge/reassign operations. Also provides system-only boundary operations (`dragSystemBoundary`, `splitSystemAtPdfY`, `mergeAdjacentSystemsOnly`) that modify only `System[]` without touching staffs.
 - **systemDetector.ts** — Detects system boundaries from horizontal projection data; extends first/last system to page edges. Uses `projectionAnalysis.ts` utilities.
 - **projectionAnalysis.ts** — Shared utilities for gap detection (`findGaps`) and content-bound calculation (`findContentBounds`) used by both system and staff detectors.
-- **staffDetector.ts** — Horizontal projection algorithm to detect staff/system boundaries from binary image data
+- **staffDetector.ts** — Horizontal projection algorithm to detect staff boundaries within systems (`detectStaffsInSystem`) and standalone (`detectStaffBoundaries`)
 - **imageProcessing.ts** — Grayscale → binary → horizontal projection pipeline
 - **coordinateMapper.ts** — Bidirectional Canvas ↔ PDF coordinate conversion (scale = DPI / 72)
 - **partAssembler.ts** — Uses pdf-lib `embedPage()` with bounding boxes to extract parts as vector PDFs (no rasterization)
@@ -76,7 +76,7 @@ useReducer + React Context split into three contexts:
 
 ### Detection Pipeline
 
-PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horizontal projection → gap detection (20px min) → System entities + Staff objects (linked via `systemId`). First/last system boundaries are extended to page edges so system regions cover the full page extent.
+PDF page → Canvas @ 150 DPI → grayscale → binary (threshold=128) → horizontal projection → **Phase 1** (SystemStep): system gap detection (50px min) → System entities with page-edge extension → **Phase 2** (StaffStep): staff gap detection within each system (15px min) → Staff objects (linked to System via `systemId`).
 
 ### PDF Assembly
 
