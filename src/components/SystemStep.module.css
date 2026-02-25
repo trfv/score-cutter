@@ -85,6 +85,29 @@
   box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
+/* --- Responsive: Tablet (<=768px) --- */
+@media (max-width: 768px) {
+  .content {
+    padding: var(--space-2);
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .canvasArea {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* --- Responsive: Mobile (<=480px) --- */
+@media (max-width: 480px) {
+  .staffCount {
+    display: none;
+  }
+}
+
 .progressOverlay {
   position: absolute;
   top: 0;

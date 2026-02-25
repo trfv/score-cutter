@@ -5,6 +5,7 @@
   grid-template-rows: 48px 1fr;
   grid-template-columns: 60px 1fr;
   height: 100vh;
+  height: 100dvh;
 }
 
 /* --- Header bar --- */
@@ -27,6 +28,46 @@
   margin: 0;
   letter-spacing: -0.02em;
   white-space: nowrap;
+}
+
+/* --- Header step indicator (mobile only) --- */
+.headerSteps {
+  display: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.headerStepCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  border: 1.5px solid var(--text-muted);
+  color: var(--text-muted);
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.headerStepActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg-deep);
+  font-weight: 700;
+}
+
+.headerStepCompleted {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.langIcon {
+  display: flex;
+  align-items: center;
 }
 
 .headerSpacer {
@@ -157,4 +198,38 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* --- Responsive: Tablet (<=768px) --- */
+@media (max-width: 768px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .sideRail {
+    display: none;
+  }
+
+  .headerSteps {
+    display: flex;
+  }
+}
+
+/* --- Responsive: Mobile (<=480px) --- */
+@media (max-width: 480px) {
+  .app {
+    grid-template-rows: 40px 1fr;
+  }
+
+  .logo {
+    font-size: var(--text-base);
+  }
+
+  .langSwitcher {
+    display: none;
+  }
+
+  .langIcon {
+    display: none;
+  }
 }

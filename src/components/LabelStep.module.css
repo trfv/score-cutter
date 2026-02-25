@@ -128,3 +128,47 @@
   background: var(--bg-deep);
   box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15);
 }
+
+/* --- Responsive: Tablet (<=768px) --- */
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 35vh;
+    flex-shrink: 0;
+  }
+
+  .canvasArea {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* --- Responsive: Mobile (<=480px) --- */
+@media (max-width: 480px) {
+  .sidebar {
+    padding: var(--space-2);
+    max-height: 30vh;
+  }
+
+  .sidebar h3 {
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-2);
+  }
+
+  .systemSection {
+    margin-left: var(--space-1);
+    padding-left: var(--space-2);
+    margin-bottom: var(--space-2);
+  }
+
+  .applyButton {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+  }
+}

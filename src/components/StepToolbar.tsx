@@ -25,9 +25,9 @@ export function StepToolbar({ onBack, onNext, nextDisabled, pageNav, children }:
     <div className={styles.toolbar}>
       <div className={styles.left}>
         {onBack && (
-          <button className={styles.backButton} onClick={onBack}>
+          <button className={styles.backButton} onClick={onBack} aria-label={t('common.back')}>
             <ChevronLeft width={14} height={14} />
-            {t('common.back')}
+            <span className={styles.backButtonLabel}>{t('common.back')}</span>
           </button>
         )}
       </div>
@@ -54,8 +54,8 @@ export function StepToolbar({ onBack, onNext, nextDisabled, pageNav, children }:
 
       <div className={styles.right}>
         {onNext && (
-          <button className={styles.nextButton} onClick={onNext} disabled={nextDisabled}>
-            {t('common.next')}
+          <button className={styles.nextButton} onClick={onNext} disabled={nextDisabled} aria-label={t('common.next')}>
+            <span className={styles.nextButtonLabel}>{t('common.next')}</span>
             <ChevronRight width={14} height={14} />
           </button>
         )}

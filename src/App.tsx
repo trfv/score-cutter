@@ -132,6 +132,33 @@ function WizardContent() {
   }
 }
 
+function HeaderSteps() {
+  const { step } = useProject();
+  const currentIdx = STEPS.indexOf(step);
+
+  return (
+    <div className={styles.headerSteps} aria-hidden="true">
+      {STEPS.map((s, i) => {
+        const isActive = s === step;
+        const isCompleted = currentIdx > i;
+        const cls = [
+          styles.headerStepCircle,
+          isActive ? styles.headerStepActive : '',
+          isCompleted ? styles.headerStepCompleted : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
+
+        return (
+          <span key={s} className={cls}>
+            {isCompleted ? <Check width={10} height={10} /> : i + 1}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function AppContent() {
   const { t } = useTranslation();
   const { step } = useProject();
@@ -143,6 +170,7 @@ function AppContent() {
     <div className={styles.app}>
       <header className={styles.header}>
         <h1 className={styles.logo}>{t('app.title')}</h1>
+        <HeaderSteps />
         <div className={styles.headerSpacer} />
         <div className={styles.headerActions}>
           <button
@@ -161,7 +189,9 @@ function AppContent() {
           >
             {theme === 'dark' ? <Sun width={18} height={18} /> : <Moon width={18} height={18} />}
           </button>
-          <Globe width={16} height={16} style={{ color: 'var(--text-muted)' }} />
+          <span className={styles.langIcon}>
+            <Globe width={16} height={16} style={{ color: 'var(--text-muted)' }} />
+          </span>
           <LanguageSwitcher />
         </div>
       </header>

@@ -3,6 +3,7 @@
   top: 0;
   left: 0;
   overflow: visible;
+  touch-action: manipulation;
 }
 
 /* System rectangle: alternating background colors */
@@ -191,4 +192,32 @@
 
 .systemGap:hover {
   background: var(--overlay-region-hover);
+}
+
+/* Touch device: enlarge hit areas and controls */
+@media (pointer: coarse) {
+  .systemSeparatorHitArea {
+    height: 44px;
+    top: -22px;
+  }
+
+  .deleteButton {
+    width: 28px;
+    height: 28px;
+  }
+
+  .deleteIcon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .deleteIcon::before,
+  .deleteIcon::after {
+    width: 12px;
+  }
+
+  .gripHandle {
+    width: 28px;
+    height: 28px;
+  }
 }

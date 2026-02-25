@@ -3,6 +3,7 @@
   top: 0;
   left: 0;
   overflow: visible;
+  touch-action: manipulation;
 }
 
 /* System background rectangles (read-only context in StaffStep) */
@@ -287,4 +288,32 @@
 .separatorPartOdd.selectedSeparator .gripIcon,
 .separatorEdgeOdd.selectedSeparator .gripIcon {
   border-color: var(--overlay-separator-odd-active);
+}
+
+/* Touch device: enlarge hit areas and controls */
+@media (pointer: coarse) {
+  .hitArea {
+    height: 44px;
+    top: -22px;
+  }
+
+  .deleteButton {
+    width: 28px;
+    height: 28px;
+  }
+
+  .deleteIcon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .deleteIcon::before,
+  .deleteIcon::after {
+    width: 12px;
+  }
+
+  .gripHandle {
+    width: 28px;
+    height: 28px;
+  }
 }

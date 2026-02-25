@@ -57,3 +57,15 @@
   opacity: 0.9;
   box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3);
 }
+
+/* --- Responsive: Mobile (<=480px) --- */
+@media (max-width: 480px) {
+  .container {
+    padding: var(--space-3);
+  }
+
+  .dropzone {
+    min-height: 160px;
+    padding: var(--space-4);
+  }
+}

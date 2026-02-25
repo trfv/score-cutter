@@ -195,3 +195,45 @@
   padding: var(--space-6);
 }
 
+/* --- Responsive: Tablet (<=768px) --- */
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .sidebar {
+    width: 100%;
+    max-height: 35vh;
+    flex-shrink: 0;
+  }
+
+  .previewPane {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* --- Responsive: Mobile (<=480px) --- */
+@media (max-width: 480px) {
+  .sidebar {
+    padding: var(--space-2);
+    max-height: 30vh;
+  }
+
+  .sidebar h3 {
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-2);
+  }
+
+  .partItem {
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .downloadAllButton {
+    padding: var(--space-2);
+    font-size: var(--text-xs);
+  }
+}
+

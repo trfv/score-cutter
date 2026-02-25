@@ -96,6 +96,12 @@
   --progress-overlay-bg: rgba(255, 255, 255, 0.7);
 }
 
+/* --- Breakpoints (reference for @media queries) ---
+ * Tablet:  max-width: 768px
+ * Mobile:  max-width: 480px
+ * Touch:   pointer: coarse
+ */
+
 /* --- Spacing scale (8px grid) --- */
 :root {
   --space-1: 0.25rem;

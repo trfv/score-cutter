@@ -18,3 +18,18 @@
 .warning {
   color: var(--danger);
 }
+
+/* --- Responsive: Tablet (<=768px) --- */
+@media (max-width: 768px) {
+  .indicator {
+    white-space: normal;
+    font-size: var(--text-xs);
+  }
+}
+
+/* --- Responsive: Mobile (<=480px) --- */
+@media (max-width: 480px) {
+  .indicator {
+    display: none;
+  }
+}
