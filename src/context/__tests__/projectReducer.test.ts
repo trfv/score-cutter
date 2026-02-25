@@ -131,6 +131,25 @@ describe('projectReducer', () => {
     expect(result.staffs).toBe(state.staffs);
   });
 
+  it('REFRESH_DOCUMENT replaces pdfDocument without resetting other state', () => {
+    const oldDoc = {} as PDFDocumentProxy;
+    const newDoc = {} as PDFDocumentProxy;
+    const state: ProjectState = {
+      ...initialState,
+      pdfDocument: oldDoc,
+      staffs: [mockStaff],
+      systems: [mockSystem],
+      currentPageIndex: 2,
+      step: 'staffs',
+    };
+    const result = projectReducer(state, { type: 'REFRESH_DOCUMENT', document: newDoc });
+    expect(result.pdfDocument).toBe(newDoc);
+    expect(result.staffs).toBe(state.staffs);
+    expect(result.systems).toBe(state.systems);
+    expect(result.currentPageIndex).toBe(2);
+    expect(result.step).toBe('staffs');
+  });
+
   it('unknown action type returns state unchanged', () => {
     const result = projectReducer(initialState, { type: 'UNKNOWN' } as unknown as ProjectAction);
     expect(result).toBe(initialState);
@@ -207,6 +226,13 @@ describe('combinedReducer', () => {
     const state = makeCombinedState();
     const result = combinedReducer(state, { type: 'SET_CURRENT_PAGE', pageIndex: 2 });
     expect(result.history).toBe(state.history);
+  });
+
+  it('REFRESH_DOCUMENT does not push to history', () => {
+    const state = makeCombinedState({ staffs: [mockStaff] });
+    const result = combinedReducer(state, { type: 'REFRESH_DOCUMENT', document: {} as PDFDocumentProxy });
+    expect(result.history).toBe(state.history);
+    expect(result.project.pdfDocument).toBeDefined();
   });
 
   it('SET_SYSTEMS pushes to history and supports undo/redo', () => {

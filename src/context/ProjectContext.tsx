@@ -75,6 +75,8 @@ export function projectReducer(state: ProjectState, action: ProjectAction): Proj
       };
     case 'SET_CURRENT_PAGE':
       return { ...state, currentPageIndex: action.pageIndex };
+    case 'REFRESH_DOCUMENT':
+      return { ...state, pdfDocument: action.document };
     case 'RESET':
       return initialState;
     default:

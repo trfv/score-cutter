@@ -79,7 +79,7 @@ describe('renderPageToCanvas', () => {
     handle.cancel();
 
     resolveGetPage({ getViewport: mockGetViewport, render: mockRender });
-    await handle.promise;
+    await expect(handle.promise).rejects.toThrow('Rendering cancelled');
 
     expect(mockRender).not.toHaveBeenCalled();
   });

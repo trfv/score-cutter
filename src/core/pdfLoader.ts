@@ -40,7 +40,7 @@ export function renderPageToCanvas(
 
   const promise = (async () => {
     const page = await document.getPage(pageIndex + 1);
-    if (cancelled) return;
+    if (cancelled) throw new Error('Rendering cancelled');
 
     const viewport = page.getViewport({ scale });
     canvas.width = viewport.width;

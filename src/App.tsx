@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProjectProvider } from './context/ProjectContext';
-import { useProject } from './context/projectHooks';
+import { useProject, useProjectDispatch } from './context/projectHooks';
+import { loadPdf } from './core/pdfLoader';
 import { useUndoRedoKeyboard } from './hooks/useUndoRedoKeyboard';
 import { ImportStep } from './components/ImportStep';
 import { SystemStep } from './components/SystemStep';
@@ -95,7 +96,24 @@ function LanguageSwitcher() {
 }
 
 function WizardContent() {
-  const { step } = useProject();
+  const { step, sourcePdfBytes } = useProject();
+  const dispatch = useProjectDispatch();
+  const prevStepRef = useRef(step);
+
+  // pdfjs-dist v5 PagesMapper bug workaround:
+  // PagesMapper uses static fields shared across all documents.
+  // When ExportStep loads assembled PDFs, PagesMapper.#pagesNumber gets
+  // overwritten with the assembled PDF's page count, breaking getPage()
+  // for the main document. Re-loading the main document restores it.
+  useEffect(() => {
+    const prevStep = prevStepRef.current;
+    prevStepRef.current = step;
+    if (prevStep === 'export' && step !== 'export' && sourcePdfBytes) {
+      loadPdf(sourcePdfBytes).then((loaded) => {
+        dispatch({ type: 'REFRESH_DOCUMENT', document: loaded.document });
+      });
+    }
+  }, [step, sourcePdfBytes, dispatch]);
 
   switch (step) {
     case 'import':

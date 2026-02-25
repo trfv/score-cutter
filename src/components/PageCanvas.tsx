@@ -22,8 +22,9 @@ export function PageCanvas({ document, pageIndex, scale, onCanvasReady }: PageCa
       if (onCanvasReady) {
         onCanvasReady(canvas);
       }
-    }).catch(() => {
-      // render was cancelled — ignore
+    }).catch((err) => {
+      if (err instanceof Error && err.message === 'Rendering cancelled') return;
+      console.warn(`[PageCanvas] render page ${pageIndex} failed:`, err);
     });
 
     return () => {

@@ -34,6 +34,7 @@ export type ProjectAction =
   | { type: 'ADD_STAFF'; staff: Staff }
   | { type: 'DELETE_STAFF'; staffId: string }
   | { type: 'SET_CURRENT_PAGE'; pageIndex: number }
+  | { type: 'REFRESH_DOCUMENT'; document: PDFDocumentProxy }
   | { type: 'RESET' }
   | { type: 'UNDO' }
   | { type: 'REDO' };
