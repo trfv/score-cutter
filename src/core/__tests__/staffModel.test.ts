@@ -706,4 +706,25 @@ describe('derivePartsFromStaffs with systems', () => {
     expect(parts[0].staffs[0].id).toBe('b'); // top 700 first
     expect(parts[0].staffs[1].id).toBe('a'); // top 500 second
   });
+
+  it('sorts by system ordinal even when alphabetical systemId order differs from positional order', () => {
+    const systems: System[] = [
+      makeSystem({ id: 'zz-uuid-upper', pageIndex: 0, top: 800, bottom: 500 }),
+      makeSystem({ id: 'aa-uuid-lower', pageIndex: 0, top: 400, bottom: 100 }),
+    ];
+    const staffs = [
+      makeStaff({ id: 'a', pageIndex: 0, top: 350, bottom: 300, label: 'Violin', systemId: 'aa-uuid-lower' }),
+      makeStaff({ id: 'b', pageIndex: 0, top: 750, bottom: 700, label: 'Violin', systemId: 'zz-uuid-upper' }),
+    ];
+
+    // Without systems: alphabetical order → aa-uuid-lower first (incorrect for page layout)
+    const partsWithout = derivePartsFromStaffs(staffs);
+    expect(partsWithout[0].staffs[0].id).toBe('a');
+    expect(partsWithout[0].staffs[1].id).toBe('b');
+
+    // With systems: ordinal order → zz-uuid-upper (top=800, ordinal 0) first (correct)
+    const partsWith = derivePartsFromStaffs(staffs, systems);
+    expect(partsWith[0].staffs[0].id).toBe('b');
+    expect(partsWith[0].staffs[1].id).toBe('a');
+  });
 });

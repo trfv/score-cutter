@@ -34,8 +34,8 @@ export function ExportStep() {
   const docCache = useRef(new Map<string, PDFDocumentProxy>());
 
   const parts = useMemo(
-    () => derivePartsFromStaffs(project.staffs),
-    [project.staffs],
+    () => derivePartsFromStaffs(project.staffs, project.systems),
+    [project.staffs, project.systems],
   );
 
   const selectedPart = parts.find((p) => p.label === selectedPartLabel) ?? parts[0] ?? null;
