@@ -41,6 +41,7 @@
   pointer-events: auto;
   cursor: ns-resize;
   z-index: 1;
+  touch-action: none;
 }
 
 .hitArea {
