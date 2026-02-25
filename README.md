@@ -23,6 +23,7 @@
 - 組段ステップ・譜表ステップにデータ構造サイドバー（組段グループ、譜表の PDF 座標をリアルタイム表示）
 - 日本語・英語 UI 切替
 - ステップ別アプリ内ヘルプパネル（ヘッダーの「?」ボタンから表示）
+- モバイル・タブレットレスポンシブ対応（768px / 480px 2段階ブレークポイント、タッチ操作最適化）
 
 ## チュートリアル / Tutorial
 
@@ -115,6 +116,7 @@ src/
     Icons.tsx                    #   SVG アイコンコンポーネント集
   hooks/                         # カスタムフック
     useUndoRedoKeyboard.ts       #   Ctrl+Z / Ctrl+Y キーボードショートカット
+    useCanvasDisplaySize.ts      #   Canvas 表示サイズ追跡フック
   context/                       # グローバル状態管理
     projectContextDefs.ts        #   型定義 (ProjectState, ProjectAction, WizardStep)
     ProjectContext.tsx            #   Provider + Reducer (useReducer + Undo/Redo)
@@ -135,6 +137,14 @@ docs/
   tutorial.en.md                 # 操作チュートリアル（英語）
   images/tutorial/               # チュートリアル用スクリーンショット（12枚）
   ubiquitous-language.md         # ドメイン駆動設計用語集
+e2e/                             # Playwright E2E テスト
+  fixtures/pdf.ts                #   共通フィクスチャ（PDF アップロード等）
+  import.spec.ts                 #   インポートステップ
+  detect.spec.ts                 #   組段検出ステップ
+  label.spec.ts                  #   ラベル付与ステップ
+  export.spec.ts                 #   エクスポートステップ
+  full-flow.spec.ts              #   全ステップ通しフロー
+  mobile.spec.ts                 #   モバイルレスポンシブ（Pixel 5 ビューポート）
 ```
 
 ## 五線検出アルゴリズム
@@ -176,7 +186,8 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-309 テスト（19 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
+**ユニットテスト**: 309 テスト（19 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
+
 
 - `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
 - `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加、任意位置での組段分割、組段のみの境界操作
@@ -196,4 +207,14 @@ npm test
 - `projectReducer.test.ts` - projectReducer / combinedReducer / Undo・Redo
 - `projectHooks.test.ts` - useProject / useProjectDispatch フック
 - `projectContextDefs.test.ts` - 初期状態・コンテキスト定義
+- `useCanvasDisplaySize.test.ts` - Canvas 表示サイズフック
+
+**E2E テスト**: 21 テスト（7 ファイル）、デスクトップ (chromium) + モバイル (Pixel 5) の 2 プロジェクト構成:
+
+- `import.spec.ts` - PDF アップロード・ドロップゾーン表示
+- `detect.spec.ts` - 組段検出・境界操作
+- `label.spec.ts` - ラベル入力・一括適用
+- `export.spec.ts` - パートプレビュー・ダウンロード
+- `full-flow.spec.ts` - 全ステップ通しフロー
+- `mobile.spec.ts` - モバイルレスポンシブ（サイドレール非表示、ヘッダーステップ表示、ビューポート幅適合、ウィザード遷移）
 
