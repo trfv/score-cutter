@@ -1020,7 +1020,31 @@ describe('separatorModel', () => {
       expect(added.systemId).toBe('sys-2');
     });
 
-    it('defaults to empty systemId when no staffs on the same page', () => {
+    it('infers systemId from page system when no staffs on the same page', () => {
+      const staffs = [
+        makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-3' }),
+      ];
+      const systems: System[] = [
+        { id: 'sys-3', pageIndex: 1, top: 750, bottom: 550 },
+        { id: 'sys-0', pageIndex: 0, top: 750, bottom: 200 },
+      ];
+      const { staffs: result } = addStaffAtPosition(staffs, 0, 400, PAGE_HEIGHT, systems);
+      const added = result.find(s => s.id !== 'a')!;
+      expect(added.systemId).toBe('sys-0');
+    });
+
+    it('infers systemId from nearest system when pdfY is in gap between systems', () => {
+      const systems: System[] = [
+        { id: 'sys-upper', pageIndex: 0, top: 750, bottom: 500 },
+        { id: 'sys-lower', pageIndex: 0, top: 400, bottom: 100 },
+      ];
+      // pdfY=460 is in the gap (400-500), closer to sys-upper (bottom=500)
+      const { staffs: result } = addStaffAtPosition([], 0, 460, PAGE_HEIGHT, systems);
+      const added = result[0];
+      expect(added.systemId).toBe('sys-upper');
+    });
+
+    it('defaults to empty systemId when no staffs and no systems on page', () => {
       const staffs = [
         makeStaff({ id: 'a', pageIndex: 1, top: 700, bottom: 600, systemId: 'sys-3' }),
       ];

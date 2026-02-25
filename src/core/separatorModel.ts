@@ -481,7 +481,8 @@ export function addStaffAtPosition(
     top = height;
   }
 
-  // Infer systemId from the nearest staff on the same page
+  // Infer systemId from the nearest staff on the same page,
+  // falling back to the system containing pdfY (or nearest system)
   const pageStaffs = staffs
     .filter(s => s.pageIndex === pageIndex)
     .sort((a, b) => b.top - a.top);
@@ -499,6 +500,24 @@ export function addStaffAtPosition(
       }
     }
     systemId = nearest.systemId;
+  } else {
+    const pageSystems = getPageSystems(systems, pageIndex);
+    const target = pageSystems.find(sys => pdfY <= sys.top && pdfY >= sys.bottom);
+    if (target) {
+      systemId = target.id;
+    } else if (pageSystems.length > 0) {
+      let nearest = pageSystems[0];
+      let minDist = Infinity;
+      for (const sys of pageSystems) {
+        const center = (sys.top + sys.bottom) / 2;
+        const dist = Math.abs(center - pdfY);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = sys;
+        }
+      }
+      systemId = nearest.id;
+    }
   }
 
   const newStaff: Staff = {
