@@ -75,13 +75,20 @@ export function ExportStep() {
 
       let doc = docCache.current.get(effectiveLabel!);
       if (!doc) {
-        const loaded = await loadPdf(pdfBytes);
-        if (cancelled) {
-          loaded.document.destroy();
+        try {
+          const loaded = await loadPdf(pdfBytes);
+          if (cancelled) {
+            loaded.document.destroy();
+            return;
+          }
+          doc = loaded.document;
+          docCache.current.set(effectiveLabel!, doc);
+        } catch {
+          if (!cancelled) {
+            setAssemblyError(effectiveLabel);
+          }
           return;
         }
-        doc = loaded.document;
-        docCache.current.set(effectiveLabel!, doc);
       }
 
       if (!cancelled) {
