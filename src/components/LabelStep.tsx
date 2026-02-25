@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
+import { useCanvasDisplaySize } from '../hooks/useCanvasDisplaySize';
 import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { getScale } from '../core/coordinateMapper';
@@ -24,14 +25,9 @@ export function LabelStep() {
   const { t } = useTranslation();
   const project = useProject();
   const dispatch = useProjectDispatch();
-  const [bitmapWidth, setBitmapWidth] = useState(0);
-  const [canvasWidth, setCanvasWidth] = useState(0);
-  const [canvasHeight, setCanvasHeight] = useState(0);
+  const { canvasWidth, canvasHeight, effectiveScale, handleCanvasReady } = useCanvasDisplaySize();
 
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
-
-  const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
-  const effectiveScale = DISPLAY_SCALE * displayRatio;
 
   const currentPageSystems: LabelSystemGroup[] = useMemo(() => {
     const pageSystems = getPageSystems(systems, currentPageIndex);
@@ -47,12 +43,6 @@ export function LabelStep() {
       staffs: (staffsBySystemId.get(sys.id) ?? []).slice().sort((a, b) => b.top - a.top),
     }));
   }, [staffs, systems, currentPageIndex]);
-
-  const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
-    setBitmapWidth(canvas.width);
-    setCanvasWidth(canvas.clientWidth);
-    setCanvasHeight(canvas.clientHeight);
-  }, []);
 
   const handleLabelChange = useCallback(
     (staffId: string, label: string) => {

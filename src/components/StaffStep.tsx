@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
+import { useCanvasDisplaySize } from '../hooks/useCanvasDisplaySize';
 import { PageCanvas } from './PageCanvas';
 import { SeparatorOverlay } from './SeparatorOverlay';
 import { StatusIndicator } from './StatusIndicator';
@@ -24,21 +25,10 @@ export function StaffStep() {
   const dispatch = useProjectDispatch();
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedSeparatorIndex, setSelectedSeparatorIndex] = useState<number | null>(null);
-  const [bitmapWidth, setBitmapWidth] = useState(0);
-  const [canvasWidth, setCanvasWidth] = useState(0);
-  const [canvasHeight, setCanvasHeight] = useState(0);
   const [detectingStaffs, setDetectingStaffs] = useState(false);
+  const { canvasWidth, canvasHeight, effectiveScale, handleCanvasReady } = useCanvasDisplaySize();
 
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, staffs, systems } = project;
-
-  const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
-  const effectiveScale = DETECT_SCALE * displayRatio;
-
-  const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
-    setBitmapWidth(canvas.width);
-    setCanvasWidth(canvas.clientWidth);
-    setCanvasHeight(canvas.clientHeight);
-  }, []);
 
   // Auto-detect staffs within system boundaries via Worker pool
   const handleAutoDetectStaffs = useCallback(async () => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProject, useProjectDispatch } from '../context/projectHooks';
+import { useCanvasDisplaySize } from '../hooks/useCanvasDisplaySize';
 import { PageCanvas } from './PageCanvas';
 import { SystemOverlay } from './SystemOverlay';
 import { canvasYToPdfY, getScale } from '../core/coordinateMapper';
@@ -28,20 +29,9 @@ export function SystemStep() {
   const [detecting, setDetecting] = useState(false);
   const [progress, setProgress] = useState<{ completed: number; total: number } | null>(null);
   const [selectedSystemSepIndex, setSelectedSystemSepIndex] = useState<number | null>(null);
-  const [bitmapWidth, setBitmapWidth] = useState(0);
-  const [canvasWidth, setCanvasWidth] = useState(0);
-  const [canvasHeight, setCanvasHeight] = useState(0);
+  const { canvasWidth, canvasHeight, effectiveScale, handleCanvasReady } = useCanvasDisplaySize();
 
   const { pdfDocument, currentPageIndex, pageCount, pageDimensions, systems } = project;
-
-  const displayRatio = bitmapWidth > 0 ? canvasWidth / bitmapWidth : 1;
-  const effectiveScale = DETECT_SCALE * displayRatio;
-
-  const handleCanvasReady = useCallback((canvas: HTMLCanvasElement) => {
-    setBitmapWidth(canvas.width);
-    setCanvasWidth(canvas.clientWidth);
-    setCanvasHeight(canvas.clientHeight);
-  }, []);
 
   const handleDetect = useCallback(async () => {
     if (!pdfDocument) return;
