@@ -35,7 +35,7 @@ export function StepToolbar({ onBack, onNext, nextDisabled, pageNav, children }:
       <div className={styles.center}>
         {pageNav && (
           <div className={styles.pageNav}>
-            <button onClick={pageNav.onPrevPage} disabled={pageNav.currentPage === 0}>
+            <button onClick={pageNav.onPrevPage} disabled={pageNav.currentPage === 0} aria-label={t('common.prevPage')}>
               <ChevronLeft width={14} height={14} />
             </button>
             <span>
@@ -44,7 +44,7 @@ export function StepToolbar({ onBack, onNext, nextDisabled, pageNav, children }:
                 total: pageNav.totalPages,
               })}
             </span>
-            <button onClick={pageNav.onNextPage} disabled={pageNav.currentPage >= pageNav.totalPages - 1}>
+            <button onClick={pageNav.onNextPage} disabled={pageNav.currentPage >= pageNav.totalPages - 1} aria-label={t('common.nextPage')}>
               <ChevronRight width={14} height={14} />
             </button>
           </div>

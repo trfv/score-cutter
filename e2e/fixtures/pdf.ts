@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SAMPLE_PDF = path.join(__dirname, '..', '..', 'samples', 'memderssohn.pdf');
+const SAMPLE_PDF = path.join(__dirname, '..', '..', 'samples', 'memdelssohn.pdf');
 
 export const test = base.extend<{ samplePdfPath: string }>({
   samplePdfPath: SAMPLE_PDF,
@@ -44,7 +44,7 @@ export async function completeDetectStep(page: Page) {
 export async function completeLabelStep(page: Page) {
   const inputs = page.locator('input[placeholder="楽器名を入力"]');
   await inputs.first().fill('Soprano');
-  await page.getByRole('button', { name: '全組段に適用' }).click();
+  await page.getByRole('button', { name: '全組段に適用' }).first().click();
   await clickNext(page);
 }
 

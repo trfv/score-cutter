@@ -86,6 +86,8 @@
     "language": "言語",
     "undo": "元に戻す",
     "redo": "やり直す",
+    "prevPage": "前のページ",
+    "nextPage": "次のページ",
     "themeToggle": "テーマ切替",
     "darkMode": "ダークモード",
     "lightMode": "ライトモード",

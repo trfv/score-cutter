@@ -86,6 +86,8 @@
     "language": "Language",
     "undo": "Undo",
     "redo": "Redo",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
     "themeToggle": "Toggle theme",
     "darkMode": "Dark mode",
     "lightMode": "Light mode",

@@ -18,9 +18,9 @@ test.describe('Systems Step', () => {
   });
 
   test('page navigation works', async ({ page }) => {
-    await page.getByRole('button', { name: '>' }).click();
+    await page.getByRole('button', { name: '次のページ' }).click();
     await expect(page.getByText('ページ 2 / 6')).toBeVisible();
-    await page.getByRole('button', { name: '<' }).click();
+    await page.getByRole('button', { name: '前のページ' }).click();
     await expect(page.getByText('ページ 1 / 6')).toBeVisible();
   });
 });

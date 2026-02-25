@@ -28,10 +28,10 @@ test.describe('Label Step', () => {
     const inputs = page.locator('input[placeholder="楽器名を入力"]');
     await inputs.first().fill('Soprano');
 
-    await page.getByRole('button', { name: '全組段に適用' }).click();
+    await page.getByRole('button', { name: '全組段に適用' }).first().click();
 
     // Navigate to page 2
-    await page.getByRole('button', { name: '>' }).click();
+    await page.getByRole('button', { name: '次のページ' }).click();
     await expect(page.getByText('ページ 2 / 6')).toBeVisible();
 
     const page2FirstInput = page.locator('input[placeholder="楽器名を入力"]').first();
