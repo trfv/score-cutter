@@ -80,6 +80,55 @@
     "noStaffsOnPage": "No staffs on this page",
     "pdfYRange": "Y: {{top}} → {{bottom}}"
   },
+  "help": {
+    "title": "Help",
+    "close": "Close",
+    "import": {
+      "title": "Import PDF",
+      "tips": [
+        "Drag & drop a PDF file onto the drop zone, or click to select",
+        "Once loaded, the app automatically advances to the Systems step"
+      ]
+    },
+    "systems": {
+      "title": "Define Systems",
+      "tips": [
+        "System boundaries are automatically detected",
+        "Drag boundary lines to adjust positions",
+        "Double-click inside a system to split, on a boundary to merge"
+      ],
+      "keyboard": "Tab: Focus\n↑↓: 1px\nShift+↑↓: 10px\nDelete: Merge/Delete"
+    },
+    "staffs": {
+      "title": "Split Staffs",
+      "tips": [
+        "Staffs within each system are automatically detected",
+        "Click a sidebar row to select; canvas highlights in sync",
+        "Drag separators, double-click to split/merge"
+      ],
+      "keyboard": "Tab: Focus\n↑↓: 1px\nShift+↑↓: 10px\nDelete: Merge/Delete"
+    },
+    "label": {
+      "title": "Assign Labels",
+      "tips": [
+        "Type instrument names in the sidebar input fields",
+        "Use \"Apply to all systems\" to copy labels across all systems",
+        "All staffs must be labeled to proceed"
+      ]
+    },
+    "export": {
+      "title": "Export",
+      "tips": [
+        "Select a part to preview the assembled PDF",
+        "Download individual parts or all as a ZIP file"
+      ]
+    },
+    "shortcuts": {
+      "title": "Global Shortcuts",
+      "undo": "Ctrl/Cmd + Z: Undo",
+      "redo": "Ctrl/Cmd + Y: Redo"
+    }
+  },
   "common": {
     "back": "Back",
     "next": "Next",

@@ -1,0 +1,135 @@
+/* ===== Help Panel Modal ===== */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  width: min(480px, 90vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* --- Header --- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--text-lg);
+  transition: color 0.15s, background 0.15s;
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
+  background: var(--border);
+}
+
+/* --- Body --- */
+.body {
+  padding: var(--space-5);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.tipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tipItem {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.tipBullet {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* --- Keyboard section --- */
+.keyboardSection {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.keyboardLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+  white-space: break-spaces;
+}
+
+/* --- Shortcuts section --- */
+.shortcuts {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.shortcutsTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.shortcutRow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.8;
+}

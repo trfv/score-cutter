@@ -9,7 +9,8 @@ import { SystemStep } from './components/SystemStep';
 import { StaffStep } from './components/StaffStep';
 import { LabelStep } from './components/LabelStep';
 import { ExportStep } from './components/ExportStep';
-import { Sun, Moon, Check, Globe } from './components/Icons';
+import { Sun, Moon, Check, Globe, HelpCircle } from './components/Icons';
+import { HelpPanel } from './components/HelpPanel';
 import type { WizardStep } from './context/ProjectContext';
 import styles from './App.module.css';
 
@@ -133,7 +134,9 @@ function WizardContent() {
 
 function AppContent() {
   const { t } = useTranslation();
+  const { step } = useProject();
   const { theme, toggle } = useTheme();
+  const [helpOpen, setHelpOpen] = useState(false);
   useUndoRedoKeyboard();
 
   return (
@@ -142,6 +145,14 @@ function AppContent() {
         <h1 className={styles.logo}>{t('app.title')}</h1>
         <div className={styles.headerSpacer} />
         <div className={styles.headerActions}>
+          <button
+            className={styles.iconButton}
+            onClick={() => setHelpOpen(true)}
+            aria-label={t('help.title')}
+            title={t('help.title')}
+          >
+            <HelpCircle width={18} height={18} />
+          </button>
           <button
             className={styles.iconButton}
             onClick={toggle}
@@ -158,6 +169,7 @@ function AppContent() {
       <main className={styles.main}>
         <WizardContent />
       </main>
+      {helpOpen && <HelpPanel currentStep={step} onClose={() => setHelpOpen(false)} />}
     </div>
   );
 }

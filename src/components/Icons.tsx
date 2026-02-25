@@ -84,6 +84,15 @@ export function AlertTriangle(props: IconProps) {
   );
 }
 
+export function HelpCircle(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="10" cy="10" r="7.5" />
+      <path d="M7.5 7.5a2.5 2.5 0 0 1 4.5 1.5c0 1.5-2 2-2 3.5M10 15v.5" />
+    </Icon>
+  );
+}
+
 export function Globe(props: IconProps) {
   return (
     <Icon {...props}>

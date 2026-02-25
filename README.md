@@ -22,6 +22,12 @@
 - ダーク/ライトテーマ切替
 - 組段ステップ・譜表ステップにデータ構造サイドバー（組段グループ、譜表の PDF 座標をリアルタイム表示）
 - 日本語・英語 UI 切替
+- ステップ別アプリ内ヘルプパネル（ヘッダーの「?」ボタンから表示）
+
+## チュートリアル / Tutorial
+
+操作方法の詳細は [チュートリアル](docs/tutorial.md) を参照してください。
+For detailed usage instructions, see the [Tutorial](docs/tutorial.en.md).
 
 ## ワークフロー
 
@@ -105,6 +111,7 @@ src/
     SystemOverlay.tsx            #   組段境界の可視化 + 分割・結合・ドラッグ
     SeparatorOverlay.tsx         #   譜表区切り線の可視化 + ドラッグ・分割・結合・削除
     StatusIndicator.tsx          #   バリデーション結果のアイコン＋テキスト表示
+    HelpPanel.tsx                #   ステップ別ヘルプモーダル
     Icons.tsx                    #   SVG アイコンコンポーネント集
   hooks/                         # カスタムフック
     useUndoRedoKeyboard.ts       #   Ctrl+Z / Ctrl+Y キーボードショートカット
@@ -123,6 +130,11 @@ src/
   index.css                      # グローバルスタイル
   main.tsx                       # エントリーポイント
   test-setup.ts                  # Vitest テストセットアップ
+docs/
+  tutorial.md                    # 操作チュートリアル（日本語）
+  tutorial.en.md                 # 操作チュートリアル（英語）
+  images/tutorial/               # チュートリアル用スクリーンショット（12枚）
+  ubiquitous-language.md         # ドメイン駆動設計用語集
 ```
 
 ## 五線検出アルゴリズム
@@ -164,7 +176,7 @@ pdf-lib の `embedPage` を bounding box 付きで使用:
 npm test
 ```
 
-296 テスト（18 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
+309 テスト（19 ファイル）、`src/core/` `src/workers/` `src/context/` のカバレッジ 100%:
 
 - `staffModel.test.ts` - ラベル一括適用、パートグループ化、バリデーション（譜表数一致、ラベル完全性・重複・順序）
 - `separatorModel.test.ts` - 区切り線の算出、ドラッグ、分割、結合、追加、任意位置での組段分割、組段のみの境界操作
