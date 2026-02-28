@@ -298,5 +298,17 @@ export function derivePartsFromStaffs(staffs: Staff[], systems?: System[]): Part
     parts.push({ label, staffs: sorted });
   }
 
+  parts.sort((a, b) => {
+    const fa = a.staffs[0];
+    const fb = b.staffs[0];
+    if (fa.pageIndex !== fb.pageIndex) return fa.pageIndex - fb.pageIndex;
+    if (systems && systems.length > 0) {
+      const ordA = getSystemOrdinal(systems, fa.pageIndex, fa.systemId);
+      const ordB = getSystemOrdinal(systems, fb.pageIndex, fb.systemId);
+      if (ordA !== ordB) return ordA - ordB;
+    }
+    return fb.top - fa.top;
+  });
+
   return parts;
 }

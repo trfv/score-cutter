@@ -727,4 +727,57 @@ describe('derivePartsFromStaffs with systems', () => {
     expect(partsWith[0].staffs[0].id).toBe('b');
     expect(partsWith[0].staffs[1].id).toBe('a');
   });
+
+  it('sorts the parts array by score position regardless of input staff order', () => {
+    const systems: System[] = [
+      makeSystem({ id: 'sys-0', pageIndex: 0, top: 800, bottom: 300 }),
+    ];
+    // Input order is intentionally reversed: Cello first, then Viola, then Violin
+    const staffs = [
+      makeStaff({ id: 'c', pageIndex: 0, top: 400, bottom: 350, label: 'Cello', systemId: 'sys-0' }),
+      makeStaff({ id: 'b', pageIndex: 0, top: 600, bottom: 550, label: 'Viola', systemId: 'sys-0' }),
+      makeStaff({ id: 'a', pageIndex: 0, top: 750, bottom: 700, label: 'Violin', systemId: 'sys-0' }),
+    ];
+
+    const parts = derivePartsFromStaffs(staffs, systems);
+    // Parts should be in score order (top to bottom): Violin, Viola, Cello
+    expect(parts[0].label).toBe('Violin');
+    expect(parts[1].label).toBe('Viola');
+    expect(parts[2].label).toBe('Cello');
+  });
+
+  it('sorts parts by system ordinal when first staffs are in different systems on the same page', () => {
+    const systems: System[] = [
+      makeSystem({ id: 'sys-upper', pageIndex: 0, top: 800, bottom: 500 }),
+      makeSystem({ id: 'sys-lower', pageIndex: 0, top: 400, bottom: 100 }),
+    ];
+    // Bass only appears in the lower system, Violin only in the upper
+    const staffs = [
+      makeStaff({ id: 'b', pageIndex: 0, top: 350, bottom: 300, label: 'Bass', systemId: 'sys-lower' }),
+      makeStaff({ id: 'v', pageIndex: 0, top: 750, bottom: 700, label: 'Violin', systemId: 'sys-upper' }),
+    ];
+
+    const parts = derivePartsFromStaffs(staffs, systems);
+    // Violin is in ordinal 0 (upper system), Bass in ordinal 1 (lower system)
+    expect(parts[0].label).toBe('Violin');
+    expect(parts[1].label).toBe('Bass');
+  });
+
+  it('sorts parts across multiple pages by first staff position', () => {
+    const systems: System[] = [
+      makeSystem({ id: 'sys-0', pageIndex: 0, top: 800, bottom: 300 }),
+      makeSystem({ id: 'sys-1', pageIndex: 1, top: 800, bottom: 300 }),
+    ];
+    // Oboe only appears on page 1, Flute on both pages
+    const staffs = [
+      makeStaff({ id: 'o1', pageIndex: 1, top: 600, bottom: 550, label: 'Oboe', systemId: 'sys-1' }),
+      makeStaff({ id: 'f1', pageIndex: 0, top: 750, bottom: 700, label: 'Flute', systemId: 'sys-0' }),
+      makeStaff({ id: 'f2', pageIndex: 1, top: 750, bottom: 700, label: 'Flute', systemId: 'sys-1' }),
+    ];
+
+    const parts = derivePartsFromStaffs(staffs, systems);
+    // Flute first appears on page 0, Oboe first appears on page 1
+    expect(parts[0].label).toBe('Flute');
+    expect(parts[1].label).toBe('Oboe');
+  });
 });
